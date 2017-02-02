@@ -14,7 +14,7 @@ return [
     'Zend\Log',
     'Zend\Router',
     'Zend\Validator',
-    'Application',
+    'OxcMP',
     'Zend\Hydrator',
     'Zend\Db',
 ];
