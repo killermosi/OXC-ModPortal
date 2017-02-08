@@ -9,6 +9,7 @@ class IndexController extends AbstractActionController
 {
     public function indexAction()
     {
+        //$this->getEvent()->getApplication()->getServiceManager()->get($id);
         return new ViewModel();
     }
 }

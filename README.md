@@ -17,9 +17,10 @@ This portal is a repository for OpenXcom modifications.
 - [ ] Common users roster with the OpenXcom forum - no need to create a separate account
 - [ ] File versions history for modifications
 - [ ] Comments and rating system for modifications (thumbs up/down)
+- [ ] Responsive theme for mobile users
 - [ ] Large file uploads
 - [ ] Search in archives content
-- [ ] Markdown and BB Code for comments and descriptions
+- [ ] Markdown and BBCode for comments and descriptions
 - [ ] Moderate comments for own mods (the original version will always be available)
 - [ ] Advanced features for administrators
 
