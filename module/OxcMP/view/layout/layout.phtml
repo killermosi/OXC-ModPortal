@@ -2,6 +2,49 @@
 
 <html lang="en">
     <head>
+        <?php
+        
+            echo $this->headTitle('OpenXcom Mod Portal')->setSeparator(' - ')->setAutoEscape(false);
+
+            echo $this->headMeta()
+                ->appendName('viewport', 'width=device-width, initial-scale=1, shrink-to-fit=no')
+                ->appendName('charset', 'utf-8')
+                ->appendHttpEquiv('X-UA-Compatible', 'IE=edge') . PHP_EOL;
+
+            // Add CSS
+            $bootstrapMinCss = $this->config->layout->css->bootstrapMin;
+            echo $this->headLink()
+                      ->appendStylesheet($bootstrapMinCss->href, 'screen', '', ['integrity' => $bootstrapMinCss->integrity, 'crossorigin' => $bootstrapMinCss->crossorigin]);
+        ?>
+    </head>
+    <body>
+        
+        <?= $this->content ?>
+        
+        <?php
+            // Add JS
+            $jquerySlimMinJs = $this->config->layout->js->jquerySlimMin;
+            $tetherMinJs = $this->config->layout->js->tetherMin;
+            $bootstrapMinJs = $this->config->layout->js->bootstrapMin;
+            echo $this->headScript()
+                ->setAllowArbitraryAttributes(true) // This is needed for the "integrity" attribute, which is not supported as of Feb 2017
+                ->appendFile($jquerySlimMinJs->src, 'text/javascript', ['integrity' => $jquerySlimMinJs->integrity, 'crossorigin' => $jquerySlimMinJs->crossorigin])
+                ->appendFile($tetherMinJs->src, 'text/javascript', ['integrity' => $tetherMinJs->integrity, 'crossorigin' => $tetherMinJs->crossorigin])
+                ->appendFile($bootstrapMinJs->src, 'text/javascript', ['integrity' => $bootstrapMinJs->integrity, 'crossorigin' => $bootstrapMinJs->crossorigin]);
+        ?>
+    </body>
+</html>
+
+
+
+
+
+
+<?php return ?>
+
+<!--
+<html lang="en">
+    <head>
         <meta charset="utf-8">
         <?= $this->headTitle('ZF Skeleton Application')->setSeparator(' - ')->setAutoEscape(false) ?>
 
@@ -10,14 +53,14 @@
             ->appendHttpEquiv('X-UA-Compatible', 'IE=edge')
         ?>
 
-        <!-- Le styles -->
+        
         <?= $this->headLink(['rel' => 'shortcut icon', 'type' => 'image/vnd.microsoft.icon', 'href' => $this->basePath() . '/img/favicon.ico'])
             ->prependStylesheet($this->basePath('css/style.css'))
             ->prependStylesheet($this->basePath('css/bootstrap-theme.min.css'))
             ->prependStylesheet($this->basePath('css/bootstrap.min.css'))
         ?>
 
-        <!-- Scripts -->
+        
         <?= $this->headScript()
             ->prependFile($this->basePath('js/bootstrap.min.js'))
             ->prependFile($this->basePath('js/jquery-3.1.0.min.js'))
@@ -53,3 +96,4 @@
         <?= $this->inlineScript() ?>
     </body>
 </html>
+-->
