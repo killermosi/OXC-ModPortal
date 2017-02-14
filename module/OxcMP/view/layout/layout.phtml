@@ -33,7 +33,9 @@
 ?>
     </head>
     <body>
+        
 <?= $this->placeholder('content')->set($this->content)->setIndent(8) ?>
+        
 <?php
     // Add JS
     $jquerySlimMinJs = $this->config->layout->js->jquerySlimMin;
