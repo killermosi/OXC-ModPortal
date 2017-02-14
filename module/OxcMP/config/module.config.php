@@ -52,6 +52,16 @@ return [
             __DIR__ . '/../view',
         ],
     ],
+    'translator' => [
+        'locale' => 'en_US',
+        'translation_file_patterns' => [
+            [
+                'type'     => 'phparray',
+                'base_dir' => __DIR__ . '/../locales',
+                'pattern'  => '%s.php',
+            ],
+        ],
+    ],
     'layout' => [ // TODO: Add local fallback for CSS and JS
         'css' => [
             'bootstrapMin' => [
