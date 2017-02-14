@@ -2,10 +2,14 @@
 
 namespace OxcMP\Controller;
 
-use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 
-class IndexController extends AbstractActionController
+/**
+ * Primary application controller
+ *
+ * @author Silviu Ghita <killermosi@yahoo.com>
+ */
+class IndexController extends AbstractController
 {
     public function indexAction()
     {
@@ -13,3 +17,5 @@ class IndexController extends AbstractActionController
         return new ViewModel();
     }
 }
+
+/* EOF */

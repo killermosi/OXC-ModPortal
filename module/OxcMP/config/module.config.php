@@ -36,6 +36,16 @@ return [
             Controller\IndexController::class => InvokableFactory::class,
         ],
     ],
+    'controller_plugins' => [
+        'factories' => [
+            Controller\Plugin\ServiceManager::class => InvokableFactory::class,
+            Controller\Plugin\Translate::class => InvokableFactory::class,
+        ],
+        'aliases' => [
+            'getService' => Controller\Plugin\ServiceManager::class,
+            'translate' => Controller\Plugin\Translate::class,
+        ]
+    ],
     'view_manager' => [
         'display_not_found_reason' => true,
         'display_exceptions'       => true,

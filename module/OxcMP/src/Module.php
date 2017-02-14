@@ -29,7 +29,7 @@ class Module
     public function onBootstrap(MvcEvent $event)
     {
         $serviceManager = $event->getApplication()->getServiceManager();
-        $viewModel = $event->getApplication()->getMvcEvent()->getViewModel();
+        $viewModel = $event->getViewModel();
     
         $viewModel->config = new Config($serviceManager->get('Config'));
         
