@@ -38,3 +38,5 @@ class Module
         $serviceManager->get(SessionManager::class);
     }
 }
+
+/* EOF */

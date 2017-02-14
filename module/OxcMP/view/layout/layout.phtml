@@ -1,36 +1,52 @@
-<?= $this->doctype() ?>
-
+<?= $this->doctype() . PHP_EOL ?>
 <html lang="en">
     <head>
-        <?php
-        
-            echo $this->headTitle($this->translate('applicationName'))->setSeparator(' - ')->setAutoEscape(false);
+<?php
 
-            echo $this->headMeta()
-                ->appendName('viewport', 'width=device-width, initial-scale=1, shrink-to-fit=no')
-                ->appendName('charset', 'utf-8')
-                ->appendHttpEquiv('X-UA-Compatible', 'IE=edge') . PHP_EOL;
+    echo $this->headTitle($this->translate('application_name'))
+        ->setIndent(8)
+        ->setSeparator(' - ')
+        ->setAutoEscape(false);
 
-            // Add CSS
-            $bootstrapMinCss = $this->config->layout->css->bootstrapMin;
-            echo $this->headLink()
-                      ->appendStylesheet($bootstrapMinCss->href, 'screen', '', ['integrity' => $bootstrapMinCss->integrity, 'crossorigin' => $bootstrapMinCss->crossorigin]);
-        ?>
+    echo PHP_EOL;
+    
+    echo $this->headMeta()
+        ->appendName('viewport', 'width=device-width, initial-scale=1, shrink-to-fit=no')
+        ->appendName('charset', 'utf-8')
+        ->setIndent(8)
+        ->appendHttpEquiv('X-UA-Compatible', 'IE=edge');
+
+    echo PHP_EOL;
+    
+    // Add CSS
+    $bootstrapMinCss = $this->config->layout->css->bootstrapMin;
+    echo $this->headLink()
+        ->setIndent(8)
+        ->appendStylesheet(
+            $bootstrapMinCss->href,
+            'screen',
+            '',
+            ['integrity' => $bootstrapMinCss->integrity, 'crossorigin' => $bootstrapMinCss->crossorigin]
+        );
+    
+    echo PHP_EOL;
+?>
     </head>
     <body>
-        
-        <?= $this->content ?>
-        
-        <?php
-            // Add JS
-            $jquerySlimMinJs = $this->config->layout->js->jquerySlimMin;
-            $tetherMinJs = $this->config->layout->js->tetherMin;
-            $bootstrapMinJs = $this->config->layout->js->bootstrapMin;
-            echo $this->headScript()
-                ->setAllowArbitraryAttributes(true) // This is needed for the "integrity" attribute, which is not supported as of Feb 2017
-                ->appendFile($jquerySlimMinJs->src, 'text/javascript', ['integrity' => $jquerySlimMinJs->integrity, 'crossorigin' => $jquerySlimMinJs->crossorigin])
-                ->appendFile($tetherMinJs->src, 'text/javascript', ['integrity' => $tetherMinJs->integrity, 'crossorigin' => $tetherMinJs->crossorigin])
-                ->appendFile($bootstrapMinJs->src, 'text/javascript', ['integrity' => $bootstrapMinJs->integrity, 'crossorigin' => $bootstrapMinJs->crossorigin]);
-        ?>
+<?= $this->placeholder('content')->set($this->content)->setIndent(8) ?>
+<?php
+    // Add JS
+    $jquerySlimMinJs = $this->config->layout->js->jquerySlimMin;
+    $tetherMinJs = $this->config->layout->js->tetherMin;
+    $bootstrapMinJs = $this->config->layout->js->bootstrapMin;
+    echo $this->headScript()
+        ->setIndent(8)
+        ->setAllowArbitraryAttributes(true) // This is needed for the "integrity" attribute, which is not supported as of Feb 2017
+        ->appendFile($jquerySlimMinJs->src, 'text/javascript', ['integrity' => $jquerySlimMinJs->integrity, 'crossorigin' => $jquerySlimMinJs->crossorigin])
+        ->appendFile($tetherMinJs->src, 'text/javascript', ['integrity' => $tetherMinJs->integrity, 'crossorigin' => $tetherMinJs->crossorigin])
+        ->appendFile($bootstrapMinJs->src, 'text/javascript', ['integrity' => $bootstrapMinJs->integrity, 'crossorigin' => $bootstrapMinJs->crossorigin]);
+    
+    echo PHP_EOL;
+?>
     </body>
 </html>
