@@ -6,6 +6,7 @@ use Zend\Router\Http\Literal;
 use Zend\Router\Http\Segment;
 use Zend\ServiceManager\Factory\InvokableFactory;
 use Zend\Config\Config;
+use Zend\Log\Logger;
 use OxcMP\Service;
 
 return [
@@ -109,5 +110,9 @@ return [
                 'crossorigin' => 'anonymous'
             ],
         ]
+    ],
+    'log' => [
+        'stream' => '/tmp/oxcmp.log',
+        'priority' => Logger::DEBUG
     ]
 ];
