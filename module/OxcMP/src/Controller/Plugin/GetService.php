@@ -11,11 +11,11 @@ namespace OxcMP\Controller\Plugin;
 use Zend\Mvc\Controller\Plugin\AbstractPlugin;
 
 /**
- * Description of ServiceManager
+ * Retrieve a service
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class ServiceManager extends AbstractPlugin {
+class GetService extends AbstractPlugin {
     /**
      * Retrieve the specified service
      * 

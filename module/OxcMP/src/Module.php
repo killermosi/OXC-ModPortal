@@ -4,7 +4,6 @@ namespace OxcMP;
 
 use Zend\Mvc\MvcEvent;
 use Zend\Session\SessionManager;
-use Zend\Config\Config;
 
 class Module
 {
@@ -29,9 +28,8 @@ class Module
     public function onBootstrap(MvcEvent $event)
     {
         $serviceManager = $event->getApplication()->getServiceManager();
-        $viewModel = $event->getViewModel();
     
-        $viewModel->config = new Config($serviceManager->get('Config'));
+        $event->getViewModel()->config = $serviceManager->get('cfg');
         
         // The following line instantiates the SessionManager and automatically
         // makes the SessionManager the 'default' one.

@@ -5,6 +5,8 @@ namespace OxcMP;
 use Zend\Router\Http\Literal;
 use Zend\Router\Http\Segment;
 use Zend\ServiceManager\Factory\InvokableFactory;
+use Zend\Config\Config;
+use OxcMP\Service;
 
 return [
     'router' => [
@@ -38,12 +40,22 @@ return [
     ],
     'controller_plugins' => [
         'factories' => [
-            Controller\Plugin\ServiceManager::class => InvokableFactory::class,
+            Controller\Plugin\GetService::class => InvokableFactory::class,
             Controller\Plugin\Translate::class => InvokableFactory::class,
         ],
         'aliases' => [
-            'getService' => Controller\Plugin\ServiceManager::class,
+            'getService' => Controller\Plugin\GetService::class,
             'translate' => Controller\Plugin\Translate::class,
+        ]
+    ],
+    // TODO: check if there is an already defined way of retrieving the module config as a Config instance
+    'service_manager' => [
+        'factories' => [
+            Config::class => Service\Factory\ConfigFactory::class
+        ],
+        // use lowerCamelCase for local service names
+        'aliases' => [
+            'cfg' => Config::class
         ]
     ],
     'view_manager' => [
