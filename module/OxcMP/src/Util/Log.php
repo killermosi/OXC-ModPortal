@@ -61,6 +61,10 @@ class Log {
 
         self::$logger = new Logger();        
         self::$logger->addWriter($writer);
+        
+        // Register the logger as error and exception handler
+        Logger::registerErrorHandler(self::$logger);
+        Logger::registerExceptionHandler(self::$logger);
     }
     
     /**

@@ -30,14 +30,15 @@ class Module
     {
         // Service manager
         $serviceManager = $event->getApplication()->getServiceManager();
+        $config = $serviceManager->get('cfg');
         
-        // Init the log first
-        Log::init($serviceManager->get('cfg'));
+        // Init the log
+        Log::init($config);
         
-        Log::info('Application started');
+        Log::info('Application starting, bootstrapping...');
         
         // Add the config to the layout
-        $event->getViewModel()->config = $serviceManager->get('cfg');
+        $event->getViewModel()->config = $config;
         
         // The following line instantiates the SessionManager and automatically
         // makes the SessionManager the 'default' one.
