@@ -17,7 +17,12 @@ class Module
      */
     public function getConfig()
     {
-        return include __DIR__ . '/../config/module.config.php';
+        // Use a split configuration - to make it easier to distinguish between
+        // configuration values that are intended to be user-modified and those which are not
+        return array_merge_recursive(
+            require  __DIR__ . '/../config/module.config.private.php',
+            require  __DIR__ . '/../config/module.config.php'
+        );
     }
     
     /**
