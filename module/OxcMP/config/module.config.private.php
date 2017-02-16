@@ -6,7 +6,7 @@ use Zend\Router\Http\Literal;
 use Zend\Router\Http\Segment;
 use Zend\ServiceManager\Factory\InvokableFactory;
 use Zend\Config\Config;
-
+use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use OxcMP\Service;
 
 /** PRIVATE CONFIGURTION - DO NOT MODIFY **/
@@ -111,6 +111,20 @@ return [
                 'integrity' => 'sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn',
                 'crossorigin' => 'anonymous'
             ],
+        ]
+    ],
+    'doctrine' => [
+        'driver' => [
+            __NAMESPACE__ . '_driver' => [
+                'class' => AnnotationDriver::class,
+                'cache' => 'array',
+                'paths' => [__DIR__ . '/../src/Entity']
+            ],
+            'orm_default' => [
+                'drivers' => [
+                    __NAMESPACE__ . '\Entity' => __NAMESPACE__ . '_driver'
+                ]
+            ]
         ]
     ]
 ];
