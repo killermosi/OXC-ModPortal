@@ -112,6 +112,7 @@ return [
         ]
     ],
     'log' => [
+        // Set "stream" to null to disable logging
         'stream' => '/tmp/oxcmp.log',
         'priority' => Logger::DEBUG
     ]
