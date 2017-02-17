@@ -126,5 +126,13 @@ return [
                 ]
             ]
         ]
+    ],
+    'id_generator' => [
+        // Min and max range for identifiers
+        // (five million potential users pool should do)
+        'range_min' => 1000000,
+        'range_max' => 6000000,
+        // How many attempts to generate a random ID before calling it quits
+        'attempts_max' => 500
     ]
 ];

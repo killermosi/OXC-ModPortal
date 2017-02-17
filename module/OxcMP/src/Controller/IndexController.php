@@ -18,8 +18,13 @@ class IndexController extends AbstractController
     {
         /* @var $entityManager EntityManager */
         $entityManager = $this->getService('doctrine.entitymanager.orm_default');
-        $user = $entityManager->getRepository(User::class)->find(1);
-        Log::notice($user);
+        
+        $user = new User($this->getService('cfg'));
+        $user->setMemberId(123);
+
+        $entityManager->persist($user);
+        $entityManager->flush();
+        
         return new ViewModel();
     }
 }

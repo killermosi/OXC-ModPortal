@@ -9,6 +9,7 @@
 namespace OxcMP\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Zend\Config\Config;
 
 /**
  * User entity
@@ -18,14 +19,16 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Entity
  * @ORM\Table(name="user")
  */
-class User {
+class User
+{
     /**
      * Internal identifier
      * @var integer
      * 
      * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(name="user_id")
+     * @ORM\GeneratedValue(strategy="CUSTOM")
+     * @ORM\CustomIdGenerator(class="OxcMP\Util\IdGenerator")
+     * @ORM\Column(name="user_id", type="integer", nullable=false)
      */
     private $id;
     
@@ -33,7 +36,7 @@ class User {
      * Forum member identifier
      * @var integer 
      * 
-     * @ORM\Column(name="member_id")
+     * @ORM\Column(name="member_id", type="integer", nullable=false, unique=true)
      */
     private $memberId;
     
@@ -41,7 +44,7 @@ class User {
      * Forum authentication token
      * @var string
      * 
-     * @ORM\Column(name="authentication_token")
+     * @ORM\Column(name="authentication_token", type="string", length=64, nullable=true)
      */
     private $authenticationToken;
     
@@ -49,7 +52,7 @@ class User {
      * Display name
      * @var string
      * 
-     * @ORM\Column(name="real_name")
+     * @ORM\Column(name="real_name", type="string", length=128, nullable=true)
      */
     private $realName;
     
@@ -57,7 +60,7 @@ class User {
      * Personal text
      * @var string 
      * 
-     * @ORM\Column(name="personal_text")
+     * @ORM\Column(name="personal_text", type="string", length=128, nullable=true)
      */
     private $personalText;
     
@@ -65,15 +68,15 @@ class User {
      * If the user is an administrator
      * @var boolean
      * 
-     * @ORM\Column(name="is_administrator")
+     * @ORM\Column(name="is_administrator", type="boolean", nullable=false)
      */
-    private $isAdministrator;
+    private $isAdministrator = false;
     
     /**
      * The member avatar URL
      * @var string
      * 
-     * @ORM\Column(name="avatar_url")
+     * @ORM\Column(name="avatar_url", type="string", length=256, nullable=true)
      */
     private $avatarUrl;
     
@@ -81,25 +84,36 @@ class User {
      * The last date and time when the authentication token was validated
      * @var \DateTime 
      * 
-     * @ORM\Column(name="last_token_check")
+     * @ORM\Column(name="last_token_check_date", type="datetime", nullable=false)
      */
-    private $lastTokenCheck;
+    private $lastTokenCheckDate;
     
     /**
      * The last date and time when the member details were updated
      * @var \Datetime
      * 
-     * @ORM\Column(name="last_detail_update") 
+     * @ORM\Column(name="last_detail_update_date", type="datetime", nullable=false) 
      */
-    private $lastDetailUpdate;
+    private $lastDetailUpdateDate;
+    
+    /**
+     * Application config
+     * @var Config
+     */
+    private $config;
     
     /**
      * Constructor
+     * 
+     * @param Config $config Application configuration (optional)
      */
-    public function __construct() {
+    public function __construct(Config $config = null) {
         // Init token and update dates in the past, for safe measure
-       $this->lastTokenCheck   = new \DateTime('1 Jan 1971');
-       $this->lastDetailUpdate = new \DateTime('1 Jan 1971');
+       $this->lastTokenCheckDate   = new \DateTime('1 Jan 1971');
+       $this->lastDetailUpdateDate = new \DateTime('1 Jan 1971');
+       
+       // And the config
+       $this->config = $config;
     }
     
     /**
@@ -243,9 +257,9 @@ class User {
      * 
      * @return \DateTime
      */
-    public function getLastTokenCheck()
+    public function getLastTokenCheckDate()
     {
-        return $this->lastTokenCheck;
+        return $this->lastTokenCheckDate;
     }
 
     /**
@@ -255,16 +269,16 @@ class User {
      */
     public function updateLastTokenCheckDate()
     {
-        $this->lastTokenCheck = new \DateTime();
+        $this->lastTokenCheckDate = new \DateTime();
     }
     
     /**
      * Get the last date and time when the member details were updated
      * 
-     * @return type
+     * @return \DateTime
      */
-    function getLastDetailUpdate() {
-        return $this->lastDetailUpdate;
+    function getLastDetailUpdateDate() {
+        return $this->lastDetailUpdateDate;
     }
 
     /**
@@ -272,9 +286,18 @@ class User {
      * 
      * @return void
      */
-    public function updateLastDetailUpdate()
+    public function updateLastDetailUpdateDate()
     {
-        $this->lastDetailUpdate = new \DateTime();
+        $this->lastDetailUpdateDate = new \DateTime();
+    }
+    
+    /**
+     * Get the configuration
+     * @return Config
+     */
+    public function getConfig()
+    {
+        return $this->config;
     }
 }
 

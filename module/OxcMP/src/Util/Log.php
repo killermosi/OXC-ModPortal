@@ -19,7 +19,8 @@ use Zend\Log\Formatter\Simple;
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class Log {
+class Log
+{
     /**
      * Zend logger instance
      * @var Logger 
