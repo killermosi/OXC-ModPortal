@@ -10,13 +10,15 @@ namespace OxcMP\Service\User;
 
 use Zend\ServiceManager\Factory\FactoryInterface;
 use Interop\Container\ContainerInterface;
+use OxcMP\Service\Config\ConfigService;
 
 /**
  * Create the module configuration instance
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class UserFactory implements FactoryInterface {
+class UserFactory implements FactoryInterface
+{
     /**
      * Create user persistence and retrieval services
      * 
@@ -26,7 +28,15 @@ class UserFactory implements FactoryInterface {
      * @return ConfigService
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null) {
-        return new $requestedName($container->get('doctrine.entitymanager.orm_default'));
+        switch ($requestedName) {
+            case UserPersistenceService::class:
+            case UserRetrievalService::class:
+                return new $requestedName($container->get('doctrine.entitymanager.orm_default'));
+            case UserRemoteService::class:
+                return new UserRemoteService($container->get(ConfigService::class));
+            default:
+                throw new \Exception('Unsupported service class : ' . $requestedName);
+        }
     }
 }
 

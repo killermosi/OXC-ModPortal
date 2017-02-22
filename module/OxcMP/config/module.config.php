@@ -173,4 +173,11 @@ return [
         'stream' => '/tmp/ocxmp.log',
         'priority' => Logger::WARN
     ],
+    'oxcForumApi' => [
+        'url' => 'https://www.openxcom.org/OxcMpOauth.php',
+        'key' => '',
+        'header' => 'ApiKey',
+        'authUser' => '',
+        'authPass' => ''
+    ]
 ];

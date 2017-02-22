@@ -16,6 +16,8 @@ class Module
      * @var array 
      */
     private $configMap = [
+        // API
+        
         // Database
         'db.host' => 'doctrine.connection.orm_default.params.host',
         'db.port' => 'doctrine.connection.orm_default.params.port',
