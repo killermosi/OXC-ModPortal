@@ -26,7 +26,7 @@ class User
      * 
      * @ORM\Id
      * @ORM\GeneratedValue
-     * @ORM\Column(name="user_id", type="integer", nullable=false)
+     * @ORM\Column(name="user_id", type="integer", nullable=false, unique=true)
      */
     private $id;
     
@@ -95,12 +95,6 @@ class User
     private $lastDetailUpdateDate;
     
     /**
-     * Application config
-     * @var Config
-     */
-    private $config;
-    
-    /**
      * Constructor
      */
     public function __construct()
@@ -119,7 +113,7 @@ class User
     {
         return $this->id;
     }
-
+    
     /**
      * Get the forum member ID
      * 

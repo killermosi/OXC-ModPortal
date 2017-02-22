@@ -10,8 +10,9 @@ use OxcMP\Util\Log;
 class Module
 {
     const VERSION = '3.0.1';
+    
     /**
-     * Public-to-private configuration mappings
+     * Public-to-private configuration mapping
      * @var array 
      */
     private $configMap = [
@@ -20,7 +21,7 @@ class Module
         'db.port' => 'doctrine.connection.orm_default.params.port',
         'db.user' => 'doctrine.connection.orm_default.params.user',
         'db.pass' => 'doctrine.connection.orm_default.params.password',
-        'db.name' => 'doctrine.connection.orm_default.params.name',
+        'db.name' => 'doctrine.connection.orm_default.params.dbname',
         // Logging
         'log.enabled' => 'log.enabled',
         'log.file'    => 'log.stream',

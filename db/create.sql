@@ -1,5 +1,5 @@
 create table user (
-    user_id int(10) not null comment 'Internal identifier',
+    user_id int(10) not null auto_increment comment 'Internal identifier',
     member_id int(10) not null unique comment 'Forum member identifier',
     authentication_token varchar(64) default null comment 'Forum authentication token',
     real_name varchar(128) default null comment 'Display name',

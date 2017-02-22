@@ -51,7 +51,7 @@ class Log
         if (!($config->log->enabled)) {
             return;
         }
-        error_log('Enabled');
+
         $writer = new Stream($config->log->stream);
         
         $filter = new Priority($config->log->priority);

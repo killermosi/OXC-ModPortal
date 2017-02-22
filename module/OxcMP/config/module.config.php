@@ -51,10 +51,11 @@ return [
             'translate' => Controller\Plugin\Translate::class,
         ]
     ],
-    // TODO: check if there is an already defined way of retrieving the module config as a Config instance
     'service_manager' => [
         'factories' => [
-            Service\Config\ConfigService::class => Service\Config\ConfigFactory::class
+            Service\Config\ConfigService::class => Service\Config\ConfigFactory::class,
+            Service\User\UserPersistenceService::class => Service\User\UserFactory::class,
+            Service\User\UserRetrievalService::class => Service\User\UserFactory::class,
         ],
     ],
     'view_manager' => [
@@ -144,10 +145,4 @@ return [
         'stream' => '/tmp/ocxmp.log',
         'priority' => Logger::WARN
     ],
-    // Id Generator
-    'id_generator' => [
-        'range_min' => 1000000,
-        'range_max' => 6000000,
-        'attempts_max' => 500
-    ]
 ];
