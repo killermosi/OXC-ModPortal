@@ -48,10 +48,10 @@ class Log
     public static function init(Config $config)
     {
         // Don't init if disabled in the config
-        if (is_null($config->log->stream)) {
+        if (!($config->log->enabled)) {
             return;
         }
-        
+        error_log('Enabled');
         $writer = new Stream($config->log->stream);
         
         $filter = new Priority($config->log->priority);
@@ -171,7 +171,7 @@ class Log
             return;
         }
         
-        // Stop if logging is disabled
+        // Stop if the logger is not enabled
         if (is_null(self::$logger)) {
             return;
         }

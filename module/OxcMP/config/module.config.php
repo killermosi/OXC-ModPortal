@@ -4,11 +4,13 @@ namespace OxcMP;
 
 use Zend\Router\Http\Literal;
 use Zend\Router\Http\Segment;
+use Zend\Log\Logger;
 use Zend\ServiceManager\Factory\InvokableFactory;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
+use Doctrine\DBAL\Driver\PDOMySql\Driver as PDOMySqlDriver;
 use OxcMP\Service;
 
-/** PRIVATE CONFIGURTION - DO NOT MODIFY **/
+/** !!! PRIVATE CONFIGURATION - DO NOT MODIFY !!! **/
 return [
     'router' => [
         'routes' => [
@@ -109,6 +111,20 @@ return [
         ]
     ],
     'doctrine' => [
+        'connection' => [
+            'orm_default' => [
+                // Driver type
+                'driverClass' => PDOMySqlDriver::class,
+                // Connection parameters
+                'params' => [
+                    'host'     => 'localhost',
+                    'port'     => '3306',
+                    'user'     => '',
+                    'password' => '',
+                    'dbname'   => '',
+                ]
+            ]
+        ],
         'driver' => [
             __NAMESPACE__ . '_driver' => [
                 'class' => AnnotationDriver::class,
@@ -122,12 +138,16 @@ return [
             ]
         ]
     ],
+    // Application logging
+    'log' => [
+        'enabled' => false,
+        'stream' => '/tmp/ocxmp.log',
+        'priority' => Logger::WARN
+    ],
+    // Id Generator
     'id_generator' => [
-        // Min and max range for identifiers
-        // (five million potential users pool should do)
         'range_min' => 1000000,
         'range_max' => 6000000,
-        // How many attempts to generate a random ID before calling it quits
         'attempts_max' => 500
     ]
 ];

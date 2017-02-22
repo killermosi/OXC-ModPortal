@@ -10,7 +10,23 @@ use OxcMP\Util\Log;
 class Module
 {
     const VERSION = '3.0.1';
-
+    /**
+     * Public-to-private configuration mappings
+     * @var array 
+     */
+    private $configMap = [
+        // Database
+        'db.host' => 'doctrine.connection.orm_default.params.host',
+        'db.port' => 'doctrine.connection.orm_default.params.port',
+        'db.user' => 'doctrine.connection.orm_default.params.user',
+        'db.pass' => 'doctrine.connection.orm_default.params.password',
+        'db.name' => 'doctrine.connection.orm_default.params.name',
+        // Logging
+        'log.enabled' => 'log.enabled',
+        'log.file'    => 'log.stream',
+        'log.level'   => 'log.priority',
+    ];
+    
     /**
      * Module config
      * 
@@ -18,11 +34,11 @@ class Module
      */
     public function getConfig()
     {
-        // Use a split configuration - to make it easier to distinguish between
+        // Use a split configuration model - to make it easier to distinguish between
         // configuration values that are intended to be user-modified and those that are not
-        return array_merge_recursive(
-            require  __DIR__ . '/../config/module.config.private.php',
-            require  __DIR__ . '/../config/module.config.php'
+        return array_replace_recursive(
+            require  __DIR__ . '/../config/module.config.php',
+            $this->buildPublicConfig( __DIR__ . '/../config/module.config.ini')
         );
     }
     
@@ -51,6 +67,66 @@ class Module
         $serviceManager->get(SessionManager::class);
         
         Log::debug('Bootstrapping complete');
+    }
+    
+    /**
+     * Build the public configuration array
+     * 
+     * @param string $configFile Path to configuration file
+     * @return array
+     */
+    private function buildPublicConfig($configFile)
+    {
+        // Read the config data
+        $config = parse_ini_file($configFile, false, INI_SCANNER_TYPED);
+        
+        // Adjust the config data
+        $adjustedConfig = [];
+        
+        foreach ($this->configMap as $oldKey => $newKey) {
+            $adjustedConfig[$newKey] = $config[$oldKey];
+            unset($config[$oldKey]);
+        }
+        
+        return $this->dimensionalSplit($adjustedConfig);
+    }
+    
+    /**
+     * Transform any value that that contains the dot character into a multi-dimensional array
+     * (each dot denotes another level)
+     * 
+     * @param array $data An associative array with the data
+     * @return array
+     */
+    private function dimensionalSplit(array $data)
+    {
+        foreach ($data as $key => $value) {
+            // Do not process if there are no dots in the key name
+            if (false === strpos($key, '.')) {
+                continue;
+            }
+            
+            // Transform the key containing dots to a multi-dimensional array
+            $levels = explode('.', $key);
+            
+            $array = array();
+            $ref = &$array;
+            
+            foreach ($levels as $level) {
+                $ref[$level] = array();
+                $ref = &$ref[$level];
+            }
+            
+            $ref = $value;
+            
+            // Merge the array obtained from the key name with the original one
+            $data = array_merge_recursive($data, $array);
+            
+            // And remove the original key
+            unset($data[$key]);
+        }
+
+        return $data;
     }
 }
 
