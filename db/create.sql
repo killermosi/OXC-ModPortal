@@ -11,3 +11,12 @@ create table user (
     primary key (user_id),
     index idx_member_id (member_id)
 ) engine=InnoDB default charset=utf8 comment 'Users in the system';
+
+create table session (
+    id char(32) not null comment 'Session identifier',
+    name char(32) not null comment 'Session name',
+    modified int(10) not null comment 'Last modification timestamp',
+    lifetime int (10) not null comment 'Lifetime, in seconds',
+    data text not null comment 'Data stored in this session',
+    primary key (id, name)
+) engine=InnoDB default charset=utf8 comment 'Sessions';

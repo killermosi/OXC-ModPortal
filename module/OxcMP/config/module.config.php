@@ -6,8 +6,12 @@ use Zend\Router\Http\Literal;
 use Zend\Router\Http\Segment;
 use Zend\Log\Logger;
 use Zend\ServiceManager\Factory\InvokableFactory;
+use Zend\Session\Storage\SessionArrayStorage;
+use Zend\Session\Validator\RemoteAddr;
+use Zend\Session\Validator\HttpUserAgent;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as PDOMySqlDriver;
+use OxcMP\Controller\AbstractController;
 use OxcMP\Service;
 
 /** !!! PRIVATE CONFIGURATION - DO NOT MODIFY !!! **/
@@ -45,10 +49,12 @@ return [
         'factories' => [
             Controller\Plugin\GetService::class => InvokableFactory::class,
             Controller\Plugin\Translate::class => InvokableFactory::class,
+            Controller\Plugin\Session::class => InvokableFactory::class,
         ],
         'aliases' => [
             'getService' => Controller\Plugin\GetService::class,
             'translate' => Controller\Plugin\Translate::class,
+            'session' => Controller\Plugin\Session::class
         ]
     ],
     'service_manager' => [
@@ -138,6 +144,28 @@ return [
                 ]
             ]
         ]
+    ],
+    // Session configuration.
+    'session_config' => [
+        // Session cookie will expire in 1 hour.
+        'cookie_lifetime' => 60*60*1,     
+        // Session data will be stored on server maximum for 30 days.
+        'gc_maxlifetime'     => 60*60*24*30, 
+    ],
+    // Session manager configuration.
+    'session_manager' => [
+        // Session validators (used for security).
+        'validators' => [
+            RemoteAddr::class,
+            HttpUserAgent::class,
+        ]
+    ],
+    // Session storage configuration.
+    'session_storage' => [
+        'type' => SessionArrayStorage::class
+    ],
+    'session_containers' => [
+        AbstractController::SESSION_NAMESPACE
     ],
     // Application logging
     'log' => [

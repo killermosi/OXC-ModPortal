@@ -9,6 +9,7 @@
 namespace OxcMP\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
+use Zend\Session\Container;
 
 /**
  * Collection of useful elements
@@ -16,8 +17,14 @@ use Zend\Mvc\Controller\AbstractActionController;
  * @author Silviu Ghita <killermosi@yahoo.com>
  * @method mixed getService(string $service The service name) Retrieve the specified service
  * @method string translate(string $string The string to translate, mixed $values Additional values to format the translated string with) Translate a string
+ * @method Container $session Session storage
  */
 class AbstractController extends AbstractActionController {
+    
+    /**
+     * Namespace for sessions
+     */
+    const SESSION_NAMESPACE = 'OxcMpSession';
     
     /**
      * Add the specified title to the actual page title
