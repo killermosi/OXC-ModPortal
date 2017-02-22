@@ -6,11 +6,10 @@
  * and open the template in the editor.
  */
 
-namespace OxcMP\Service\Factory;
+namespace OxcMP\Service\Config;
 
 use Zend\ServiceManager\Factory\FactoryInterface;
 use Interop\Container\ContainerInterface;
-use Zend\Config\Config;
 
 /**
  * Create the module configuration instance
@@ -24,10 +23,10 @@ class ConfigFactory implements FactoryInterface {
      * @param ContainerInterface $container     Container
      * @param string             $requestedName Requested name
      * @param array              $options       Additional options
-     * @return Config
+     * @return ConfigService
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null) {
-        return new Config($container->get('Config'));
+        return new ConfigService($container->get('Config'));
     }
 }
 

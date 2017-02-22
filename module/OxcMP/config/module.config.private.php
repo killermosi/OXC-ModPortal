@@ -5,7 +5,6 @@ namespace OxcMP;
 use Zend\Router\Http\Literal;
 use Zend\Router\Http\Segment;
 use Zend\ServiceManager\Factory\InvokableFactory;
-use Zend\Config\Config;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use OxcMP\Service;
 
@@ -53,7 +52,7 @@ return [
     // TODO: check if there is an already defined way of retrieving the module config as a Config instance
     'service_manager' => [
         'factories' => [
-            Config::class => Service\Factory\ConfigFactory::class
+            Service\Config\ConfigService::class => Service\Config\ConfigFactory::class
         ],
     ],
     'view_manager' => [

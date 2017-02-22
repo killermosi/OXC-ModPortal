@@ -4,7 +4,7 @@ namespace OxcMP;
 
 use Zend\Mvc\MvcEvent;
 use Zend\Session\SessionManager;
-use Zend\Config\Config;
+use OxcMP\Service\Config\ConfigService;
 use OxcMP\Util\Log;
 
 class Module
@@ -36,7 +36,7 @@ class Module
     {
         // Service manager
         $serviceManager = $event->getApplication()->getServiceManager();
-        $config = $serviceManager->get(Config::class);
+        $config = $serviceManager->get(ConfigService::class);
         
         // Init the log
         Log::init($config);
