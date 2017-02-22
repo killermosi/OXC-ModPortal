@@ -17,13 +17,13 @@ class IndexController extends AbstractController
     public function indexAction()
     {
         /* @var $entityManager EntityManager */
-        $entityManager = $this->getService('doctrine.entitymanager.orm_default');
-        
-        $user = new User($this->getService('cfg'));
-        $user->setMemberId(123);
-
-        $entityManager->persist($user);
-        $entityManager->flush();
+//        $entityManager = $this->getService('doctrine.entitymanager.orm_default');
+//        
+//        $user = new User($this->getService(\Zend\Config\Config::class));
+//        $user->setMemberId(123);
+//
+//        $entityManager->persist($user);
+//        $entityManager->flush();
         
         return new ViewModel();
     }

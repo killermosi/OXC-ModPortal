@@ -55,10 +55,6 @@ return [
         'factories' => [
             Config::class => Service\Factory\ConfigFactory::class
         ],
-        // use lowerCamelCase for local service names
-        'aliases' => [
-            'cfg' => Config::class
-        ]
     ],
     'view_manager' => [
         'display_not_found_reason' => true,

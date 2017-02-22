@@ -9,7 +9,6 @@
 namespace OxcMP\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Zend\Config\Config;
 
 /**
  * User entity
@@ -26,8 +25,7 @@ class User
      * @var integer
      * 
      * @ORM\Id
-     * @ORM\GeneratedValue(strategy="CUSTOM")
-     * @ORM\CustomIdGenerator(class="OxcMP\Util\IdGenerator")
+     * @ORM\GeneratedValue
      * @ORM\Column(name="user_id", type="integer", nullable=false)
      */
     private $id;
@@ -104,16 +102,12 @@ class User
     
     /**
      * Constructor
-     * 
-     * @param Config $config Application configuration (optional)
      */
-    public function __construct(Config $config = null) {
+    public function __construct()
+    {
         // Init token and update dates in the past, for safe measure
        $this->lastTokenCheckDate   = new \DateTime('1 Jan 1971');
        $this->lastDetailUpdateDate = new \DateTime('1 Jan 1971');
-       
-       // And the config
-       $this->config = $config;
     }
     
     /**
@@ -289,15 +283,6 @@ class User
     public function updateLastDetailUpdateDate()
     {
         $this->lastDetailUpdateDate = new \DateTime();
-    }
-    
-    /**
-     * Get the configuration
-     * @return Config
-     */
-    public function getConfig()
-    {
-        return $this->config;
     }
 }
 
