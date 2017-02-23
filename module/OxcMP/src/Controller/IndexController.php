@@ -20,9 +20,9 @@ class IndexController extends AbstractController
     public function indexAction()
     {
         /* @var $userRemoteService UserRemoteService */
-        $userRemoteService = $this->getService(UserRemoteService::class);
-        
-        $userRemoteService->memberGetDisplayData(15);
+//        $userRemoteService = $this->getService(UserRemoteService::class);
+//        
+//        $userRemoteService->getDisplayData(15);
         
         //$this->session()->blabla = 'ahahaah';
         

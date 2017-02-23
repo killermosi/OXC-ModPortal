@@ -9,6 +9,8 @@
 namespace OxcMP\Service\User;
 
 use Zend\Http\Client as HttpClient;
+use Zend\Json\Server\Exception\ErrorException;
+use OxcMP\Entity\User;
 use OxcMP\Service\Config\ConfigService;
 use OxcMP\Service\User\Support\JsonRpcClient;
 use OxcMP\Util\Log;
@@ -42,18 +44,59 @@ class UserRemoteService
     }
     
     /**
-     * Call the Member.GetDisplayData on the remote system
+     * Retrieve the display data for a user
      * 
-     * @param type $memberId The member ID
-     * @return array The member data
+     * @param User $user The user entity
+     * @return array The display data
      */
-    public function memberGetDisplayData($memberId)
+    public function getDisplayData(User $user)
     {
-        Log::info('Retrieving member display data for Member ID: ', $memberId);
+        Log::info('Retrieving member display data for User ID: ', $user->getId());
         
-        $memberData = $this->jsonRpcClient->call('Member.GetDisplayData', ['MemberId' => (int) $memberId]);
+        try {
+            $memberData = $this->jsonRpcClient->call('Member.GetDisplayData', ['MemberId' => $user->getMemberId()]);
+            
+            Log::debug('Successfully retrieved the member data: ', $memberData);
+            return $memberData;
+        } catch (ErrorException $exc){
+            throw $this->translateErrorException($exc);
+        } catch (\Exception $exc) {
+            Log::critical('Caught unexpected JSON-RPC exception: ', $exc->getCode(), $exc->getMessage());
+            throw new Exception\UserJsonRpcGenericErrorException();
+        }
+    }
+    
+    /**
+     * Check the authentication token validity for a user
+     * 
+     * @param User $user The user entity
+     * @return boolean
+     */
+    public function checkAuthenticationToken(User $user)
+    {
+        Log::info('Checking authentication token validity for User ID', $user->getId());
         
-        return $memberData;
+        try {
+            $params = [
+                'MemberId'            => $user->getMemberId(),
+                'AuthenticationToken' => $user->getAuthenticationToken()
+            ];
+            
+            $isAuthTokeValid = $this->jsonRpcClient->call('Member.TokenCheck', $params);
+
+            if ($isAuthTokeValid) {
+                Log::debug('The authentication token is valid');
+            } else {
+                Log::debug('The authentication token is invalid');
+            }
+            
+            return $isAuthTokeValid;
+        } catch (ErrorException $exc){
+            throw $this->translateErrorException($exc);
+        } catch (\Exception $exc) {
+            Log::critical('Caught unexpected JSON-RPC exception: ', $exc->getCode(), $exc->getMessage());
+            throw new Exception\UserJsonRpcGenericErrorException();
+        }
     }
     
     /**
@@ -85,6 +128,37 @@ class UserRemoteService
         Log::debug('Successfuly built the JSON-RPC client');
         
         return $jsonRpcClient;
+    }
+    
+    /**
+     * Translate a JSON-RPC error to a local exception object
+     * 
+     * @param ErrorException $exception The JSON-RPC error
+     * @return Exception\ExceptionInterface
+     */
+    private function translateErrorException(ErrorException $exception)
+    {
+        Log::info('Translating JSON-RPC error ', $exception->getCode(), ': ', $exception->getMessage());
+        
+        switch ($exception->getCode()) {
+            case -32600: // Invalid request
+            case -32601: // Method not found
+            case -32602: // Invalid params
+            case -32603: // Internal error
+            case -32700: // Parse error
+                return new Exception\UserJsonRpcGenericErrorException();
+            case -32000: // Incorrect API key
+                return new Exception\UserJsonRpcIncorrectApiKeyException();
+            case -32001: // The specified member ID could not be found
+                return new Exception\UserJsonRpcMemberIdNotFoundException();
+            case -32002: // The authentication token is incorrect
+                return new Exception\UserJsonRpcIncorrectAuthenticationTokenException();
+            case -32003: // Maintenance mode active
+                return new Exception\UserJsonRpcMaintenanceModeActiveException();
+            default:
+                Log::critical('Unexpected JSON-RPC error code received: ', $exception->getCode());
+                return new Exception\UserJsonRpcGenericErrorException();
+        }
     }
 }
 
