@@ -6,6 +6,7 @@ use Zend\View\Model\ViewModel;
 use Zend\Session\SessionManager;
 use OxcMP\Service\User\UserRetrievalService;
 use OxcMP\Service\User\UserPersistenceService;
+use OxcMP\Service\User\UserRemoteService;
 use OxcMP\Entity\User;
 use OxcMP\Util\Log;
 
@@ -18,6 +19,11 @@ class IndexController extends AbstractController
 {
     public function indexAction()
     {
+        /* @var $userRemoteService UserRemoteService */
+        $userRemoteService = $this->getService(UserRemoteService::class);
+        
+        $userRemoteService->memberGetDisplayData(15);
+        
         //$this->session()->blabla = 'ahahaah';
         
         //Log::info($this->session()->n);

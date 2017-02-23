@@ -17,7 +17,10 @@ class Module
      */
     private $configMap = [
         // API
-        
+        'api.url'            => 'oxcForumApi.url',
+        'api.key'            => 'oxcForumApi.key',
+        'api.basicAuth.user' => 'oxcForumApi.basicAuth.user',
+        'api.basicAuth.pass' => 'oxcForumApi.basicAuth.pass',
         // Database
         'db.host' => 'doctrine.connection.orm_default.params.host',
         'db.port' => 'doctrine.connection.orm_default.params.port',
@@ -87,6 +90,10 @@ class Module
         $adjustedConfig = [];
         
         foreach ($this->configMap as $oldKey => $newKey) {
+            if (!isset($config[$oldKey])) {
+                throw new \Exception('Missing config key: ' . $oldKey);
+            }
+            
             $adjustedConfig[$newKey] = $config[$oldKey];
             unset($config[$oldKey]);
         }

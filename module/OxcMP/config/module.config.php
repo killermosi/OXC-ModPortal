@@ -59,9 +59,12 @@ return [
     ],
     'service_manager' => [
         'factories' => [
+            // Config
             Service\Config\ConfigService::class => Service\Config\ConfigFactory::class,
+            // User
             Service\User\UserPersistenceService::class => Service\User\UserFactory::class,
-            Service\User\UserRetrievalService::class => Service\User\UserFactory::class,
+            Service\User\UserRetrievalService::class   => Service\User\UserFactory::class,
+            Service\User\UserRemoteService::class      => Service\User\UserFactory::class,
         ],
     ],
     'view_manager' => [
@@ -126,9 +129,9 @@ return [
                 'params' => [
                     'host'     => 'localhost',
                     'port'     => '3306',
-                    'user'     => '',
-                    'password' => '',
-                    'dbname'   => '',
+                    'user'     => null,
+                    'password' => null,
+                    'dbname'   => null,
                 ]
             ]
         ],
@@ -175,9 +178,11 @@ return [
     ],
     'oxcForumApi' => [
         'url' => 'https://www.openxcom.org/OxcMpOauth.php',
-        'key' => '',
+        'key' => null,
         'header' => 'ApiKey',
-        'authUser' => '',
-        'authPass' => ''
+        'basicAuth' => [
+            'user' => null,
+            'pass' => null
+        ]
     ]
 ];
