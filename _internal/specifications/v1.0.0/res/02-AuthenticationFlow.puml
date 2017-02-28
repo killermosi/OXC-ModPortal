@@ -1,0 +1,28 @@
+@startuml
+title Authentication process flow
+actor User
+participant "OpenXcom\nMod Portal" as Portal
+participant "OpenXcom\nForum" as Forum
+User --> Portal: Opens the\nPortal\nin browser
+Portal -> Forum: The User clicks the "Log in" link and is\nredirected to the authorization page\non the forum
+alt If not logged in
+    Forum -> Forum: The User is asked to log in and\nis redirected back to the\nauthorization page afterwards
+end
+hnote over  Forum: The User authorizes the portal\nto use the forum member data
+Forum -> Portal: The User is redirected back to the portal,\nwith a request that containins the forum\n"Member ID" and "Authorization Token"
+Portal -> Forum: The portal verifies the "Member Id" and the \n"Authorization token" with the forum using\n a JSON-RPC request
+alt Validation successful
+    Forum -> Portal: The forum validates the credentials
+    Portal -> Forum: The portal requests the user details\nfrom the forum
+    Forum -> Portal: The forum responds with the user details
+    alt First time authentication
+        Portal -> Portal: A local User is created in order to\ncache member details locally
+    else Not first time authentication
+        Portal -> Portal: The local User data is updated
+    end
+    hnote over Portal: User is logged in
+else Validation failed
+    Forum -> Portal: The forum does not validate the credentials
+    hnote over Portal: User is shown an error message
+end
+@enduml
