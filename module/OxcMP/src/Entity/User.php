@@ -31,6 +31,14 @@ class User
     private $id;
     
     /**
+     * If this user is orphan
+     * @var boolean
+     * 
+     * @ORM\Column(name="is_orphan", type="boolean", nullable=false)
+     */
+    private $isOrphan = false;
+    
+    /**
      * Forum member identifier
      * @var integer 
      * 
@@ -114,6 +122,27 @@ class User
         return $this->id;
     }
     
+    /**
+     * Get if the user is orphan
+     * 
+     * @return boolean
+     */
+    function getIsOrphan()
+    {
+        return $this->isOrphan;
+    }
+
+    /**
+     * Set if the user is orphan
+     * 
+     * @param boolean $isOrphan If the user is orphan
+     * @return void
+     */
+    function setIsOrphan($isOrphan)
+    {
+        $this->isOrphan = $isOrphan;
+    }
+
     /**
      * Get the forum member ID
      * 

@@ -59,6 +59,8 @@ return [
     ],
     'service_manager' => [
         'factories' => [
+            // Authentication
+            Service\Authentication\AuthenticationService::class => Service\ServiceFactory::class,
             // Config
             Service\Config\ConfigService::class => Service\ServiceFactory::class,
             // User

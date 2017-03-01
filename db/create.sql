@@ -1,5 +1,6 @@
 create table user (
     user_id int(10) not null auto_increment comment 'Internal identifier',
+    is_orphan tinyint(1) not null default 0 comment 'If this user is orphan - it does not exist on the forum',
     member_id int(10) not null unique comment 'Forum member identifier',
     authentication_token varchar(64) default null comment 'Forum authentication token',
     real_name varchar(128) default null comment 'Display name',

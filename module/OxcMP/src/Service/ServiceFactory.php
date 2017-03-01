@@ -28,6 +28,13 @@ class ServiceFactory implements FactoryInterface
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null) {
         switch ($requestedName) {
+            case Authentication\AuthenticationService::class:
+                return new $requestedName(
+                    $container->get(User\UserPersistenceService::class),
+                    $container->get(User\UserRetrievalService::class),
+                    $container->get(User\UserRemoteService::class),
+                    $container->get('Config')
+                );
             case Config\ConfigService::class:
                 return new $requestedName($container->get('Config'));
             case User\UserPersistenceService::class:
