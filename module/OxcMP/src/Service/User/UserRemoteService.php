@@ -61,6 +61,11 @@ class UserRemoteService
      * 
      * @param User $user The user entity
      * @return array The display data
+     * @throws Exception\UserJsonRpcGenericErrorException
+     * @throws Exception\UserJsonRpcIncorrectApiKeyException
+     * @throws Exception\UserJsonRpcMemberIdNotFoundException
+     * @throws Exception\UserJsonRpcIncorrectAuthenticationTokenException
+     * @throws Exception\UserJsonRpcMaintenanceModeActiveException
      */
     public function getDisplayData(User $user)
     {
@@ -84,6 +89,11 @@ class UserRemoteService
      * 
      * @param User $user The user entity
      * @return boolean
+     * @throws Exception\UserJsonRpcGenericErrorException
+     * @throws Exception\UserJsonRpcIncorrectApiKeyException
+     * @throws Exception\UserJsonRpcMemberIdNotFoundException
+     * @throws Exception\UserJsonRpcIncorrectAuthenticationTokenException
+     * @throws Exception\UserJsonRpcMaintenanceModeActiveException
      */
     public function checkAuthenticationToken(User $user)
     {
@@ -161,6 +171,7 @@ class UserRemoteService
             case -32700: // Parse error
                 return new Exception\UserJsonRpcGenericErrorException();
             case -32000: // Incorrect API key
+                // TODO: Notify administrator
                 return new Exception\UserJsonRpcIncorrectApiKeyException();
             case -32001: // The specified member ID could not be found
                 return new Exception\UserJsonRpcMemberIdNotFoundException();

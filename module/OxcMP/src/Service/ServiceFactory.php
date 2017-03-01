@@ -32,7 +32,7 @@ use Interop\Container\ContainerInterface;
 class ServiceFactory implements FactoryInterface
 {
     /**
-     * Create user persistence and retrieval services
+     * Create the requested service
      * 
      * @param ContainerInterface $container     The service container
      * @param string             $requestedName The service name
@@ -40,8 +40,9 @@ class ServiceFactory implements FactoryInterface
      * @return ConfigService
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null) {
+
         switch ($requestedName) {
-            case Authentication\AuthenticationService::class:
+            case Authentication\AuthenticationAdapter::class:
                 return new $requestedName(
                     $container->get(User\UserPersistenceService::class),
                     $container->get(User\UserRetrievalService::class),
@@ -51,6 +52,10 @@ class ServiceFactory implements FactoryInterface
             case Config\ConfigService::class:
                 return new $requestedName($container->get('Config'));
             case User\UserPersistenceService::class:
+                return new $requestedName(
+                    $container->get('doctrine.entitymanager.orm_default'),
+                    $container->get(User\UserRemoteService::class)
+                );
             case User\UserRetrievalService::class:
                 return new $requestedName($container->get('doctrine.entitymanager.orm_default'));
             case User\UserRemoteService::class:

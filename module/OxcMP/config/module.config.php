@@ -60,7 +60,7 @@ return [
     'service_manager' => [
         'factories' => [
             // Authentication
-            Service\Authentication\AuthenticationService::class => Service\ServiceFactory::class,
+            Service\Authentication\AuthenticationAdapter::class => Service\ServiceFactory::class,
             // Config
             Service\Config\ConfigService::class => Service\ServiceFactory::class,
             // User
@@ -186,5 +186,9 @@ return [
             'user' => null,
             'pass' => null
         ]
+    ],
+    'userRemote' => [
+        'tokenCheckDelay' => 60 * 15,
+        'displayRefreshDelay' => 60 * 60 * 2
     ]
 ];

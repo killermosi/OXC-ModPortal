@@ -28,7 +28,7 @@ use OxcMP\Util\Log;
 
 class Module
 {
-    const VERSION = '3.0.1';
+    const VERSION = '1.0.0';
     
     /**
      * Public-to-private configuration mapping

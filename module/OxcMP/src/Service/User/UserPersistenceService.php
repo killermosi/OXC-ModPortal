@@ -22,6 +22,7 @@
 namespace OxcMP\Service\User;
 
 use Doctrine\ORM\EntityManager;
+use OxcMP\Service\User\UserRemoteService;
 use OxcMP\Entity\User;
 use OxcMP\Util\Log;
 
@@ -39,25 +40,51 @@ class UserPersistenceService
     private $entityManager;
     
     /**
+     * The User Remote service
+     * @var UserRemoteService
+     */
+    private $userRemoteService;
+    
+    /**
      * Class initialization
      * 
-     * @param EntityManager $em The entity manager
+     * @param EntityManager     $entityManager     The entity manager
+     * @param UserRemoteService $userRemoteService The user remote service
      */
-    public function __construct(EntityManager $em)
+    public function __construct(EntityManager $entityManager, UserRemoteService $userRemoteService)
     {
-        $this->entityManager = $em;
+        $this->entityManager     = $entityManager;
+        $this->userRemoteService = $userRemoteService;
     }
     
     /**
-     * Create a user entry in the database
+     * Create an user entry in the database
      * 
      * @param User $user The User entity
      * @return void
+     * @throws Exception\UserCannotCreateUserException
      */
     public function create(User $user)
     {
         Log::info('Creating new User');
         
+        // Retrieve the user details first
+        try {
+            $userDetails = $this->userRemoteService->getDisplayData($user);
+        } catch (\Exception $exc) {
+            // Since this call is done right after a successful authentication,
+            // all errors are unexpected
+            Log::notice('Unexpected error encountered while retrieving the remote user data');
+            throw new Exception\UserCannotCreateUserException();
+        }
+        
+        // Update the user entity with them
+        $user->setRealName($userDetails['RealName']);
+        $user->setPersonalText($userDetails['PersonalText']);
+        $user->setIsAdministrator($userDetails['IsAdministrator']);
+        $user->setAvatarUrl($userDetails['Avatar']);
+        
+        // Save the user to the database
         try {
             $this->entityManager->beginTransaction();
             $this->entityManager->persist($user);
@@ -71,7 +98,7 @@ class UserPersistenceService
                 Log::critical('Failed to rollback transaction: ', $exc->getMessage());
             }
             
-            return;
+            throw new Exception\UserCannotCreateUserException();
         }
         
         Log::debug('User successfully created with ID: ', $user->getId());
