@@ -60,11 +60,11 @@ return [
     'service_manager' => [
         'factories' => [
             // Config
-            Service\Config\ConfigService::class => Service\Config\ConfigFactory::class,
+            Service\Config\ConfigService::class => Service\ServiceFactory::class,
             // User
-            Service\User\UserPersistenceService::class => Service\User\UserFactory::class,
-            Service\User\UserRetrievalService::class   => Service\User\UserFactory::class,
-            Service\User\UserRemoteService::class      => Service\User\UserFactory::class,
+            Service\User\UserPersistenceService::class => Service\ServiceFactory::class,
+            Service\User\UserRetrievalService::class   => Service\ServiceFactory::class,
+            Service\User\UserRemoteService::class      => Service\ServiceFactory::class,
         ],
     ],
     'view_manager' => [
