@@ -68,22 +68,6 @@ class UserPersistenceService
     {
         Log::info('Creating new User');
         
-        // Retrieve the user details first
-        try {
-            $userDetails = $this->userRemoteService->getDisplayData($user);
-        } catch (\Exception $exc) {
-            // Since this call is done right after a successful authentication,
-            // all errors are unexpected
-            Log::notice('Unexpected error encountered while retrieving the remote user data');
-            throw new Exception\UserCannotCreateUserException();
-        }
-        
-        // Update the user entity with them
-        $user->setRealName($userDetails['RealName']);
-        $user->setPersonalText($userDetails['PersonalText']);
-        $user->setIsAdministrator($userDetails['IsAdministrator']);
-        $user->setAvatarUrl($userDetails['Avatar']);
-        
         // Save the user to the database
         try {
             $this->entityManager->beginTransaction();

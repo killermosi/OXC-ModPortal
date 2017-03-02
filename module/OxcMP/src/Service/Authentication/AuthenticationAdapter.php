@@ -32,7 +32,7 @@ use OxcMP\Entity\User;
 use OxcMP\Util\Log;
 
 /**
- * Handle user authentication
+ * Handle user authentication using the Member ID (not the User ID) and the Authentication Token
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
@@ -157,7 +157,27 @@ class AuthenticationAdapter implements AdapterInterface
             return $validationResult;
         }
         
-        // Authentication succeeded, persist the user in the database
+        // Authentication succeeded, update the last token check date
+        $user->updateLastTokenCheckDate();
+        
+        // Retrieve the user details
+        try {
+            $userDetails = $this->userRemoteService->getDisplayData($user);
+        } catch (\Exception $exc) {
+            // Since this call is done right after a successful authentication,
+            // all errors are unexpected
+            Log::notice('Unexpected error encountered while retrieving the remote user data');
+            return new Result(Result::FAILURE_UNCATEGORIZED, null);
+        }
+        
+        // Update the user entity with them
+        $user->setRealName($userDetails['RealName']);
+        $user->setPersonalText($userDetails['PersonalText']);
+        $user->setIsAdministrator($userDetails['IsAdministrator']);
+        $user->setAvatarUrl($userDetails['Avatar']);
+        $user->updateLastTokenCheckDate();
+        
+        // Persist the user in the database
         try {
             $this->userPersistenceService->create($user);
         } catch (\Exception $exc) {
@@ -191,13 +211,27 @@ class AuthenticationAdapter implements AdapterInterface
             && $user->getLastTokenCheckDate() > (new \DateTime())->sub(new \DateInterval($timeInterval))
         ) {
             Log::debug('The authentication token was recently checked, accepting login ');
+            return new Result(Result::SUCCESS, $user);
         }
         
         // Update and validate the user credentials
         $user->setAuthenticationToken($this->authenticationToken);
         $validationResult = $this->validateUserAuthenticationToken($user);
         
-        // If validation failed, stop
+        // If the user was not found on the remote system, mark it as orphan and return failure
+        if ($validationResult->getCode() == Result::FAILURE_IDENTITY_NOT_FOUND) {
+            Log::notice('User is orphaned');
+            try {
+                $user->setIsOrphan(true);
+                $this->userPersistenceService->update($user);
+            } catch (\Exception $exc) {
+                Log::notice('Unexpected error while updating the user in the database');
+            }
+            
+            return $validationResult;
+        }
+        
+        // If validation failed for any other reason, stop
         if ($validationResult->getCode() != Result::SUCCESS) {
             return $validationResult;
         }
@@ -207,8 +241,11 @@ class AuthenticationAdapter implements AdapterInterface
             $user->updateLastTokenCheckDate();
             $this->userPersistenceService->update($user, true);
         } catch (\Exception $exc) {
-            
+            return new Result(Result::FAILURE_UNCATEGORIZED, $user);
         }
+        
+        // Return the success result
+        return $validationResult;
     }
     
     /**

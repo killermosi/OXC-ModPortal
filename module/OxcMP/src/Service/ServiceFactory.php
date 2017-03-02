@@ -23,6 +23,8 @@ namespace OxcMP\Service;
 
 use Zend\ServiceManager\Factory\FactoryInterface;
 use Interop\Container\ContainerInterface;
+use Zend\Authentication\Storage\Session as SessionStorage;
+use Zend\Session\SessionManager;
 
 /**
  * Handles local service creation
@@ -48,6 +50,11 @@ class ServiceFactory implements FactoryInterface
                     $container->get(User\UserRetrievalService::class),
                     $container->get(User\UserRemoteService::class),
                     $container->get('Config')
+                );
+            case Authentication\AuthenticationService::class:
+                return new $requestedName(
+                    new SessionStorage('Zend_Auth', 'session', $container->get(SessionManager::class)),
+                    $container->get(Authentication\AuthenticationAdapter::class)
                 );
             case Config\ConfigService::class:
                 return new $requestedName($container->get('Config'));
