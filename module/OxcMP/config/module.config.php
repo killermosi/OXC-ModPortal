@@ -28,13 +28,19 @@ return [
                     ],
                 ],
             ],
-            'oxcmp' => [
+            'authorization' => [
                 'type'    => Segment::class,
                 'options' => [
-                    'route'    => '/oxcmp[/:action]',
+                    'route'    => '/authorization[/][:memberId/:authenticationToken][/]',
+                    'constraints' => [
+                        // All numeric: 123
+                        'memberId' => '[0-9]*',
+                        // MD5 hash, with a bit of formating: 2c797f70-d4c3b6b3-dbe4d500-71a94b04
+                        'authenticationToken' => '[a-z0-9]{8}-[a-z0-9]{8}-[a-z0-9]{8}-[a-z0-9]{8}'
+                    ],
                     'defaults' => [
                         'controller' => Controller\IndexController::class,
-                        'action'     => 'index',
+                        'action'     => 'authorization',
                     ],
                 ],
             ],
