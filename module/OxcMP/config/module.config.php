@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as PDOMySqlDriver;
 use OxcMP\Controller\AbstractController;
 use OxcMP\Service;
+use OxcMP\View;
 
 /** !!! PRIVATE CONFIGURATION - DO NOT MODIFY !!! **/
 return [
@@ -28,10 +29,10 @@ return [
                     ],
                 ],
             ],
-            'authorization' => [
+            'login' => [
                 'type'    => Segment::class,
                 'options' => [
-                    'route'    => '/authorization[/][:memberId/:authenticationToken][/]',
+                    'route'    => '/login/[:memberId/:authenticationToken]',
                     'constraints' => [
                         // All numeric: 123
                         'memberId' => '[0-9]*',
@@ -40,7 +41,27 @@ return [
                     ],
                     'defaults' => [
                         'controller' => Controller\IndexController::class,
-                        'action'     => 'authorization',
+                        'action'     => 'login',
+                    ],
+                ],
+            ],
+            'logout' => [
+                'type'    => Segment::class,
+                'options' => [
+                    'route'    => '/logout[/]',
+                    'defaults' => [
+                        'controller' => Controller\IndexController::class,
+                        'action'     => 'logout',
+                    ],
+                ],
+            ],
+            'my-mods' => [
+                'type'    => Segment::class,
+                'options' => [
+                    'route'    => '/my-mods',
+                    'defaults' => [
+                        'controller' => Controller\IndexController::class,
+                        'action'     => 'index',
                     ],
                 ],
             ],
@@ -92,6 +113,14 @@ return [
             __DIR__ . '/../view',
         ],
     ],
+    'view_helpers' => [
+        'factories' => [
+            View\Helper\MainMenu::class => InvokableFactory::class,                    
+        ],
+       'aliases' => [
+            'mainMenu' => View\Helper\MainMenu::class
+       ]
+    ], 
     'translator' => [
         'locale' => 'en_US',
         'translation_file_patterns' => [
@@ -127,7 +156,8 @@ return [
                 'integrity' => 'sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn',
                 'crossorigin' => 'anonymous'
             ],
-        ]
+        ],
+        'defaultBackground' => 'img/bg-default.png',
     ],
     'doctrine' => [
         'connection' => [

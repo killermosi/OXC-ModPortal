@@ -84,8 +84,9 @@ class Module
         
         Log::info('Application starting, bootstrapping...');
         
-        // Add the config to the layout
+        // Config and default backgroud image
         $event->getViewModel()->config = $config;
+        $event->getViewModel()->defaultBackground = $config->layout->defaultBackground;
         
         // The following line instantiates the SessionManager and automatically
         // makes the SessionManager the 'default' one.

@@ -1,8 +1,7 @@
-<?= $this->doctype() . PHP_EOL ?>
+<?php echo $this->doctype() . PHP_EOL ?>
 <html lang="en">
     <head>
 <?php
-
     echo $this->headTitle($this->translate('application_name'))
         ->setIndent(8)
         ->setSeparator(' :: ')
@@ -27,15 +26,42 @@
             'screen',
             '',
             ['integrity' => $bootstrapMinCss->integrity, 'crossorigin' => $bootstrapMinCss->crossorigin]
-        );
+        )
+        ->appendStylesheet('css/style.css');
     
     echo PHP_EOL;
 ?>
     </head>
-    <body>
-        
-<?= $this->placeholder('content')->set($this->content)->setIndent(8) ?>
-        
+    <body style="background: url('<?php echo $this->defaultBackground ?>') top center no-repeat aliceblue">
+        <div class="container">
+<?php echo $this->placeholder('mainmenu')->set($this->mainMenu()->setLoggedInStatus(false)->render())->setIndent(12) . PHP_EOL?>
+<?php echo $this->placeholder('content')->set($this->content)->setIndent(12) . PHP_EOL ?>
+        </div>
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Log in</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-center">
+                            To login, you must authorize the OpenXcom Mod Portal to use your
+                            OpenXcom Forum member details.
+                        </p>
+                        <p class="text-center">
+                            <a href="http://www.example.com" target="_blank" id="code" type="submit" class="btn btn-primary">Go to the  OpenXcom Forum authorization page</a>
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <!--<button type="button" class="btn btn-primary">OpenXcom Forum authorization page</button>-->
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 <?php
     // Add JS
     $jquerySlimMinJs = $this->config->layout->js->jquerySlimMin;

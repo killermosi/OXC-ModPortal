@@ -73,7 +73,7 @@ class IndexController extends AbstractController
         return new ViewModel();
     }
     
-    public function authorizationAction()
+    public function loginAction()
     {
         Log::notice('Authorization');
     }
