@@ -41,6 +41,26 @@ abstract class AbstractViewHelper extends AbstractHelper
     {
         return sprintf($this->view->translate($string), ...$values);
     }
+    
+    /**
+     * Prepare a template by replacing various placeholders in the template
+     * 
+     * @param string $template The template
+     * @param array $searchReplace Placeholders and their values
+     * @return string
+     */
+    public function renderTemplate($template, array $searchReplace = [])
+    {
+        if (empty($searchReplace)) {
+            return $template;
+        }
+        
+        return str_replace(
+            array_keys($searchReplace),
+            array_values($searchReplace),
+            $template
+        );
+    }
 }
 
 /* EOF */

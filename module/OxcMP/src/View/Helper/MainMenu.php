@@ -60,7 +60,7 @@ class MainMenu extends AbstractViewHelper
         
         $homeUrl = $this->view->url('home',[], ['force_canonical' => true]);
         
-        $searchReplace = array(
+        $searchReplace = [
             '{$logoSrc}' => $homeUrl . 'img/logo.svg',
             '{$navToggle}' => $this->translate('main_menu_nav_toggle'),
             '{$homeUrl}' => $homeUrl,
@@ -70,12 +70,8 @@ class MainMenu extends AbstractViewHelper
             '{$logoutUrl}' => $this->view->url('logout',[], ['force_canonical' => true]),
             '{$logoutTxt}' => $this->translate('main_menu_link_logout_txt'),
             '{$loginUrl}' => $this->view->url('login',[], ['force_canonical' => true]),
-            '{$loginTxt}' => $this->translate('main_menu_link_login_txt'),
-            '' => '',
-            '' => '',
-            '' => '',
-            '' => '',
-        );
+            '{$loginTxt}' => $this->translate('main_menu_link_login_txt')
+        ];
         
         $m .= '<nav class="navbar navbar-toggleable-md navbar-light bg-faded">' . PHP_EOL;
         $m .= '    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="{$navToggle}">' . PHP_EOL;
@@ -91,16 +87,16 @@ class MainMenu extends AbstractViewHelper
         $m .= '            </li>' . PHP_EOL;
         
         if ($this->isLoggedIn) {
-        $m .= '            <li class="nav-item">' . PHP_EOL;
-        $m .= '                <a class="nav-link" href="{$myModsUrl}">{$myModsTxt}</a>' . PHP_EOL;
-        $m .= '            </li>' . PHP_EOL;
-        $m .= '            <li class="nav-item">' . PHP_EOL;
-        $m .= '                <a class="nav-link" href="{$logoutUrl}">{$logoutTxt}</a>' . PHP_EOL;
-        $m .= '            </li>' . PHP_EOL;
+            $m .= '            <li class="nav-item">' . PHP_EOL;
+            $m .= '                <a class="nav-link" href="{$myModsUrl}">{$myModsTxt}</a>' . PHP_EOL;
+            $m .= '            </li>' . PHP_EOL;
+            $m .= '            <li class="nav-item">' . PHP_EOL;
+            $m .= '                <a class="nav-link" href="{$logoutUrl}">{$logoutTxt}</a>' . PHP_EOL;
+            $m .= '            </li>' . PHP_EOL;
         } else {
-        $m .= '            <li class="nav-item">' . PHP_EOL;
-        $m .= '                <a class="nav-link" data-toggle="modal" data-target="#exampleModal" href="{$loginUrl}">{$loginTxt}</a>' . PHP_EOL;
-        $m .= '            </li>'. PHP_EOL;
+            $m .= '            <li class="nav-item">' . PHP_EOL;
+            $m .= '                <a class="nav-link" data-toggle="modal" data-target="#loginModal" href="{$loginUrl}">{$loginTxt}</a>' . PHP_EOL;
+            $m .= '            </li>'. PHP_EOL;
         }
         $m .= '        </ul>' . PHP_EOL;
         $m .= '        <form class="form-inline my-2 my-lg-0">' . PHP_EOL;
@@ -110,11 +106,7 @@ class MainMenu extends AbstractViewHelper
         $m .= '    </div>' . PHP_EOL;
         $m .= '</nav>';
         
-        return str_replace(
-            array_keys($searchReplace),
-            array_values($searchReplace),
-            $m
-        );
+        return $this->renderTemplate($m, $searchReplace);
     }
 }
 

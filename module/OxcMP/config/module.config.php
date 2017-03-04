@@ -116,9 +116,11 @@ return [
     'view_helpers' => [
         'factories' => [
             View\Helper\MainMenu::class => InvokableFactory::class,                    
+            View\Helper\Modal::class => InvokableFactory::class,                    
         ],
        'aliases' => [
-            'mainMenu' => View\Helper\MainMenu::class
+            'mainMenu' => View\Helper\MainMenu::class,
+            'modal' => View\Helper\Modal::class,
        ]
     ], 
     'translator' => [
@@ -158,6 +160,7 @@ return [
             ],
         ],
         'defaultBackground' => 'img/bg-default.png',
+        'oAuthUrl' => 'https://openxcom.org/forum/index.php?action=oxcmpoauth'
     ],
     'doctrine' => [
         'connection' => [

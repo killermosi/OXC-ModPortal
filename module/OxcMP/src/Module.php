@@ -50,6 +50,9 @@ class Module
         'log.enabled' => 'log.enabled',
         'log.file'    => 'log.stream',
         'log.level'   => 'log.priority',
+        // oAuth parameters
+        'oauth.url' => 'layout.oAuthUrl'
+        
     ];
     
     /**

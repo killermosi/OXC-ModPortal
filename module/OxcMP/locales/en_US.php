@@ -4,14 +4,19 @@
 return [
     // Meta
     '' => ['plural_forms' => 'nplurals=2; plural=(n==1 ? 0 : 1)'],
-    // Generic
-    'application_name' => 'OpenXcom Mod Portal',
+    // Global
+    'global_application_name' => 'OpenXcom Mod Portal',
+    'global_close' => 'Close',
     // Main menu
     'main_menu_nav_toggle' => 'Toggle navigation',
     'main_menu_link_home_txt' => 'Home',
     'main_menu_link_mymods_txt' => 'My Mods',
     'main_menu_link_logout_txt' => 'Logout',
     'main_menu_link_login_txt' => 'Login',
+    // Login
+    'login_modal_title' => 'Log in',
+    'login_modal_description' => 'To login, you must authorize the OpenXcom Mod Portal to use your OpenXcom Forum member details.',
+    'login_modal_oauth_link_txt' => 'Go to the  OpenXcom Forum authorization page',
 ];
 
 /* EOF */
