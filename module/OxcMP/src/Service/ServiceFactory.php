@@ -25,6 +25,10 @@ use Zend\ServiceManager\Factory\FactoryInterface;
 use Interop\Container\ContainerInterface;
 use Zend\Authentication\Storage\Session as SessionStorage;
 use Zend\Session\SessionManager;
+use Interop\Container\Exception\ContainerException;
+use Zend\ServiceManager\Exception\ServiceNotCreatedException;
+use Zend\ServiceManager\Exception\ServiceNotFoundException;
+use OxcMP\Util\Log;
 
 /**
  * Handles local service creation
@@ -39,37 +43,46 @@ class ServiceFactory implements FactoryInterface
      * @param ContainerInterface $container     The service container
      * @param string             $requestedName The service name
      * @param array              $options       Additional options
-     * @return ConfigService
+     * @return object
+     * @throws ServiceNotFoundException if unable to resolve the service.
+     * @throws ServiceNotCreatedException if an exception is raised when creating a service.
+     * @throws ContainerException if any other error occurs
      */
-    public function __invoke(ContainerInterface $container, $requestedName, array $options = null) {
-
-        switch ($requestedName) {
-            case Authentication\AuthenticationAdapter::class:
-                return new $requestedName(
-                    $container->get(User\UserPersistenceService::class),
-                    $container->get(User\UserRetrievalService::class),
-                    $container->get(User\UserRemoteService::class),
-                    $container->get('Config')
-                );
-            case Authentication\AuthenticationService::class:
-                return new $requestedName(
-                    new SessionStorage('Zend_Auth', 'session', $container->get(SessionManager::class)),
-                    $container->get(Authentication\AuthenticationAdapter::class)
-                );
-            case Config\ConfigService::class:
-                return new $requestedName($container->get('Config'));
-            case User\UserPersistenceService::class:
-                return new $requestedName(
-                    $container->get('doctrine.entitymanager.orm_default'),
-                    $container->get(User\UserRemoteService::class)
-                );
-            case User\UserRetrievalService::class:
-                return new $requestedName($container->get('doctrine.entitymanager.orm_default'));
-            case User\UserRemoteService::class:
-                return new $requestedName($container->get(ConfigService::class));
-            default:
-                throw new \Exception('Unsupported service class : ' . $requestedName);
+    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+    {
+        try {
+            switch ($requestedName) {
+                case Authentication\AuthenticationAdapter::class:
+                    return new $requestedName(
+                        $container->get(User\UserPersistenceService::class),
+                        $container->get(User\UserRetrievalService::class),
+                        $container->get(User\UserRemoteService::class),
+                        $container->get('Config')
+                    );
+                case Authentication\AuthenticationService::class:
+                    return new $requestedName(
+                        new SessionStorage('Zend_Auth', 'session', $container->get(SessionManager::class)),
+                        $container->get(Authentication\AuthenticationAdapter::class)
+                    );
+                case Config\ConfigService::class:
+                    return new $requestedName($container->get('Config'));
+                case User\UserPersistenceService::class:
+                    return new $requestedName(
+                        $container->get('doctrine.entitymanager.orm_default'),
+                        $container->get(User\UserRemoteService::class)
+                    );
+                case User\UserRetrievalService::class:
+                    return new $requestedName($container->get('doctrine.entitymanager.orm_default'));
+                case User\UserRemoteService::class:
+                    return new $requestedName($container->get(ConfigService::class));
+            }
+        } catch (\Exception $exc) {
+            Log::notice('Failed to create service ', $requestedName, ': ', $exc->getMessage());
+            throw new ServiceNotCreatedException();
         }
+        
+        // If no service was created thus far, it means that it is not supported
+        throw new ServiceNotFoundException('Unsupported service class : ' . $requestedName);
     }
 }
 
