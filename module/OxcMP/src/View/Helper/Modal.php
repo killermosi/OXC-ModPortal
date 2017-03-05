@@ -29,29 +29,11 @@ namespace OxcMP\View\Helper;
 class Modal extends AbstractViewHelper
 {
     /**
-     * The oAuth URL
-     * @var string
-     */
-    private $oauthUrl;
-    
-    /**
-     * Set the oAuth URL
-     * 
-     * @param string $url The URL
-     * @return $this
-     */
-    public function setOauthUrl($url)
-    {
-        $this->oauthUrl = $url;
-        return $this;
-    }
-    
-    /**
      * Create the login modal
      * 
      * @return string
      */
-    public function renderLoginModal()
+    public function renderLoginModal($oauthUrl)
     {
         $m = '';
         
@@ -63,26 +45,26 @@ class Modal extends AbstractViewHelper
             '{$oAuthTxt}' => $this->translate('login_modal_oauth_link_txt')
         ];
         
-        $m .= '<div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">';
-        $m .= '    <div class="modal-dialog" role="document">';
-        $m .= '        <div class="modal-content">';
-        $m .= '            <div class="modal-header">';
-        $m .= '                <h5 class="modal-title" id="loginModalLabel">{$title}</h5>';
-        $m .= '                <button type="button" class="close" data-dismiss="modal" aria-label="{$close}">';
-        $m .= '                    <span aria-hidden="true">&times;</span>';
-        $m .= '                </button>';
-        $m .= '            </div>';
-        $m .= '            <div class="modal-body">';
-        $m .= '                <p class="text-center">{$description}</p>';
-        $m .= '                <p class="text-center">';
-        $m .= '                    <a href="{$oAuthUrl}" class="btn btn-primary">{$oAuthTxt}</a>';
-        $m .= '                </p>';
-        $m .= '            </div>';
-        $m .= '            <div class="modal-footer">';
-        $m .= '                <button type="button" class="btn btn-secondary" data-dismiss="modal">{$close}</button>';
-        $m .= '            </div>';
-        $m .= '        </div>';
-        $m .= '    </div>';
+        $m .= '<div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">' . PHP_EOL;
+        $m .= '    <div class="modal-dialog" role="document">' . PHP_EOL;
+        $m .= '        <div class="modal-content">' . PHP_EOL;
+        $m .= '            <div class="modal-header">' . PHP_EOL;
+        $m .= '                <h5 class="modal-title" id="loginModalLabel">{$title}</h5>' . PHP_EOL;
+        $m .= '                <button type="button" class="close" data-dismiss="modal" aria-label="{$close}">' . PHP_EOL;
+        $m .= '                    <span aria-hidden="true">&times;</span>' . PHP_EOL;
+        $m .= '                </button>' . PHP_EOL;
+        $m .= '            </div>' . PHP_EOL;
+        $m .= '            <div class="modal-body">' . PHP_EOL;
+        $m .= '                <p class="text-center">{$description}</p>' . PHP_EOL;
+        $m .= '                <p class="text-center">' . PHP_EOL;
+        $m .= '                    <a href="{$oAuthUrl}" class="btn btn-primary">{$oAuthTxt}</a>' . PHP_EOL;
+        $m .= '                </p>' . PHP_EOL;
+        $m .= '            </div>' . PHP_EOL;
+        $m .= '            <div class="modal-footer">' . PHP_EOL;
+        $m .= '                <button type="button" class="btn btn-secondary" data-dismiss="modal">{$close}</button>' . PHP_EOL;
+        $m .= '            </div>' . PHP_EOL;
+        $m .= '        </div>' . PHP_EOL;
+        $m .= '    </div>' . PHP_EOL;
         $m .= '</div>';
         
         return $this->renderTemplate($m, $searchReplace);

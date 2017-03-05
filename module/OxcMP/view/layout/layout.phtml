@@ -34,14 +34,24 @@
     </head>
     <body style="background: url('<?php echo $this->defaultBackground ?>') top center no-repeat">
         <div class="container">
-<?php echo $this->placeholder('mainmenu')->set($this->mainMenu()->setLoggedInStatus(false)->render())->setIndent(12) . PHP_EOL?>
+<?php 
+    echo $this->placeholder('mainmenu')
+        ->setIndent(12)
+        ->set($this->mainMenu()->render(false));
+    
+    echo PHP_EOL;
+?>
 <?php echo $this->placeholder('content')->set($this->content)->setIndent(12) . PHP_EOL ?>
         </div>
 <?php
     //Login modal, only if not logged in
     if (true) {
-        $this->modal()->setOauthUrl($this->config->layout->oAuthUrl);
-        echo $this->placeholder('loginmodal')->set($this->modal()->renderLoginModal())->setIndent(8);
+        echo $this->placeholder('loginmodal')
+            ->setIndent(8)
+            ->set(
+                $this->modal()->renderLoginModal($this->config->layout->oAuthUrl)
+            );
+        echo PHP_EOL;
     }
 ?>
 <?php

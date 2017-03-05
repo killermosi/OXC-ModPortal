@@ -52,7 +52,6 @@ class Module
         'log.level'   => 'log.priority',
         // oAuth parameters
         'oauth.url' => 'layout.oAuthUrl'
-        
     ];
     
     /**

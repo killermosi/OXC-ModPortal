@@ -34,27 +34,10 @@ namespace OxcMP\View\Helper;
 class MainMenu extends AbstractViewHelper
 {
     /**
-     * If a user is currently logged in
-     * @var boolean 
-     */
-    private $isLoggedIn = false;
-    
-    /**
-     * Set the logged in status
-     * @param boolean $status The status
-     * @return MainMenu
-     */
-    public function setLoggedInStatus($status)
-    {
-        $this->isLoggedIn = $status;
-        return $this;
-    }
-    
-    /**
      * Render the main menu
      * @return string
      */
-    public function render()
+    public function render($isLoggedIn)
     {
         $m = '';
         
@@ -86,7 +69,7 @@ class MainMenu extends AbstractViewHelper
         $m .= '                <a class="nav-link" href="{$homeUrl}">{$homeTxt}</a>' . PHP_EOL;
         $m .= '            </li>' . PHP_EOL;
         
-        if ($this->isLoggedIn) {
+        if ($isLoggedIn) {
             $m .= '            <li class="nav-item">' . PHP_EOL;
             $m .= '                <a class="nav-link" href="{$myModsUrl}">{$myModsTxt}</a>' . PHP_EOL;
             $m .= '            </li>' . PHP_EOL;
