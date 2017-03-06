@@ -34,13 +34,22 @@
     </head>
     <body style="background: url('<?php echo $this->defaultBackground ?>') top center no-repeat">
         <div class="container">
-<?php 
+<?php
+    // Main menu
     echo $this->placeholder('mainmenu')
         ->setIndent(12)
         ->set($this->mainMenu()->render(false));
     
     echo PHP_EOL;
 ?>
+            <div class="header-see-through pt-2 pb-2">
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                  <strong>Holy guacamole!</strong> You should check in on some of those fields below.
+                </div>
+            </div>
 <?php echo $this->placeholder('content')->set($this->content)->setIndent(12) . PHP_EOL ?>
         </div>
 <?php
