@@ -41,7 +41,7 @@ class Modal extends AbstractViewHelper
             '{$close}' => $this->translate('global_close'),
             '{$title}' => $this->translate('login_modal_title'),
             '{$description}' => $this->translate('login_modal_description'),
-            '{$oAuthUrl}' => $this->oauthUrl,
+            '{$oAuthUrl}' => $oauthUrl,
             '{$oAuthTxt}' => $this->translate('login_modal_oauth_link_txt')
         ];
         
