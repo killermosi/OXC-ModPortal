@@ -22,7 +22,10 @@
 namespace OxcMP\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
+use Zend\View\Model\ViewModel;
+use Zend\Mvc\Plugin\FlashMessenger\FlashMessenger;
 use Zend\Session\Container;
+use OxcMP\Util\Log;
 
 /**
  * Collection of useful elements
@@ -30,8 +33,9 @@ use Zend\Session\Container;
  * @author Silviu Ghita <killermosi@yahoo.com>
  * @method mixed getService(string $service The service name) Retrieve the specified service
  * @method string translate(string $string The string to translate, mixed $values Additional values to format the translated string with) Translate a string
- * @method Container $session Session storage
- */
+ * @method FlashMessenger flashMessenger() The flash messenger
+ * @property Container $session Session storage
+  */
 class AbstractController extends AbstractActionController {
     
     /**
@@ -40,6 +44,12 @@ class AbstractController extends AbstractActionController {
     const SESSION_NAMESPACE = 'OxcMpSession';
     
     /**
+     * The view
+     * @var ViewModel
+     */
+    protected $view;
+
+    /**
      * Add the specified title to the actual page title
      * 
      * @param type $title The translation key for the title
@@ -47,6 +57,48 @@ class AbstractController extends AbstractActionController {
      */
     protected function addPageTitle($title)
     {
-        $this->getService('ViewHelperManager')->get('headTitle')->prepend($this->translate($title));
+        $this->getService('ViewHelperManager')->get('headTitle')->prepend($title);
+    }
+    
+    /**
+     * Set the "flashMessage" view value with the last message from the
+     * flash messenger as a list with two keys:
+     * - success: If this is a success or error message
+     * - message: The actual message
+     * 
+     * @return void
+     */
+    protected function setViewFlashMessage()
+    {
+        Log::info('Looking for flash messages in the flash messenger');
+        
+        // Messages go to the view model
+        $viewModel = $this->getEvent()->getViewModel();
+        
+        if ($this->flashMessenger()->hasErrorMessages()) {
+            // Errors first
+            $messages = $this->flashMessenger()->getErrorMessages();
+            $flashMessage = [
+                'success' => false,
+                'message' => end($messages)
+            ];
+            
+            $viewModel->flashMessage = $flashMessage;
+            
+            Log::debug('Error message found in the flash messenger: ', $flashMessage['message']);
+        } elseif ($this->flashMessenger()->hasSuccessMessages()) {
+            // Success afterwards
+            $messages = $this->flashMessenger()->getSuccessMessages();
+            $flashMessage = [
+                'success' => true,
+                'message' => end($messages)
+            ];
+            
+            $viewModel->flashMessage = $flashMessage;
+            
+            Log::debug('Success message found in the flash messenger: ', $flashMessage['message']);
+        } else {
+            Log::debug('No flash messages in the flash messenger');
+        }
     }
 }

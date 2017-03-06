@@ -28,6 +28,7 @@ use OxcMP\Service\User\UserPersistenceService;
 use OxcMP\Service\User\UserRemoteService;
 use OxcMP\Entity\User;
 use OxcMP\Util\Log;
+use Zend\Mvc\Plugin\FlashMessenger\FlashMessenger;
 
 /**
  * Primary application controller
@@ -38,6 +39,12 @@ class IndexController extends AbstractController
 {
     public function indexAction()
     {
+        Log::info('Processing index/index page');
+        
+        // We can expect flash messages here
+        $this->setViewFlashMessage();
+        
+        
         /* @var $userRemoteService UserRemoteService */
 //        $userRemoteService = $this->getService(UserRemoteService::class);
 //        

@@ -117,10 +117,12 @@ return [
         'factories' => [
             View\Helper\MainMenu::class => InvokableFactory::class,                    
             View\Helper\Modal::class => InvokableFactory::class,                    
+            View\Helper\AlertMessage::class => InvokableFactory::class,                    
         ],
        'aliases' => [
             'mainMenu' => View\Helper\MainMenu::class,
             'modal' => View\Helper\Modal::class,
+            'alertMessage' => View\Helper\AlertMessage::class,
        ]
     ], 
     'translator' => [
