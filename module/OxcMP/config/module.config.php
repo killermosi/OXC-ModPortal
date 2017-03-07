@@ -77,14 +77,14 @@ return [
     ],
     'controller_plugins' => [
         'factories' => [
-            Controller\Plugin\GetService::class => InvokableFactory::class,
             Controller\Plugin\Translate::class => InvokableFactory::class,
-            Controller\Plugin\Session::class => InvokableFactory::class,
+            Controller\Plugin\AddPageTitle::class => InvokableFactory::class,
+            Controller\Plugin\EscapeHtml::class => InvokableFactory::class,
         ],
         'aliases' => [
-            'getService' => Controller\Plugin\GetService::class,
             'translate' => Controller\Plugin\Translate::class,
-            'session' => Controller\Plugin\Session::class
+            'addPageTitle' => Controller\Plugin\Translate::class,
+            'escapeHtml' => Controller\Plugin\EscapeHtml::class,
         ]
     ],
     'service_manager' => [

@@ -24,19 +24,27 @@ namespace OxcMP\Controller\Plugin;
 use Zend\Mvc\Controller\Plugin\AbstractPlugin;
 
 /**
- * Retrieve a service
+ * Add a title to the page
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class GetService extends AbstractPlugin {
+class AddPageTitle extends AbstractPlugin
+{
     /**
-     * Retrieve the specified service
+     * Add the specified title to the page
      * 
-     * @param string $service The service name
-     * @return mixed
+     * @param string $title The title
+     * @return void
      */
-    public function __invoke($service) {
-        return $this->getController()->getEvent()->getApplication()->getServiceManager()->get($service);
+    public function __invoke($title)
+    {
+        $this->getController()
+            ->getEvent()
+            ->getApplication()
+            ->getServiceManager()
+            ->get('ViewHelperManager')
+            ->get('HeadTitle')
+            ->prepend($title);
     }
 }
 

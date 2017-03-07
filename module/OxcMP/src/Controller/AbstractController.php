@@ -23,18 +23,17 @@ namespace OxcMP\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Mvc\Plugin\FlashMessenger\FlashMessenger;
-use Zend\Session\Container;
 use OxcMP\Util\Log;
 
 /**
  * Collection of useful elements
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
- * @method mixed getService(string $service The service name) Retrieve the specified service
  * @method string translate(string $string The string to translate, mixed $values Additional values to format the translated string with) Translate a string
  * @method FlashMessenger flashMessenger() The flash messenger
- * @property Container $session Session storage
-  */
+ * @method void addPageTitle(string $title The title to add) Add a title to the page
+ * @method string escapeHtml(string $string The string to escape) Escape the HTML characters from the string
+ */
 class AbstractController extends AbstractActionController {
     
     /**
@@ -42,17 +41,6 @@ class AbstractController extends AbstractActionController {
      */
     const SESSION_NAMESPACE = 'OxcMpSession';
 
-    /**
-     * Add the specified title to the actual page title
-     * 
-     * @param type $title The translation key for the title
-     * @return void
-     */
-    protected function addPageTitle($title)
-    {
-        $this->getService('ViewHelperManager')->get('headTitle')->prepend($title);
-    }
-    
     /**
      * Set the "flashMessage" view value with the last message from the
      * flash messenger as a list with two keys:

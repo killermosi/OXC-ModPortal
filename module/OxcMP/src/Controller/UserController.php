@@ -97,11 +97,10 @@ class UserController extends AbstractController
             if ($result->getCode() == Result::SUCCESS) {
                 Log::debug('Login successful');
                 
-                $escapeHtml = $this->getService('ViewHelperManager')->get('escapeHtml');
                 /* @var $user User */
                 $user = $result->getIdentity();
                 
-                $userRealName = $escapeHtml($user->getRealName());
+                $userRealName = $this->escapeHtml($user->getRealName());
                 $this->flashMessenger()->addSuccessMessage($this->translate('login_success_message', $userRealName));
             } else {
                 Log::notice('Login failed');

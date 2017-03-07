@@ -22,25 +22,30 @@
 namespace OxcMP\Controller\Plugin;
 
 use Zend\Mvc\Controller\Plugin\AbstractPlugin;
-use Zend\Session\Container;
-use OxcMP\Controller\AbstractController;
 
 /**
- * Description of Session
+ * Escape HTML characters from a string
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class Session extends AbstractPlugin
+class EscapeHtml extends AbstractPlugin
 {
     /**
-     * Retrieve the specified session
+     * Escape the HTML characters from the string
      * 
-     * @return Container
+     * @param string $string The string to escape
+     * @return string
      */
-    public function __invoke() {
-        return $this->getController()->getEvent()->getApplication()->getServiceManager()->get(
-            AbstractController::SESSION_NAMESPACE
-        );
+    public function __invoke($string)
+    {
+        $escapeHtml = $this->getController()
+            ->getEvent()
+            ->getApplication()
+            ->getServiceManager()
+            ->get('ViewHelperManager')
+            ->get('EscapeHtml');
+        
+        return $escapeHtml($string);
     }
 }
 

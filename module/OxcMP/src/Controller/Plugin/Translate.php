@@ -37,7 +37,12 @@ class Translate extends AbstractPlugin{
      * @return string
      */
     public function __invoke($string, ...$values) {
-        $translate = $this->getController()->getService('ViewHelperManager')->get('translate');
+        $translate = $this->getController()
+            ->getEvent()
+            ->getApplication()
+            ->getServiceManager()
+            ->get('ViewHelperManager')
+            ->get('Translate');
         
         return sprintf($translate($string), ...$values);
     }
