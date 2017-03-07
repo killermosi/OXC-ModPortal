@@ -23,8 +23,8 @@ namespace OxcMP\Service\User;
 
 use Zend\Http\Client as HttpClient;
 use Zend\Json\Server\Exception\ErrorException;
+use Zend\Config\Config;
 use OxcMP\Entity\User;
-use OxcMP\Service\Config\ConfigService;
 use OxcMP\Service\User\Support\JsonRpcClient;
 use OxcMP\Util\Log;
 
@@ -49,9 +49,9 @@ class UserRemoteService
     /**
      * Class initialization
      * 
-     * @param ConfigService $config Module configuration
+     * @param Config $config Module configuration
      */
-    public function __construct(ConfigService $config)
+    public function __construct(Config $config)
     {
         $this->jsonRpcClient = $this->buildJsonRpcClient($config);
     }
@@ -125,10 +125,10 @@ class UserRemoteService
     /**
      * Build the JSON-RPC client
      * 
-     * @param ConfigService $config Module configuration
+     * @param Config $config Module configuration
      * @return JsonRpcClient
      */
-    private function buildJsonRpcClient(ConfigService $config)
+    private function buildJsonRpcClient(Config $config)
     {
         Log::info('Building the JSON-RPC client');
         

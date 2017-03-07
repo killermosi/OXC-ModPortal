@@ -9,6 +9,7 @@ use Zend\ServiceManager\Factory\InvokableFactory;
 use Zend\Session\Storage\SessionArrayStorage;
 use Zend\Session\Validator\RemoteAddr;
 use Zend\Session\Validator\HttpUserAgent;
+use Zend\Config\Config;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as PDOMySqlDriver;
 use OxcMP\Controller\AbstractController;
@@ -87,15 +88,19 @@ return [
     ],
     'service_manager' => [
         'factories' => [
+            
+            /* Local services */
             // Authentication
             Service\Authentication\AuthenticationAdapter::class => Service\ServiceFactory::class,
             Service\Authentication\AuthenticationService::class => Service\ServiceFactory::class,
-            // Config
-            Service\Config\ConfigService::class => Service\ServiceFactory::class,
             // User
             Service\User\UserPersistenceService::class => Service\ServiceFactory::class,
             Service\User\UserRetrievalService::class   => Service\ServiceFactory::class,
             Service\User\UserRemoteService::class      => Service\ServiceFactory::class,
+            
+            /* Remote services */
+            // Config
+            Config::class => Service\ServiceFactory::class,
         ],
     ],
     'view_manager' => [

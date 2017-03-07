@@ -28,6 +28,7 @@ use Zend\Session\SessionManager;
 use Interop\Container\Exception\ContainerException;
 use Zend\ServiceManager\Exception\ServiceNotCreatedException;
 use Zend\ServiceManager\Exception\ServiceNotFoundException;
+use Zend\Config\Config;
 use OxcMP\Util\Log;
 
 /**
@@ -52,20 +53,20 @@ class ServiceFactory implements FactoryInterface
     {
         try {
             switch ($requestedName) {
+                
+                // Local services
                 case Authentication\AuthenticationAdapter::class:
                     return new $requestedName(
                         $container->get(User\UserPersistenceService::class),
                         $container->get(User\UserRetrievalService::class),
                         $container->get(User\UserRemoteService::class),
-                        $container->get(Config\ConfigService::class)
+                        $container->get(Config::class)
                     );
                 case Authentication\AuthenticationService::class:
                     return new $requestedName(
                         new SessionStorage('Zend_Auth', 'session', $container->get(SessionManager::class)),
                         $container->get(Authentication\AuthenticationAdapter::class)
                     );
-                case Config\ConfigService::class:
-                    return new $requestedName($container->get('Config'));
                 case User\UserPersistenceService::class:
                     return new $requestedName(
                         $container->get('doctrine.entitymanager.orm_default'),
@@ -74,7 +75,11 @@ class ServiceFactory implements FactoryInterface
                 case User\UserRetrievalService::class:
                     return new $requestedName($container->get('doctrine.entitymanager.orm_default'));
                 case User\UserRemoteService::class:
-                    return new $requestedName($container->get(Config\ConfigService::class));
+                    return new $requestedName($container->get(Config::class));
+                    
+                // Outside services
+                case \Zend\Config\Config::class:
+                    return new $requestedName($container->get('Config'));
             }
         } catch (\Exception $exc) {
             Log::notice('Failed to create service ', $requestedName, ': ', $exc->getMessage());

@@ -22,7 +22,6 @@
 namespace OxcMP\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
-use Zend\View\Model\ViewModel;
 use Zend\Mvc\Plugin\FlashMessenger\FlashMessenger;
 use Zend\Session\Container;
 use OxcMP\Util\Log;

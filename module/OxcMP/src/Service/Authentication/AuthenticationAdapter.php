@@ -23,10 +23,10 @@ namespace OxcMP\Service\Authentication;
 
 use Zend\Authentication\Adapter\AdapterInterface;
 use Zend\Authentication\Result;
+use Zend\Config\Config;
 use OxcMP\Service\User\UserPersistenceService;
 use OxcMP\Service\User\UserRetrievalService;
 use OxcMP\Service\User\UserRemoteService;
-use OxcMP\Service\Config\ConfigService;
 use OxcMP\Service\User\Exception as UserException;
 use OxcMP\Entity\User;
 use OxcMP\Util\Log;
@@ -58,7 +58,7 @@ class AuthenticationAdapter implements AdapterInterface
     
     /**
      * Configuration
-     * @var ConfigService
+     * @var Config
      */
     private $config;
     
@@ -80,13 +80,13 @@ class AuthenticationAdapter implements AdapterInterface
      * @param UserPersistenceService $userPersistenceService User persistence service
      * @param UserRetrievalService   $userRetrievalService   User retrieval service
      * @param UserRemoteService      $userRemoteService      User remote service
-     * @param ConfigService          $config                 Configuration
+     * @param Config                 $config                 Configuration
      */
     public function __construct(
         UserPersistenceService $userPersistenceService,
         UserRetrievalService $userRetrievalService,
         UserRemoteService $userRemoteService,
-        ConfigService $config
+        Config $config
     ) {
         $this->userPersistenceService = $userPersistenceService;
         $this->userRetrievalService   = $userRetrievalService;
