@@ -21,8 +21,8 @@
 
 namespace OxcMP\Controller;
 
+use Zend\Authentication\AuthenticationService;
 use Zend\Authentication\Result;
-use OxcMP\Service\Authentication\AuthenticationService;
 use OxcMP\Entity\User;
 use OxcMP\Util\Log;
 

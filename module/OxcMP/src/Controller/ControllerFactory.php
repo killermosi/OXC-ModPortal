@@ -26,7 +26,7 @@ use Interop\Container\ContainerInterface;
 use Interop\Container\Exception\ContainerException;
 use Zend\ServiceManager\Exception\ServiceNotCreatedException;
 use Zend\ServiceManager\Exception\ServiceNotFoundException;
-use OxcMP\Service;
+use Zend\Authentication\AuthenticationService;
 use OxcMP\Util\Log;
 
 /**
@@ -55,7 +55,7 @@ class ControllerFactory implements FactoryInterface
                     return new $requestedName();
                 case UserController::class:
                     return new $requestedName(
-                        $container->get(Service\Authentication\AuthenticationService::class)
+                        $container->get(AuthenticationService::class)
                     );
             }
         } catch (\Exception $exc) {

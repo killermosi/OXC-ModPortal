@@ -24,6 +24,7 @@ namespace OxcMP\Service;
 use Zend\ServiceManager\Factory\FactoryInterface;
 use Interop\Container\ContainerInterface;
 use Zend\Authentication\Storage\Session as SessionStorage;
+use Zend\Authentication\AuthenticationService;
 use Zend\Session\SessionManager;
 use Interop\Container\Exception\ContainerException;
 use Zend\ServiceManager\Exception\ServiceNotCreatedException;
@@ -62,11 +63,7 @@ class ServiceFactory implements FactoryInterface
                         $container->get(User\UserRemoteService::class),
                         $container->get(Config::class)
                     );
-                case Authentication\AuthenticationService::class:
-                    return new $requestedName(
-                        new SessionStorage('Zend_Auth', 'session', $container->get(SessionManager::class)),
-                        $container->get(Authentication\AuthenticationAdapter::class)
-                    );
+
                 case User\UserPersistenceService::class:
                     return new $requestedName(
                         $container->get('doctrine.entitymanager.orm_default'),
@@ -80,6 +77,11 @@ class ServiceFactory implements FactoryInterface
                 // Outside services
                 case \Zend\Config\Config::class:
                     return new $requestedName($container->get('Config'));
+                case AuthenticationService::class:
+                    return new $requestedName(
+                        new SessionStorage('Zend_Auth', 'session', $container->get(SessionManager::class)),
+                        $container->get(Authentication\AuthenticationAdapter::class)
+                    );
             }
         } catch (\Exception $exc) {
             Log::notice('Failed to create service ', $requestedName, ': ', $exc->getMessage());
