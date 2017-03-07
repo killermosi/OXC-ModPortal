@@ -45,6 +45,8 @@ class UserRetrievalService
      */
     public function __construct(EntityManager $em)
     {
+        Log::info('Initializing UserRetrievalService');
+        
         $this->entityManager = $em;
     }
     

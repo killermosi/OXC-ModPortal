@@ -239,6 +239,7 @@ return [
     ],
     'userRemote' => [
         'tokenCheckDelay' => 60 * 15,
-        'displayRefreshDelay' => 60 * 60 * 2
+        'displayRefreshDelay' => 60 * 60 * 2,
+        'rememberMe' => 60 * 60 * 24 * 14
     ]
 ];

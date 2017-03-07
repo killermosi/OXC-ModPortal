@@ -21,8 +21,10 @@
 
 namespace OxcMP\Controller;
 
+use Zend\Session\SessionManager;
 use Zend\Authentication\AuthenticationService;
 use Zend\Authentication\Result;
+use Zend\Config\Config;
 use OxcMP\Entity\User;
 use OxcMP\Util\Log;
 
@@ -40,13 +42,30 @@ class UserController extends AbstractController
     private $authenticationService;
     
     /**
+     * The session manager
+     * @var SessionManager 
+     */
+    private $sessionManager;
+    
+    /**
+     * Configuration
+     * @var Config
+     */
+    private $config;
+    
+    /**
      * Class initialization
      * 
      * @param AuthenticationService $authenticationService The authentication service
      */
-    public function __construct(AuthenticationService $authenticationService)
-    {
+    public function __construct(
+        AuthenticationService $authenticationService,
+        SessionManager $sessionManager,
+        Config $config
+    ) {
         $this->authenticationService = $authenticationService;
+        $this->sessionManager = $sessionManager;
+        $this->config = $config;
     }
     
     /**
@@ -97,11 +116,16 @@ class UserController extends AbstractController
             if ($result->getCode() == Result::SUCCESS) {
                 Log::debug('Login successful');
                 
+                // Set session cookie lifetime
+                $this->sessionManager->rememberMe($this->config->userRemote->rememberMe);
+                
                 /* @var $user User */
                 $user = $result->getIdentity();
                 
+                // Success message
                 $userRealName = $this->escapeHtml($user->getRealName());
                 $this->flashMessenger()->addSuccessMessage($this->translate('login_success_message', $userRealName));
+                
             } else {
                 Log::notice('Login failed');
                 $this->flashMessenger()->addErrorMessage($this->translate('login_fail_message'));

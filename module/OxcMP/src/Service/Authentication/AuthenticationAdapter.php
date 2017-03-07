@@ -88,6 +88,8 @@ class AuthenticationAdapter implements AdapterInterface
         UserRemoteService $userRemoteService,
         Config $config
     ) {
+        Log::info('Initialiaing AuthenticationAdapter');
+            
         $this->userPersistenceService = $userPersistenceService;
         $this->userRetrievalService   = $userRetrievalService;
         $this->userRemoteService      = $userRemoteService;
@@ -125,13 +127,23 @@ class AuthenticationAdapter implements AdapterInterface
     {
         Log::info('Attempting to authenticate Member ID ', $this->memberId);
         
-        // Look for the member ID in the database
+        
+        Log::debug('Checking if the Member ID ', $this->memberId, ' is already present in the database');
         $user = $this->userRetrievalService->findByMemberId($this->memberId);
         
         // Authenticate accordingly
-        return ($user instanceof User)
-            ? $this->authenticateExistingUser($user)
-            : $this->authenticateNewUser();
+        if ($user instanceof User) {
+            Log::debug(
+                'Member ID ',
+                $this->memberId,
+                ' was authenticated before, and has the local ID ',
+                $user->getId()
+            );
+           return  $this->authenticateExistingUser($user);
+        } else {
+            Log::debug('Member ID ', $this->memberId, ' was not authenticated before');
+            return $this->authenticateNewUser();
+        }
     }
 
     /**

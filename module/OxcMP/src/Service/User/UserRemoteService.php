@@ -53,6 +53,7 @@ class UserRemoteService
      */
     public function __construct(Config $config)
     {
+        Log::info('Initializing UserRemoteService');
         $this->jsonRpcClient = $this->buildJsonRpcClient($config);
     }
     
