@@ -52,6 +52,8 @@ class ControllerFactory implements FactoryInterface
         try {
             switch ($requestedName) {
                 case IndexController::class:
+                    return new $requestedName();
+                case UserController::class:
                     return new $requestedName(
                         $container->get(Service\Authentication\AuthenticationService::class)
                     );

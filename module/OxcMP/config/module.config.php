@@ -40,7 +40,7 @@ return [
                         'authenticationToken' => '[a-z0-9]{8}-[a-z0-9]{8}-[a-z0-9]{8}-[a-z0-9]{8}'
                     ],
                     'defaults' => [
-                        'controller' => Controller\IndexController::class,
+                        'controller' => Controller\UserController::class,
                         'action'     => 'login',
                     ],
                 ],
@@ -50,7 +50,7 @@ return [
                 'options' => [
                     'route'    => '/logout[/]',
                     'defaults' => [
-                        'controller' => Controller\IndexController::class,
+                        'controller' => Controller\UserController::class,
                         'action'     => 'logout',
                     ],
                 ],
@@ -70,6 +70,7 @@ return [
     'controllers' => [
         'factories' => [
             Controller\IndexController::class => Controller\ControllerFactory::class,
+            Controller\UserController::class  => Controller\ControllerFactory::class,
         ],
     ],
     'controller_plugins' => [
@@ -230,7 +231,7 @@ return [
         ]
     ],
     'userRemote' => [
-        'tokenCheckDelay' => 60 * 15,
+        'tokenCheckDelay' => 60 * 1,
         'displayRefreshDelay' => 60 * 60 * 2
     ]
 ];
