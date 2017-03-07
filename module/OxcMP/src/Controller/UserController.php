@@ -52,11 +52,11 @@ class UserController extends AbstractController
     /**
      * Handle login action
      * 
-     * @return Zend\Stdlib\ResponseInterface
+     * @return void
      */
     public function loginAction()
     {
-        Log::info('Processing index/login action');
+        Log::info('Processing login action');
         
         // Check the URL for login credentials
         $memberId = $this->params()->fromRoute('memberId', null);
@@ -114,6 +114,27 @@ class UserController extends AbstractController
         
         $this->redirect()->toRoute('home');
         return;
+    }
+    
+    /**
+     * Handle logout action
+     * 
+     * @return void
+     */
+    public function logoutAction()
+    {
+        Log::info('Processing logout action');
+        
+        if ($this->authenticationService->hasIdentity()) {
+            Log::debug('Logging out');
+            $this->authenticationService->clearIdentity();
+        } else {
+            Log::debug('The user is not logged in, nothing to do');
+        }
+        
+        // Send the confirmation message anyway and send the user to home
+        $this->flashMessenger()->addSuccessMessage($this->translate('login_logout_message'));
+        $this->redirect()->toRoute('home');
     }
 }
 
