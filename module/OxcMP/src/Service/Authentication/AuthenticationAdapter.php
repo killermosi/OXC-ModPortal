@@ -174,8 +174,8 @@ class AuthenticationAdapter implements AdapterInterface
         $user->setRealName($userDetails['RealName']);
         $user->setPersonalText($userDetails['PersonalText']);
         $user->setIsAdministrator($userDetails['IsAdministrator']);
-        $user->setAvatarUrl($userDetails['Avatar']);
-        $user->updateLastTokenCheckDate();
+        $user->setAvatarUrl($userDetails['AvatarUrl']);
+        $user->updateLastDetailUpdateDate();
         
         // Persist the user in the database
         try {
@@ -196,7 +196,7 @@ class AuthenticationAdapter implements AdapterInterface
      */
     private function authenticateExistingUser(User $user)
     {
-        Log::info('Attempting to authenticate the User ID ', $user->getId());
+        Log::info('Attempting to re-authenticate the User ID ', $user->getId());
         
         // Check if it's orphan
         if ($user->getIsOrphan()) {
@@ -210,7 +210,7 @@ class AuthenticationAdapter implements AdapterInterface
             $this->authenticationToken == $user->getAuthenticationToken()
             && $user->getLastTokenCheckDate() > (new \DateTime())->sub(new \DateInterval($timeInterval))
         ) {
-            Log::debug('The authentication token was recently checked, accepting login ');
+            Log::debug('The authentication token was recently checked, accepting login');
             return new Result(Result::SUCCESS, $user);
         }
         
@@ -236,10 +236,27 @@ class AuthenticationAdapter implements AdapterInterface
             return $validationResult;
         }
         
-        // Validation succeeded, update the user entity
+        // Retrieve the user details
+        try {
+            $userDetails = $this->userRemoteService->getDisplayData($user);
+        } catch (\Exception $exc) {
+            // Since this call is done right after a successful authentication,
+            // all errors are unexpected
+            Log::notice('Unexpected error encountered while retrieving the remote user data');
+            return new Result(Result::FAILURE_UNCATEGORIZED, null);
+        }
+        
+        // Update the user entity with them
+        $user->setRealName($userDetails['RealName']);
+        $user->setPersonalText($userDetails['PersonalText']);
+        $user->setIsAdministrator($userDetails['IsAdministrator']);
+        $user->setAvatarUrl($userDetails['AvatarUrl']);
+        $user->updateLastDetailUpdateDate();
+        
+        // Login succeeded, update the user entity
         try {
             $user->updateLastTokenCheckDate();
-            $this->userPersistenceService->update($user, true);
+            $this->userPersistenceService->update($user);
         } catch (\Exception $exc) {
             return new Result(Result::FAILURE_UNCATEGORIZED, $user);
         }
@@ -277,7 +294,7 @@ class AuthenticationAdapter implements AdapterInterface
             return new Result(Result::FAILURE_UNCATEGORIZED, null);
         }
         
-        Log::debug('Validation successful!');
+        Log::debug('Authentication token is valid!');
         return new Result(Result::SUCCESS, $user);
     }
 }
