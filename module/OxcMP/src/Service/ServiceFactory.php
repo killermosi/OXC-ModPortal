@@ -57,7 +57,7 @@ class ServiceFactory implements FactoryInterface
                         $container->get(User\UserPersistenceService::class),
                         $container->get(User\UserRetrievalService::class),
                         $container->get(User\UserRemoteService::class),
-                        $container->get('Config')
+                        $container->get(Config\ConfigService::class)
                     );
                 case Authentication\AuthenticationService::class:
                     return new $requestedName(
@@ -74,7 +74,7 @@ class ServiceFactory implements FactoryInterface
                 case User\UserRetrievalService::class:
                     return new $requestedName($container->get('doctrine.entitymanager.orm_default'));
                 case User\UserRemoteService::class:
-                    return new $requestedName($container->get(ConfigService::class));
+                    return new $requestedName($container->get(Config\ConfigService::class));
             }
         } catch (\Exception $exc) {
             Log::notice('Failed to create service ', $requestedName, ': ', $exc->getMessage());

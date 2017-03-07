@@ -42,12 +42,6 @@ class AbstractController extends AbstractActionController {
      * Namespace for sessions
      */
     const SESSION_NAMESPACE = 'OxcMpSession';
-    
-    /**
-     * The view
-     * @var ViewModel
-     */
-    protected $view;
 
     /**
      * Add the specified title to the actual page title

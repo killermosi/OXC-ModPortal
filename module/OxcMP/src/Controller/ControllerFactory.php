@@ -26,6 +26,7 @@ use Interop\Container\ContainerInterface;
 use Interop\Container\Exception\ContainerException;
 use Zend\ServiceManager\Exception\ServiceNotCreatedException;
 use Zend\ServiceManager\Exception\ServiceNotFoundException;
+use OxcMP\Service;
 use OxcMP\Util\Log;
 
 /**
@@ -51,7 +52,9 @@ class ControllerFactory implements FactoryInterface
         try {
             switch ($requestedName) {
                 case IndexController::class:
-                    return new $requestedName;
+                    return new $requestedName(
+                        $container->get(Service\Authentication\AuthenticationService::class)
+                    );
             }
         } catch (\Exception $exc) {
             Log::notice('Failed to create controller ', $requestedName, ': ', $exc->getMessage());
