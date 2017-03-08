@@ -53,7 +53,7 @@ class UserPersistenceService
      */
     public function __construct(EntityManager $entityManager, UserRemoteService $userRemoteService)
     {
-        Log::info('Initializaiong UserPersistenceService');
+        Log::info('Initializing UserPersistenceService');
         
         $this->entityManager     = $entityManager;
         $this->userRemoteService = $userRemoteService;

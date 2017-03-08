@@ -56,6 +56,10 @@ class ServiceFactory implements FactoryInterface
             switch ($requestedName) {
                 
                 // Local services
+                case Acl\AclService::class:
+                    return new $requestedName(
+                        $container->get(Config::class)
+                    );
                 case Authentication\AuthenticationAdapter::class:
                     return new $requestedName(
                         $container->get(User\UserPersistenceService::class),
@@ -70,16 +74,26 @@ class ServiceFactory implements FactoryInterface
                         $container->get(User\UserRemoteService::class)
                     );
                 case User\UserRetrievalService::class:
-                    return new $requestedName($container->get('doctrine.entitymanager.orm_default'));
+                    return new $requestedName(
+                        $container->get('doctrine.entitymanager.orm_default')
+                    );
                 case User\UserRemoteService::class:
-                    return new $requestedName($container->get(Config::class));
+                    return new $requestedName(
+                        $container->get(Config::class)
+                    );
                     
-                // Outside services
+                // External services
                 case \Zend\Config\Config::class:
-                    return new $requestedName($container->get('Config'));
+                    return new $requestedName(
+                        $container->get('Config')
+                    );
                 case AuthenticationService::class:
                     return new $requestedName(
-                        new SessionStorage('Zend_Auth', 'session', $container->get(SessionManager::class)),
+                        new SessionStorage(
+                            'Zend_Auth',
+                            'session',
+                            $container->get(SessionManager::class)
+                        ),
                         $container->get(Authentication\AuthenticationAdapter::class)
                     );
             }

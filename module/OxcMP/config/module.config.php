@@ -96,6 +96,8 @@ return [
         'factories' => [
             
             /* Local services */
+            // ACL
+            Service\Acl\AclService::class => Service\ServiceFactory::class,
             // Authentication
             Service\Authentication\AuthenticationAdapter::class => Service\ServiceFactory::class,
             // User

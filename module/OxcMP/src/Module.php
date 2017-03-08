@@ -21,9 +21,13 @@
 
 namespace OxcMP;
 
+use Zend\Authentication\AuthenticationService;
 use Zend\Mvc\MvcEvent;
+use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Session\SessionManager;
 use Zend\Config\Config;
+use OxcMP\Service\Acl\AclService;
+use OxcMP\Service\Acl\Role;
 use OxcMP\Util\Config as ConfigUtil;
 use OxcMP\Util\Log;
 
@@ -96,7 +100,59 @@ class Module
         // makes the SessionManager the 'default' one.
         $serviceManager->get(SessionManager::class);
         
+        // Check ACL
+        $event->getApplication()
+            ->getEventManager()
+            ->getSharedManager()
+            ->attach(
+                AbstractActionController::class,
+                MvcEvent::EVENT_DISPATCH,
+                [$this, 'onDispatch'],
+                100
+            );
         Log::debug('Bootstrapping complete');
+    }
+    
+    /**
+     * Actions to execute on dispatch
+     * 
+     * @param MvcEvent $event The event
+     * @return void
+     */
+    public function onDispatch(MvcEvent $event)
+    {
+        // Services
+        $serviceManager = $event->getApplication()->getServiceManager();
+        
+        /* @var $aclService AclService */
+        $aclService = $serviceManager->get(AclService::class);
+        /* @var $authenticationService AuthenticationService */
+        $authenticationService = $serviceManager->get(AuthenticationService::class);
+
+        // Route
+        $route = $event->getRouteMatch()->getMatchedRouteName();
+
+        // User role
+        $userRole = Role::GUEST;
+        
+        if ($authenticationService->hasIdentity()) {
+            /* @var $user \OxcMP\Entity\User */
+            $user = $authenticationService->getIdentity();
+            
+            $userRole = $user->getIsAdministrator() ? Role::ADMINISTRATOR : Role::MEMBER;
+        }
+        
+        // Send the user to the home page if it is not allowed to access the page
+        if (!$aclService->isAclAllowed($route, $userRole)) {
+            $errorKey = (false == $authenticationService->hasIdentity())
+                ? 'acl_not_logged_in'
+                : 'acl_not_allowed';
+            
+            $errorMessage = $event->getTarget()->translate($errorKey);
+            $event->getTarget()->flashMessenger()->addErrorMessage($errorMessage);
+            
+            return $event->getTarget()->redirect()->toRoute('home');
+        }
     }
 }
 
