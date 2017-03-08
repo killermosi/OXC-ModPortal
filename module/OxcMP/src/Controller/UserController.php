@@ -151,12 +151,12 @@ class UserController extends AbstractController
         if ($this->authenticationService->hasIdentity()) {
             Log::debug('Logging out');
             $this->authenticationService->clearIdentity();
+            $this->flashMessenger()->addSuccessMessage($this->translate('login_logout_message'));
         } else {
             Log::debug('The user is not logged in, nothing to do');
         }
         
-        // Send the confirmation message anyway and send the user to home
-        $this->flashMessenger()->addSuccessMessage($this->translate('login_logout_message'));
+        // Send the user to home
         $this->redirect()->toRoute('home');
     }
 }

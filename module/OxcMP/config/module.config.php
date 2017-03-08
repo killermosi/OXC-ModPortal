@@ -16,6 +16,7 @@ use Doctrine\DBAL\Driver\PDOMySql\Driver as PDOMySqlDriver;
 use OxcMP\Controller\AbstractController;
 use OxcMP\Service;
 use OxcMP\View;
+use OxcMP\Service\Acl\Role;
 
 /** !!! PRIVATE CONFIGURATION - DO NOT MODIFY !!! **/
 return [
@@ -29,6 +30,7 @@ return [
                         'controller' => Controller\IndexController::class,
                         'action'     => 'index',
                     ],
+                    'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
                 ],
             ],
             'login' => [
@@ -45,6 +47,7 @@ return [
                         'controller' => Controller\UserController::class,
                         'action'     => 'login',
                     ],
+                    'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
                 ],
             ],
             'logout' => [
@@ -55,6 +58,7 @@ return [
                         'controller' => Controller\UserController::class,
                         'action'     => 'logout',
                     ],
+                    'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
                 ],
             ],
             'my-mods' => [
@@ -65,6 +69,7 @@ return [
                         'controller' => Controller\IndexController::class,
                         'action'     => 'index',
                     ],
+                    'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
                 ],
             ],
         ],
