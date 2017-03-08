@@ -24,6 +24,7 @@ namespace OxcMP;
 use Zend\Mvc\MvcEvent;
 use Zend\Session\SessionManager;
 use Zend\Config\Config;
+use OxcMP\Util\Config as ConfigUtil;
 use OxcMP\Util\Log;
 
 class Module
@@ -63,9 +64,10 @@ class Module
     {
         // Use a split configuration model - to make it easier to distinguish between
         // configuration values that are intended to be user-modified and those that are not
-        return array_replace_recursive(
-            require  __DIR__ . '/../config/module.config.php',
-            $this->buildPublicConfig( __DIR__ . '/../config/module.config.ini')
+        return ConfigUtil::buildConfig(
+            __DIR__ . '/../config/module.config.php', 
+            __DIR__ . '/../config/module.config.ini',
+            $this->configMap
         );
     }
     
@@ -95,70 +97,6 @@ class Module
         $serviceManager->get(SessionManager::class);
         
         Log::debug('Bootstrapping complete');
-    }
-    
-    /**
-     * Build the public configuration array
-     * 
-     * @param string $configFile Path to configuration file
-     * @return array
-     */
-    private function buildPublicConfig($configFile)
-    {
-        // Read the config data
-        $config = parse_ini_file($configFile, false, INI_SCANNER_TYPED);
-        
-        // Adjust the config data
-        $adjustedConfig = [];
-        
-        foreach ($this->configMap as $oldKey => $newKey) {
-            if (!isset($config[$oldKey])) {
-                throw new \Exception('Missing config key: ' . $oldKey);
-            }
-            
-            $adjustedConfig[$newKey] = $config[$oldKey];
-            unset($config[$oldKey]);
-        }
-        
-        return $this->dimensionalSplit($adjustedConfig);
-    }
-    
-    /**
-     * Transform any value that that contains the dot character into a multi-dimensional array,
-     * each dot denoting another level. Code adapted from: http://stackoverflow.com/a/9636021/1111983
-     * 
-     * @param array $data An associative array with the data
-     * @return array
-     */
-    private function dimensionalSplit(array $data)
-    {
-        foreach ($data as $key => $value) {
-            // Do not process if there are no dots in the key name
-            if (false === strpos($key, '.')) {
-                continue;
-            }
-            
-            // Transform the key containing dots to a multi-dimensional array
-            $levels = explode('.', $key);
-            
-            $array = array();
-            $ref = &$array;
-            
-            foreach ($levels as $level) {
-                $ref[$level] = array();
-                $ref = &$ref[$level];
-            }
-            
-            $ref = $value;
-            
-            // Merge the array obtained from the key name with the original one
-            $data = array_merge_recursive($data, $array);
-            
-            // And remove the original key
-            unset($data[$key]);
-        }
-
-        return $data;
     }
 }
 
