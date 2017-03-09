@@ -1,6 +1,6 @@
 <?php
 
-// Use sanke_case for keys
+// Use snake_case for keys
 return [
     // Meta
     '' => ['plural_forms' => 'nplurals=2; plural=(n==1 ? 0 : 1)'],
