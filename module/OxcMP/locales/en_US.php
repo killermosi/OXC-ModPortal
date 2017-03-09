@@ -17,12 +17,12 @@ return [
     'login_modal_title' => 'Log in',
     'login_modal_description' => 'To login, you must authorize the OpenXcom Mod Portal to use your OpenXcom Forum member details.',
     'login_modal_oauth_link_txt' => 'Go to the  OpenXcom Forum authorization page',
-    'login_success_message' => 'Welcome <strong>%s</strong>, you are now logged in',
-    'login_fail_message' => '<strong>Authorization failed</strong>, please try again later',
-    'login_logout_message' => 'You have been logged out',
+    'login_success_message' => 'Welcome <strong>%s</strong>, you are now logged in.',
+    'login_fail_message' => '<strong>Authorization failed</strong>, please try again later.',
+    'login_logout_message' => 'You have successfully logged out.',
     // ACL
-    'acl_not_logged_in' => 'You are not logged in',
-    'acl_not_allowed' => 'You are not allowed to access that action',
+    'acl_not_logged_in' => 'You are not logged in.',
+    'acl_not_allowed' => 'You are not allowed to access that action.',
 ];
 
 /* EOF */

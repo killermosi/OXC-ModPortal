@@ -26,6 +26,7 @@ use Zend\Authentication\AuthenticationService;
 use Zend\Authentication\Result;
 use Zend\Config\Config;
 use OxcMP\Entity\User;
+use OxcMP\Service\User\UserRetrievalService;
 use OxcMP\Util\Log;
 
 /**
@@ -42,6 +43,12 @@ class UserController extends AbstractController
     private $authenticationService;
     
     /**
+     * The user retrieval service
+     * @var UserRetrievalService 
+     */
+    private $userRetrievalService;
+    
+    /**
      * The session manager
      * @var SessionManager 
      */
@@ -56,14 +63,19 @@ class UserController extends AbstractController
     /**
      * Class initialization
      * 
-     * @param AuthenticationService $authenticationService The authentication service
+     * @param AuthenticationService $authenticationService Authentication service
+     * @param UserRetrievalService  $userRetrievalService  User retrieval service
+     * @param SessionManager        $sessionManager        Session manager
+     * @param Config                $config                Configuration
      */
     public function __construct(
         AuthenticationService $authenticationService,
+        UserRetrievalService $userRetrievalService,
         SessionManager $sessionManager,
         Config $config
     ) {
         $this->authenticationService = $authenticationService;
+        $this->userRetrievalService = $userRetrievalService;
         $this->sessionManager = $sessionManager;
         $this->config = $config;
     }
@@ -119,8 +131,8 @@ class UserController extends AbstractController
                 // Set session cookie lifetime
                 $this->sessionManager->rememberMe($this->config->userRemote->rememberMe);
                 
-                /* @var $user User */
-                $user = $result->getIdentity();
+                // Retrieve the user details
+                $user = $this->userRetrievalService->findById($result->getIdentity());
                 
                 // Success message
                 $userRealName = $this->escapeHtml($user->getRealName());

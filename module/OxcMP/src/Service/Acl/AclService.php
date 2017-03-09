@@ -21,6 +21,7 @@
 
 namespace OxcMP\Service\Acl;
 
+use Zend\Permissions\Acl\Acl;
 use Zend\Config\Config;
 use OxcMP\Util\Log;
 
@@ -59,12 +60,7 @@ class AclService
     {
         Log::info('Checking if route "', $route, '" is accessible to "', $role, '" role');
         
-        if (!isset($this->acl[$route])) {
-            Log::warn('Route "', $route, '" is not defined in the ACL!');
-            return false;
-        }
-        
-        if (!in_array($role, $this->acl[$route])) {
+        if (!$this->acl->isAllowed($role, $route)) {
             Log::notice('Route "', $route, '" is not accesible to role "', $role, '"');
             return false;
         }
@@ -83,15 +79,29 @@ class AclService
     {
         Log::info('Loading ACL');
         
+        $this->acl = new Acl();
+        
+        // Set roles
+        $this->acl->addRole(Role::GUEST);
+        $this->acl->addRole(Role::MEMBER);
+        $this->acl->addRole(Role::ADMINISTRATOR);
+        
+        // Set resources and permissions
         foreach ($config->router->routes as $routeName => $route) {
             if (!isset($route->options->acl)) {
                 continue;
             }
             
-            $this->acl[$routeName] = $route->options->acl->toArray();
+            // Add the resource
+            $this->acl->addResource($routeName);
+            
+            // Per these roles to access the resource
+            foreach ($route->options->acl as $role) {
+                $this->acl->allow($role, $routeName);
+            }
         }
         
-        Log::debug('ACL loaded, ', count($this->acl), ' entries total');
+        Log::debug('ACL loaded');
     }
 }
 

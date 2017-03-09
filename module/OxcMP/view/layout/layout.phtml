@@ -38,7 +38,9 @@
     // Main menu
     echo $this->placeholder('mainmenu')
         ->setIndent(12)
-        ->set($this->mainMenu()->render(false));
+        ->set(
+            $this->mainMenu()->render(!empty($this->authenticatedUser))
+        );
     
     echo PHP_EOL;
 ?>

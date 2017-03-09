@@ -183,11 +183,7 @@ class AuthenticationAdapter implements AdapterInterface
         }
         
         // Update the user entity with them
-        $user->setRealName($userDetails['RealName']);
-        $user->setPersonalText($userDetails['PersonalText']);
-        $user->setIsAdministrator($userDetails['IsAdministrator']);
-        $user->setAvatarUrl($userDetails['AvatarUrl']);
-        $user->updateLastDetailUpdateDate();
+        $user->updateDetails($userDetails);
         
         // Persist the user in the database
         try {
@@ -217,10 +213,9 @@ class AuthenticationAdapter implements AdapterInterface
         }
         
         // If the token has not changed and was recently checked, do not refresh the token remotely
-        $timeInterval = 'PT' . $this->config->userRemote->tokenCheckDelay . 'S';
         if (
             $this->authenticationToken == $user->getAuthenticationToken()
-            && $user->getLastTokenCheckDate() > (new \DateTime())->sub(new \DateInterval($timeInterval))
+            && !$user->isDueTokenCheck($this->config)
         ) {
             Log::debug('The authentication token was recently checked, accepting login');
             return new Result(Result::SUCCESS, $user);
@@ -259,11 +254,7 @@ class AuthenticationAdapter implements AdapterInterface
         }
         
         // Update the user entity with them
-        $user->setRealName($userDetails['RealName']);
-        $user->setPersonalText($userDetails['PersonalText']);
-        $user->setIsAdministrator($userDetails['IsAdministrator']);
-        $user->setAvatarUrl($userDetails['AvatarUrl']);
-        $user->updateLastDetailUpdateDate();
+        $user->updateDetails($userDetails);
         
         // Login succeeded, update the user entity
         try {
@@ -307,7 +298,7 @@ class AuthenticationAdapter implements AdapterInterface
         }
         
         Log::debug('Authentication token is valid!');
-        return new Result(Result::SUCCESS, $user);
+        return new Result(Result::SUCCESS, $user->getId());
     }
 }
 

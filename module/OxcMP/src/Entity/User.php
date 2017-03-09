@@ -22,6 +22,7 @@
 namespace OxcMP\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Zend\Config\Config;
 
 /**
  * User entity
@@ -209,17 +210,6 @@ class User
     }
 
     /**
-     * Set the real name
-     * 
-     * @param string $realName The real name
-     * @return void
-     */
-    public function setRealName($realName)
-    {
-        $this->realName = $realName;
-    }
-
-    /**
      * Get the personal text
      * 
      * @return string
@@ -227,17 +217,6 @@ class User
     public function getPersonalText()
     {
         return $this->personalText;
-    }
-
-    /**
-     * Set the personal text
-     * 
-     * @param string $personalText The personal text
-     * @return void
-     */
-    public function setPersonalText($personalText)
-    {
-        $this->personalText = $personalText;
     }
 
     /**
@@ -249,17 +228,6 @@ class User
     {
         return $this->isAdministrator;
     }
-
-    /**
-     * Set if the user is an administrator
-     * 
-     * @param boolean $isAdministrator The administrator status
-     * @return void
-     */
-    public function setIsAdministrator($isAdministrator)
-    {
-        $this->isAdministrator = $isAdministrator;
-    }
     
     /**
      * Get the avatar URL
@@ -269,17 +237,6 @@ class User
     public function getAvatarUrl()
     {
         return $this->avatarUrl;
-    }
-
-    /**
-     * Set the avatar URL
-     * 
-     * @param string $avatarUrl The URL
-     * @return void
-     */
-    public function setAvatarUrl($avatarUrl)
-    {
-        $this->avatarUrl = $avatarUrl;
     }
     
     /**
@@ -312,13 +269,44 @@ class User
     }
 
     /**
-     * Update the last date and time when the member details were updated
+     * Update the current entity with the specified remote data
      * 
+     * @param array $remoteData The remote data
      * @return void
      */
-    public function updateLastDetailUpdateDate()
+    public function updateDetails(array $remoteData)
     {
+        $this->realName = $remoteData['RealName'];
+        $this->personalText = $remoteData['PersonalText'];
+        $this->isAdministrator = $remoteData['IsAdministrator'];
+        $this->avatarUrl = $remoteData['AvatarUrl'];
+        
+        // Update the last update date
         $this->lastDetailUpdateDate = new \DateTime();
+    }
+    
+    /**
+     * Check if the 
+     * @param Config $config
+     */
+    public function isDueTokenCheck(Config $config)
+    {
+        $timeInterval = 'PT' . $config->userRemote->tokenCheckDelay . 'S';
+        
+        return ($this->lastTokenCheckDate <= (new \DateTime())->sub(new \DateInterval($timeInterval)));
+    }
+
+    /**
+     * Check if the details of this user are due for update
+     * 
+     * @param Config $config The configuration
+     * @return boolean
+     */
+    public function isDueDetailsUpdate(Config $config)
+    {
+        $timeInterval = 'PT' . $config->userRemote->displayRefreshDelay . 'S';
+        
+        return ($this->lastDetailUpdateDate <= (new \DateTime())->sub(new \DateInterval($timeInterval)));
     }
 }
 

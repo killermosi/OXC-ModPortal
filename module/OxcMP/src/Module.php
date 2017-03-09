@@ -26,8 +26,12 @@ use Zend\Mvc\MvcEvent;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Session\SessionManager;
 use Zend\Config\Config;
+use OxcMP\Entity\User;
 use OxcMP\Service\Acl\AclService;
 use OxcMP\Service\Acl\Role;
+use OxcMP\Service\User\UserPersistenceService;
+use OxcMP\Service\User\UserRemoteService;
+use OxcMP\Service\User\UserRetrievalService;
 use OxcMP\Util\Config as ConfigUtil;
 use OxcMP\Util\Log;
 
@@ -121,13 +125,27 @@ class Module
      */
     public function onDispatch(MvcEvent $event)
     {
+        // Update authenticated user
+        $this->updateAuthenticatedUser($event);
+
         // Services
         $serviceManager = $event->getApplication()->getServiceManager();
-        
-        /* @var $aclService AclService */
-        $aclService = $serviceManager->get(AclService::class);
         /* @var $authenticationService AuthenticationService */
         $authenticationService = $serviceManager->get(AuthenticationService::class);
+
+        // Retrieve the authenticated user
+        if ($authenticationService->hasIdentity()) {
+            $authenticatedUser = $serviceManager->get(UserRetrievalService::class)->findById(
+                $authenticationService->getIdentity()
+            );
+        } else {
+            $authenticatedUser = null;
+        }
+
+        // Set the authenticated user view value
+        $event->getViewModel()->authenticatedUser = $authenticatedUser;
+        
+        /* Check ACL */
 
         // Route
         $route = $event->getRouteMatch()->getMatchedRouteName();
@@ -135,15 +153,12 @@ class Module
         // User role
         $userRole = Role::GUEST;
         
-        if ($authenticationService->hasIdentity()) {
-            /* @var $user \OxcMP\Entity\User */
-            $user = $authenticationService->getIdentity();
-            
-            $userRole = $user->getIsAdministrator() ? Role::ADMINISTRATOR : Role::MEMBER;
+        if ($authenticatedUser instanceof User) {
+            $userRole = $authenticatedUser->getIsAdministrator() ? Role::ADMINISTRATOR : Role::MEMBER;
         }
         
         // Send the user to the home page if it is not allowed to access the page
-        if (!$aclService->isAclAllowed($route, $userRole)) {
+        if (!$serviceManager->get(AclService::class)->isAclAllowed($route, $userRole)) {
             $errorKey = (false == $authenticationService->hasIdentity())
                 ? 'acl_not_logged_in'
                 : 'acl_not_allowed';
@@ -153,6 +168,69 @@ class Module
             
             return $event->getTarget()->redirect()->toRoute('home');
         }
+    }
+    
+    /**
+     * Update the authenticated user - if any
+     * 
+     * @param MvcEvent $event The event
+     * @return void
+     */
+    private function updateAuthenticatedUser(MvcEvent $event)
+    {
+        // Services
+        $serviceManager = $event->getApplication()->getServiceManager();
+        
+        /* @var $authenticationService AuthenticationService */
+        $authenticationService = $serviceManager->get(AuthenticationService::class);
+        
+        if (!$authenticationService->hasIdentity()) {
+            Log::debug('No authenticated user found, nothing to update');
+            return;
+        }
+        
+        // Retrieve the user from the database - as it may have been updated in another session
+        $user = $serviceManager->get(UserRetrievalService::class)->findById(
+            $authenticationService->getIdentity()
+        );
+
+        // Sanity check
+        if (!$user instanceof User) {
+            Log::notice('The current authenticated user was not found in the database, revoking authorization');
+            $authenticationService->clearIdentity();
+            return;
+        }
+        
+        // Stop if the user is not due for update yet
+        if (!$user->isDueDetailsUpdate($serviceManager->get(Config::class))) {
+            Log::debug('The authenticated user is not due for update yet');
+            return;
+        }
+        
+        // Pull remote data
+        try {
+            Log::debug('Updating the user data with the OpenXcom forum');
+            $userData = $serviceManager->get(UserRemoteService::class)->getDisplayData($user);
+            $user->updateDetails($userData);
+            $serviceManager->get(UserPersistenceService::class)->update($user);
+            return;
+        } catch (\OxcMP\Service\User\Exception\UserJsonRpcIncorrectApiKeyException $exc) {
+            Log::critical('The API key is incorrect');
+            $authenticationService->clearIdentity();
+            return;
+        } catch (\OxcMP\Service\User\Exception\UserJsonRpcMemberIdNotFoundException $exc) {
+            Log::notice('The currently authenticated user is no longer present in the OpenXcom forum');
+            $user->setIsOrphan(true);
+            $serviceManager->get(UserPersistenceService::class)->update($user);
+            $authenticationService->clearIdentity();
+            return;
+        } catch (\OxcMP\Service\User\Exception\UserJsonRpcMaintenanceModeActiveException $exc) {
+            Log::notice('The OpenXcom forum is in maintenance mode, revoking authorization');
+            $authenticationService->clearIdentity();
+            return;
+        }
+        
+        Log::debug('User details updated');
     }
 }
 
