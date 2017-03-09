@@ -244,9 +244,9 @@ return [
             'pass' => null
         ]
     ],
-    'userRemote' => [
-        'tokenCheckDelay' => 60 * 15,
-        'displayRefreshDelay' => 60 * 60 * 2,
-        'rememberMe' => 60 * 60 * 24 * 14
+    'userRemote' => [ // All values are in seconds
+        'tokenCheckDelay' => 60 * 15, // 15 minutes
+        'displayRefreshDelay' => 60 * 60 * 2, // 2 hours
+        'rememberMe' => 60 * 60 * 24 * 14 // 14 days
     ]
 ];

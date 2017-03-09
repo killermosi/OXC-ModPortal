@@ -126,7 +126,7 @@ class Module
     public function onDispatch(MvcEvent $event)
     {
         // Update authenticated user
-        $this->updateAuthenticatedUser($event);
+        $this->checkAndUpdateAuthenticatedUser($event);
 
         // Services
         $serviceManager = $event->getApplication()->getServiceManager();
@@ -171,12 +171,12 @@ class Module
     }
     
     /**
-     * Update the authenticated user - if any
+     * Check the authentication token and update the authenticated user - if any
      * 
      * @param MvcEvent $event The event
      * @return void
      */
-    private function updateAuthenticatedUser(MvcEvent $event)
+    private function checkAndUpdateAuthenticatedUser(MvcEvent $event)
     {
         // Services
         $serviceManager = $event->getApplication()->getServiceManager();
@@ -201,21 +201,39 @@ class Module
             return;
         }
         
-        // Stop if the user is not due for update yet
-        if (!$user->isDueDetailsUpdate($serviceManager->get(Config::class))) {
-            Log::debug('The authenticated user is not due for update yet');
+        Log::debug('User ID ', $user->getId(), ' is authenticated');
+        
+        $config = $serviceManager->get(Config::class);
+        
+        // Stop if neither the token needs checking, nor the user details needs update
+        if (!$user->isDueTokenCheck($config) && !$user->isDueDetailsUpdate($config)) {
+            Log::debug('The authenticated user does not require token check or details update');
             return;
         }
         
-        // Pull remote data
+        // Pull remote data if needed
         try {
-            Log::debug('Updating the user data with the OpenXcom forum');
-            $userData = $serviceManager->get(UserRemoteService::class)->getDisplayData($user);
-            $user->updateDetails($userData);
-            $serviceManager->get(UserPersistenceService::class)->update($user);
-            return;
+            if ($user->isDueTokenCheck($config)) {
+                Log::debug('Re-checking the user authentication token with the OpenXcom forum');
+                $serviceManager->get(UserRemoteService::class)->checkAuthenticationToken($user);
+                $user->updateLastTokenCheckDate();
+                $serviceManager->get(UserPersistenceService::class)->update($user);
+                Log::debug('User authentication token is valid');
+            }
+            
+            if ($user->isDueDetailsUpdate($config)) {
+                Log::debug('Updating the user data with the OpenXcom forum');
+                $userData = $serviceManager->get(UserRemoteService::class)->getDisplayData($user);
+                $user->updateDetails($userData);
+                $serviceManager->get(UserPersistenceService::class)->update($user);
+                Log::debug('User details updated');
+            }
         } catch (\OxcMP\Service\User\Exception\UserJsonRpcIncorrectApiKeyException $exc) {
             Log::critical('The API key is incorrect');
+            $authenticationService->clearIdentity();
+            return;
+        } catch (\OxcMP\Service\User\Exception\UserJsonRpcIncorrectAuthenticationTokenException $exc) {
+            Log::notice('The user authentication token is invalid');
             $authenticationService->clearIdentity();
             return;
         } catch (\OxcMP\Service\User\Exception\UserJsonRpcMemberIdNotFoundException $exc) {
@@ -229,8 +247,6 @@ class Module
             $authenticationService->clearIdentity();
             return;
         }
-        
-        Log::debug('User details updated');
     }
 }
 
