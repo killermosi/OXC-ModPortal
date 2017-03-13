@@ -1,3 +1,3 @@
 # TODO
 
-Nothing here for the moment
+* Update the oAuth system to consider member banned status

@@ -21,7 +21,7 @@ This portal is a repository for OpenXcom modifications.
 - [ ] Large file uploads
 - [ ] Search in archives content
 - [ ] Markdown and BBCode for comments and descriptions
-- [ ] Moderate comments for own mods (the original version will always be available)
+- [ ] Moderate comments for own mods
 - [ ] Advanced features for administrators
 
 ## Installation

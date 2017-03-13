@@ -31,3 +31,15 @@ create table user (
     primary key (user_id),
     index idx_member_id (member_id)
 ) engine=InnoDB default charset=utf8 comment 'Users in the system';
+
+create table modification (
+    mod_id int(10) not null auto_increment comment 'Internal identifier',
+    is_published tinyint(1) not null default 0 comment 'If this mod is published',
+    title varchar(128) not null default '' comment 'Mod title',
+    description text not null comment 'Mod description',
+    slug varchar(128) not null comment 'A web-friendly URL identifier',
+    rating_up int(10) not null default 0 comment 'Number of pozitive ratings',
+    rating_down int(10) not null default 0 comment 'Number of negative ratings',
+    primary key (mod_id),
+    index idx_slug (slug)
+) engine=InnoDB default charset=utf8 comment 'Available mods';
