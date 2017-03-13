@@ -125,8 +125,10 @@ class Module
      */
     public function onDispatch(MvcEvent $event)
     {
-        // Update authenticated user
-        $this->checkAndUpdateAuthenticatedUser($event);
+        // Update authenticated user, stop on error
+        if (false === $this->checkAndUpdateAuthenticatedUser($event)) {
+            return $event->getTarget()->redirect()->toRoute('home');
+        }
 
         // Services
         $serviceManager = $event->getApplication()->getServiceManager();
@@ -174,7 +176,7 @@ class Module
      * Check the authentication token and update the authenticated user - if any
      * 
      * @param MvcEvent $event The event
-     * @return void
+     * @return boolean True if check and/or update went OK, false otherwise
      */
     private function checkAndUpdateAuthenticatedUser(MvcEvent $event)
     {
@@ -186,7 +188,7 @@ class Module
         
         if (!$authenticationService->hasIdentity()) {
             Log::debug('No authenticated user found, nothing to update');
-            return;
+            return true;
         }
         
         // Retrieve the user from the database - as it may have been updated in another session
@@ -198,7 +200,7 @@ class Module
         if (!$user instanceof User) {
             Log::notice('The current authenticated user was not found in the database, revoking authorization');
             $authenticationService->clearIdentity();
-            return;
+            return false;
         }
         
         Log::debug('User ID ', $user->getId(), ' is authenticated');
@@ -208,7 +210,7 @@ class Module
         // Stop if neither the token needs checking, nor the user details needs update
         if (!$user->isDueTokenCheck($config) && !$user->isDueDetailsUpdate($config)) {
             Log::debug('The authenticated user does not require token check or details update');
-            return;
+            return true;
         }
         
         // Pull remote data if needed
@@ -228,25 +230,23 @@ class Module
                 $serviceManager->get(UserPersistenceService::class)->update($user);
                 Log::debug('User details updated');
             }
+            
+            return true;
         } catch (\OxcMP\Service\User\Exception\UserJsonRpcIncorrectApiKeyException $exc) {
             Log::critical('The API key is incorrect');
-            $authenticationService->clearIdentity();
-            return;
         } catch (\OxcMP\Service\User\Exception\UserJsonRpcIncorrectAuthenticationTokenException $exc) {
             Log::notice('The user authentication token is invalid');
-            $authenticationService->clearIdentity();
-            return;
         } catch (\OxcMP\Service\User\Exception\UserJsonRpcMemberIdNotFoundException $exc) {
             Log::notice('The currently authenticated user is no longer present in the OpenXcom forum');
             $user->setIsOrphan(true);
             $serviceManager->get(UserPersistenceService::class)->update($user);
-            $authenticationService->clearIdentity();
-            return;
         } catch (\OxcMP\Service\User\Exception\UserJsonRpcMaintenanceModeActiveException $exc) {
             Log::notice('The OpenXcom forum is in maintenance mode, revoking authorization');
-            $authenticationService->clearIdentity();
-            return;
         }
+        
+        // This is reached only if an error occured
+        $authenticationService->clearIdentity();
+        return false;
     }
 }
 
