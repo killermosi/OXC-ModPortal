@@ -53,14 +53,14 @@
             ->set($this->alertMessage()->render($this->flashMessage));
         
         echo PHP_EOL;
-    } //else echo 'flash not found'
-?>           
+    }
+?>
             </div>
 <?php echo $this->placeholder('content')->set($this->content)->setIndent(12) . PHP_EOL ?>
         </div>
 <?php
     //Login modal, only if not logged in
-    if (true) {
+    if (empty($this->authenticatedUser)) {
         echo $this->placeholder('loginmodal')
             ->setIndent(8)
             ->set(
