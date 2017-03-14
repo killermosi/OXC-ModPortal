@@ -33,30 +33,38 @@
 ?>
     </head>
     <body style="background: url('<?php echo $this->defaultBackground ?>') top center no-repeat">
-        <div class="container">
+        <div id="content-wrapper">
+            <div id="content" class="container">
 <?php
     // Main menu
     echo $this->placeholder('mainmenu')
-        ->setIndent(12)
+        ->setIndent(16)
         ->set(
             $this->mainMenu()->render(!empty($this->authenticatedUser))
         );
     
     echo PHP_EOL;
 ?>
-            <div class="header-see-through pt-2 pb-2">
+                <div id="header-see-through" class="pt-2 pb-2">
 <?php
     if (isset($this->flashMessage)) {
         //echo 'flash found';
         echo $this->placeholder('flashMessage')
-            ->setIndent(16)
+            ->setIndent(20)
             ->set($this->alertMessage()->render($this->flashMessage));
         
         echo PHP_EOL;
     }
 ?>
+                </div>
+<?php echo $this->placeholder('content')->set($this->content)->setIndent(16) . PHP_EOL ?>
             </div>
-<?php echo $this->placeholder('content')->set($this->content)->setIndent(12) . PHP_EOL ?>
+            <div id="footer-push"></div>
+        </div>
+        <div id="footer-wrapper">
+            <div class="container">
+                <p class="muted credit">Example courtesy <a href="http://martinbean.co.uk">Martin Bean</a> and <a href="http://ryanfait.com/sticky-footer/">Ryan Fait</a>.</p>
+            </div>
         </div>
 <?php
     //Login modal, only if not logged in

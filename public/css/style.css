@@ -17,4 +17,42 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
-.header-see-through{height: 120px;}
+/*
+ * 100% body height & bottom-aligned footer,
+ * from http://getbootstrap.com/2.3.2/examples/sticky-footer.html
+ */
+
+html, body {
+    /* The html and body elements cannot have any padding or margin. */
+    height: 100%;
+}
+
+div#content-wrapper {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    /* Negative indent footer by its height */
+    margin: 0 auto -60px;
+}
+
+div#footer-push,
+div#footer-wrapper {
+    /* Both "footer" and "footer-push" must have the same
+    height, and be as high as the negative margin above */
+    height: 60px;
+}
+div#footer-wrapper div.container {
+    background-color: yellowgreen;
+    height: 100%;
+}
+
+/* Lastly, apply responsive CSS fixes as necessary */
+@media (max-width: 767px) {
+    div#footer-wrapper {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
+
+/* The "see-through" zone in the header */
+div#header-see-through{height: 200px;}
