@@ -56,6 +56,10 @@ class ControllerFactory implements FactoryInterface
             switch ($requestedName) {
                 case IndexController::class:
                     return new $requestedName();
+                case ModController::class:
+                    return new $requestedName(
+                        $container->get(Service\Mod\ModRetrievalService::class)
+                    );
                 case UserController::class:
                     return new $requestedName(
                         $container->get(AuthenticationService::class),

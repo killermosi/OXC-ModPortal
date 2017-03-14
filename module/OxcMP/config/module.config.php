@@ -66,8 +66,8 @@ return [
                 'options' => [
                     'route'    => '/my-mods',
                     'defaults' => [
-                        'controller' => Controller\IndexController::class,
-                        'action'     => 'index',
+                        'controller' => Controller\ModController::class,
+                        'action'     => 'my-mods',
                     ],
                     'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
                 ],
@@ -78,6 +78,7 @@ return [
         'factories' => [
             Controller\IndexController::class => Controller\ControllerFactory::class,
             Controller\UserController::class  => Controller\ControllerFactory::class,
+            Controller\ModController::class   => Controller\ControllerFactory::class,
         ],
     ],
     'controller_plugins' => [
@@ -100,6 +101,8 @@ return [
             Service\Acl\AclService::class => Service\ServiceFactory::class,
             // Authentication
             Service\Authentication\AuthenticationAdapter::class => Service\ServiceFactory::class,
+            // Mod
+            Service\Mod\ModRetrievalService::class => Service\ServiceFactory::class,
             // User
             Service\User\UserPersistenceService::class => Service\ServiceFactory::class,
             Service\User\UserRetrievalService::class   => Service\ServiceFactory::class,

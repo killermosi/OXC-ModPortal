@@ -21,6 +21,10 @@
 
 namespace OxcMP\Controller;
 
+use Zend\View\Model\ViewModel;
+use OxcMP\Service\Mod\ModRetrievalService;
+use OxcMP\Util\Log;
+
 /**
  * Description of ModController
  *
@@ -28,7 +32,33 @@ namespace OxcMP\Controller;
  */
 class ModController extends AbstractController
 {
-    //put your code here
+    /**
+     * The mod retrieval service
+     * @var ModRetrievalService 
+     */
+    private $modRetrievalService;
+    
+    /**
+     * Class initialization
+     * 
+     * @param ModRetrievalService $modRetrievalService The mod retrieval service
+     */
+    function __construct(ModRetrievalService $modRetrievalService)
+    {
+        $this->modRetrievalService = $modRetrievalService;
+    }
+
+    /**
+     * List all mods belonging to the user
+     * 
+     * @return ViewModel
+     */
+    public function myModsAction()
+    {
+        Log::info('Processing mod/my-mods action');
+        
+        return new ViewModel();
+    }
 }
 
 /* EOF */
