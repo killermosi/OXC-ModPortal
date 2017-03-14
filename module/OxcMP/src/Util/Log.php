@@ -174,13 +174,13 @@ class Log
      * TODO: Check for redundant operations
      * 
      * @param integer $priority The message priority
-     * @param mixed   $message The message(s) to log
+     * @param mixed   $messages The message(s) to log
      * @return void
      */
-    private static function log($priority, ...$message)
+    private static function log($priority, ...$messages)
     {
         // Stop if there is nothing to log
-        if (empty($message)) {
+        if (empty($messages)) {
             return;
         }
         
@@ -192,13 +192,13 @@ class Log
         // Do a bit of formatting
         $logData = '';
         
-        foreach ($message as $msg) {
-            if (is_string($msg)) {
-                $logData .= $msg;
-            } elseif (is_null($msg)) {
+        foreach ($messages as $message) {
+            if (is_string($message)) {
+                $logData .= $message;
+            } elseif (is_null($message)) {
                 $logData .= 'NULL';
             } else {
-                $logData .= print_r($msg, true);
+                $logData .= print_r($message, true);
             }
         }
         

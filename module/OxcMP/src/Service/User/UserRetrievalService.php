@@ -81,7 +81,7 @@ class UserRetrievalService
     {
         Log::info('Trying to retrieve the user having the Member ID: ', $memberId);
         
-        $user = $this->entityManager->getRepository(User::class)->findOneBy(array('memberId' => $memberId));
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['memberId' => $memberId]);
         
         if ($user instanceof User) {
             Log::debug('User found');

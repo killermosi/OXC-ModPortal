@@ -67,7 +67,10 @@ class ServiceFactory implements FactoryInterface
                         $container->get(User\UserRemoteService::class),
                         $container->get(Config::class)
                     );
-
+                case Mod\ModRetrievalService::class:
+                    return new $requestedName(
+                        $container->get('doctrine.entitymanager.orm_default')
+                    );
                 case User\UserPersistenceService::class:
                     return new $requestedName(
                         $container->get('doctrine.entitymanager.orm_default'),

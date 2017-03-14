@@ -30,6 +30,7 @@ use Doctrine\ORM\Mapping as ORM;
  * 
  * @ORM\Entity
  * @ORM\Table(name="mod_data")
+ * @ORM\Entity(repositoryClass="\OxcMP\Entity\Repository\ModRepository")
  */
 class Mod
 {
@@ -48,6 +49,14 @@ class Mod
      * @ORM\Column(name="mod_id", type="integer", nullable=false, unique=true)
      */
     private $id;
+    
+    /**
+     * The owner identifier
+     * @var integer
+     * 
+     * @ORM\Column(name="user_id", type="integer", nullable=false)
+     */
+    private $userId;
     
     /**
      * If the mod is published
@@ -99,6 +108,14 @@ class Mod
     private $creationDate;
     
     /**
+     * MD5 hash of the image to use for page background
+     * @var string
+     * 
+     * @ORM\Column(name="background", type="string", length=32, nullable=true)
+     */
+    private $background;
+    
+    /**
      * Class initialization
      */
     public function __construct()
@@ -114,6 +131,27 @@ class Mod
     function getId()
     {
         return $this->id;
+    }
+    
+    /**
+     * Get the user ID
+     * 
+     * @return integer
+     */
+    function getUserId()
+    {
+        return $this->userId;
+    }
+
+    /**
+     * Set the user ID
+     * 
+     * @param integer $userId The user ID
+     * @return void
+     */
+    function setUserId($userId)
+    {
+        $this->userId = $userId;
     }
 
     /**
@@ -229,6 +267,27 @@ class Mod
     function getCreationDate()
     {
         return $this->creationDate;
+    }
+    
+    /**
+     * Get the background image
+     * 
+     * @return string
+     */
+    function getBackground()
+    {
+        return $this->background;
+    }
+
+    /**
+     * Set the background image
+     * 
+     * @param string $background the background image
+     * @return void
+     */
+    function setBackground($background)
+    {
+        $this->background = $background;
     }
 }
 

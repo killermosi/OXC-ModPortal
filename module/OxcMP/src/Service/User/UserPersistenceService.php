@@ -22,7 +22,6 @@
 namespace OxcMP\Service\User;
 
 use Doctrine\ORM\EntityManager;
-use OxcMP\Service\User\UserRemoteService;
 use OxcMP\Entity\User;
 use OxcMP\Util\Log;
 
@@ -40,23 +39,15 @@ class UserPersistenceService
     private $entityManager;
     
     /**
-     * The User Remote service
-     * @var UserRemoteService
-     */
-    private $userRemoteService;
-    
-    /**
      * Class initialization
      * 
-     * @param EntityManager     $entityManager     The entity manager
-     * @param UserRemoteService $userRemoteService The user remote service
+     * @param EntityManager $entityManager The entity manager
      */
-    public function __construct(EntityManager $entityManager, UserRemoteService $userRemoteService)
+    public function __construct(EntityManager $entityManager)
     {
         Log::info('Initializing UserPersistenceService');
         
-        $this->entityManager     = $entityManager;
-        $this->userRemoteService = $userRemoteService;
+        $this->entityManager = $entityManager;
     }
     
     /**

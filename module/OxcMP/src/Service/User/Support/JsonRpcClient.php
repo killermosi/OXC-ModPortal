@@ -34,7 +34,7 @@ class JsonRpcClient extends Client
 {
     /**
      * The JSON-RPC protocol version to use
-     * @var type 
+     * @var string 
      */
     protected $protocolVersion;
     
@@ -42,7 +42,7 @@ class JsonRpcClient extends Client
      * Set the JSON-RPC protocol version to use
      * 
      * @param string $version Version string: "1.0" or "2.0"
-     * @return void;
+     * @return void
      */
     public function setProtocolVersion($version)
     {

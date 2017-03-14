@@ -33,11 +33,13 @@ create table user (
 
 create table mod_data (
     mod_id int(10) not null auto_increment comment 'Internal identifier',
+    user_id int(10) not null comment 'The owner identifier',
     is_published tinyint(1) not null default 0 comment 'If this mod is published',
     base_game tinyint(1) not null default 0 comment 'Base game for this mod: 0 - UFO, 1 - TFTD',
     title varchar(128) not null comment 'Mod title',
     description text null default null comment 'Mod description',
     slug varchar(128) not null unique comment 'A web-friendly URL identifier',
     creation_date datetime not null comment 'The date and time when this mod was created',
+    background varchar(32) null default null comment 'MD5 hash of the image to use for page background',
     primary key (mod_id)
 ) engine=InnoDB default charset=utf8 comment 'Basic mod data';
