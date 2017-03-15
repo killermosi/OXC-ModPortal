@@ -45,9 +45,9 @@ class MainMenu extends AbstractViewHelper
         
         $searchReplace = [
             '{$logoSrc}' => $homeUrl . 'img/logo.svg',
+            '{$appName}' => $this->translate('global_application_name'),
             '{$navToggle}' => $this->translate('main_menu_nav_toggle'),
             '{$homeUrl}' => $homeUrl,
-            '{$homeTxt}' => $this->translate('main_menu_link_home_txt'),
             '{$myModsUrl}' => $this->view->url('my-mods',[], ['force_canonical' => true]),
             '{$myModsTxt}' => $this->translate('main_menu_link_mymods_txt'),
             '{$logoutUrl}' => $this->view->url('logout',[], ['force_canonical' => true]),
@@ -62,13 +62,10 @@ class MainMenu extends AbstractViewHelper
         $m .= '    </button>' . PHP_EOL;
         $m .= '    <a class="navbar-brand" href="{$homeUrl}">' . PHP_EOL;
         $m .= '        <img src="{$logoSrc}" width="48" height="48" alt="">' . PHP_EOL;
+        $m .= '        {$appName}' . PHP_EOL;
         $m .= '    </a>' . PHP_EOL;
         $m .= '    <div class="collapse navbar-collapse" id="navbarNav">' . PHP_EOL;
-        $m .= '        <ul class="navbar-nav mr-auto">' . PHP_EOL;
-        $m .= '            <li class="nav-item">' . PHP_EOL;
-        $m .= '                <a class="nav-link" href="{$homeUrl}">{$homeTxt}</a>' . PHP_EOL;
-        $m .= '            </li>' . PHP_EOL;
-        
+        $m .= '        <ul class="navbar-nav ml-auto">' . PHP_EOL;
         if ($isLoggedIn) {
             $m .= '            <li class="nav-item">' . PHP_EOL;
             $m .= '                <a class="nav-link" href="{$myModsUrl}">{$myModsTxt}</a>' . PHP_EOL;

@@ -32,39 +32,37 @@
     echo PHP_EOL;
 ?>
     </head>
-    <body style="background: url('<?php echo $this->defaultBackground ?>') top center no-repeat">
-        <div id="content-wrapper">
-            <div id="content" class="container">
+    <body style="background: url('<?php echo $this->defaultBackground ?>') top center no-repeat" class="container">
 <?php
     // Main menu
     echo $this->placeholder('mainmenu')
-        ->setIndent(16)
+        ->setIndent(8)
         ->set(
             $this->mainMenu()->render(!empty($this->authenticatedUser))
         );
     
     echo PHP_EOL;
 ?>
-                <div id="header-see-through" class="pt-2 pb-2">
+        <div id="alert-container">
 <?php
     if (isset($this->flashMessage)) {
-        //echo 'flash found';
         echo $this->placeholder('flashMessage')
-            ->setIndent(20)
+            ->setIndent(12)
             ->set($this->alertMessage()->render($this->flashMessage));
         
         echo PHP_EOL;
     }
 ?>
-                </div>
-<?php echo $this->placeholder('content')->set($this->content)->setIndent(16) . PHP_EOL ?>
-            </div>
-            <div id="footer-push"></div>
         </div>
-        <div id="footer-wrapper">
-            <div class="container">
-                <p class="muted credit">Example courtesy <a href="http://martinbean.co.uk">Martin Bean</a> and <a href="http://ryanfait.com/sticky-footer/">Ryan Fait</a>.</p>
-            </div>
+        <div id="header" class="pt-2 pb-2">
+
+            <p>header text</p>
+        </div>
+        <div id="content">
+<?php echo $this->placeholder('content')->set($this->content)->setIndent(8) . PHP_EOL ?>
+        </div>
+        <div>
+            footer
         </div>
 <?php
     //Login modal, only if not logged in

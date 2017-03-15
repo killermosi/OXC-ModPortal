@@ -17,42 +17,35 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * 100% body height & bottom-aligned footer,
- * from http://getbootstrap.com/2.3.2/examples/sticky-footer.html
- */
-
-html, body {
-    /* The html and body elements cannot have any padding or margin. */
+/* Basic page structure, using flexbox */
+body, html{
+    padding: 0;
+    margin: 0;
     height: 100%;
 }
 
-div#content-wrapper {
-    min-height: 100%;
-    height: auto !important;
-    height: 100%;
-    /* Negative indent footer by its height */
-    margin: 0 auto -60px;
+body {
+    display: flex;
+    flex-direction: column;
 }
 
-div#footer-push,
-div#footer-wrapper {
-    /* Both "footer" and "footer-push" must have the same
-    height, and be as high as the negative margin above */
-    height: 60px;
-}
-div#footer-wrapper div.container {
-    background-color: yellowgreen;
-    height: 100%;
+div#content{
+    flex-grow: 1;
 }
 
-/* Lastly, apply responsive CSS fixes as necessary */
-@media (max-width: 767px) {
-    div#footer-wrapper {
-        padding-left: 20px;
-        padding-right: 20px;
-    }
+/* Alerts are shown here */
+div#alert-container{
+    height: 0px;
+    position:relative;
+    top: .5rem;
 }
 
-/* The "see-through" zone in the header */
-div#header-see-through{height: 200px;}
+/* The "transparent" header zone in the page */
+div#header{
+    height: 200px;
+}
+
+/* Keep the body vertical scrollbar visible at all times (including when a modal is opened) */
+body, body.modal-open {
+    overflow-y: scroll;
+}
