@@ -26,7 +26,7 @@ namespace OxcMP\View\Helper;
  * - Logo
  * - "Home" link
  * - "My Mods" link (for logged in users only)
- * - Login/logout link (depending on if the user is logged in or not)
+ * - "Login"/"Logout" link (depending on if the user is logged in or not)
  * - Search box
  * 
  * @author Silviu Ghita <killermosi@yahoo.com>

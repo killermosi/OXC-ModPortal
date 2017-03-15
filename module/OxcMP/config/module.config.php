@@ -133,9 +133,10 @@ return [
     ],
     'view_helpers' => [
         'factories' => [
+            View\Helper\AlertMessage::class => InvokableFactory::class,                    
+            View\Helper\Footer::class => InvokableFactory::class,                    
             View\Helper\MainMenu::class => InvokableFactory::class,                    
             View\Helper\Modal::class => InvokableFactory::class,                    
-            View\Helper\AlertMessage::class => InvokableFactory::class,                    
         ],
        'aliases' => [
             'mainMenu' => View\Helper\MainMenu::class,
