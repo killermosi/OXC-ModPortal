@@ -82,10 +82,10 @@ class MainMenu extends AbstractViewHelper
             $m .= '            </li>'. PHP_EOL;
         }
         $m .= '        </ul>' . PHP_EOL;
-        $m .= '        <form class="form-inline my-2 my-lg-0">' . PHP_EOL;
-        $m .= '            <input class="form-control mr-sm-2" type="text" placeholder="Search">' . PHP_EOL;
-        $m .= '            <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>' . PHP_EOL;
-        $m .= '        </form>' . PHP_EOL;
+        //$m .= '        <form class="form-inline my-2 my-lg-0">' . PHP_EOL;
+        //$m .= '            <input class="form-control mr-sm-2" type="text" placeholder="Search">' . PHP_EOL;
+        //$m .= '            <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>' . PHP_EOL;
+        //$m .= '        </form>' . PHP_EOL;
         $m .= '    </div>' . PHP_EOL;
         $m .= '</nav>';
         
