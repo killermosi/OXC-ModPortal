@@ -1,0 +1,35 @@
+<?php
+    /*
+     * External variables:
+     * $githubProjectUrl (string)
+     */
+
+    $homeUrl = $this->url('home',[], ['force_canonical' => true]);
+?>
+<nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse">
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#footerNavbar" aria-controls="footerNavbar" aria-expanded="false" aria-label="<?php echo $this->translate('footer_nav_toggle')?>">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="footerNavbar">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="<?php echo $this->url('about',[], ['force_canonical' => true]) ?>">
+                    <?php echo $this->translate('footer_link_about_txt') . PHP_EOL ?>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="<?php echo $this->url('disclaimer',[], ['force_canonical' => true]) ?>">
+                    <?php echo $this->translate('footer_link_disclaimer_txt') . PHP_EOL ?>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="<?php echo $this->url('contact',[], ['force_canonical' => true]) ?>">
+                    <?php echo $this->translate('footer_link_contact_txt') . PHP_EOL ?>
+                </a>
+            </li>
+        </ul>
+    </div>
+    <a class="navbar-brand" href="<?php echo $githubProjectUrl ?>" target="_blank">
+        <img src="<?php echo $homeUrl ?>/img/logo-github-mark-white.svg" width="32" height="32" alt="" title="<?php echo $this->translate('footer_link_github_title') ?>">
+    </a>
+</nav>

@@ -6,14 +6,21 @@
     $homeUrl = $this->url('home',[], ['force_canonical' => true]);
 ?>
 <nav class="navbar navbar-toggleable-md navbar-light bg-faded">
-    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="<?php echo $this->translate('main_menu_nav_toggle')?>">
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#mainMenuNavbar" aria-controls="mainMenuNavbar" aria-expanded="false" aria-label="<?php echo $this->translate('main_menu_nav_toggle')?>">
         <span class="navbar-toggler-icon"></span>
     </button>
     <a class="navbar-brand" href="<?php echo $homeUrl ?>">
         <img src="<?php echo $homeUrl ?>/img/logo.svg" width="48" height="48" alt="">
-        <?php echo $this->translate('global_application_name') . PHP_EOL ?>
+        <?php //echo $this->translate('global_application_name') . PHP_EOL ?>
     </a>
-    <div class="collapse navbar-collapse" id="navbarNav">
+    <div class="collapse navbar-collapse" id="mainMenuNavbar">
+        <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="<?php echo $homeUrl ?>">
+                    <?php echo $this->translate('global_application_name') . PHP_EOL ?>
+                </a>
+            </li>
+        </ul>
         <ul class="navbar-nav ml-auto">
 <?php if ($userLoggedIn) : ?>
             <li class="nav-item">

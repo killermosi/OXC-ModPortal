@@ -13,10 +13,16 @@ return [
     'main_menu_link_mymods_txt' => 'My Mods',
     'main_menu_link_logout_txt' => 'Logout',
     'main_menu_link_login_txt' => 'Login',
+    // Footer
+    'footer_nav_toggle' => 'Toggle navigation',
+    'footer_link_about_txt' => 'About',
+    'footer_link_disclaimer_txt' => 'Disclaimer',
+    'footer_link_contact_txt' => 'Contact',
+    'footer_link_github_title' => 'Visit our GitHub project page!',
     // Login
     'login_modal_title' => 'Log in',
     'login_modal_description' => 'To login, you must authorize the OpenXcom Mod Portal to use your OpenXcom Forum member details.',
-    'login_modal_oauth_link_txt' => 'Go to the  OpenXcom Forum authorization page',
+    'login_modal_oauth_link_txt' => 'Go to the OpenXcom Forum authorization page',
     'login_success_message' => 'Welcome <strong>%s</strong>, you are now logged in.',
     'login_fail_message' => '<strong>Authorization failed</strong>, please try again later.',
     'login_logout_message' => 'You have successfully logged out.',

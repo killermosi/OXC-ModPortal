@@ -15,7 +15,6 @@ use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as PDOMySqlDriver;
 use OxcMP\Controller\AbstractController;
 use OxcMP\Service;
-use OxcMP\View;
 use OxcMP\Service\Acl\Role;
 
 /** !!! PRIVATE CONFIGURATION - DO NOT MODIFY !!! **/
@@ -70,6 +69,39 @@ return [
                         'action'     => 'my-mods',
                     ],
                     'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
+                ],
+            ],
+            'about' => [
+                'type' => Literal::class,
+                'options' => [
+                    'route'    => '/about',
+                    'defaults' => [
+                        'controller' => Controller\IndexController::class,
+                        'action'     => 'about',
+                    ],
+                    'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
+                ],
+            ],
+            'disclaimer' => [
+                'type' => Literal::class,
+                'options' => [
+                    'route'    => '/disclaimer',
+                    'defaults' => [
+                        'controller' => Controller\IndexController::class,
+                        'action'     => 'disclaimer',
+                    ],
+                    'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
+                ],
+            ],
+            'contact' => [
+                'type' => Literal::class,
+                'options' => [
+                    'route'    => '/contact',
+                    'defaults' => [
+                        'controller' => Controller\IndexController::class,
+                        'action'     => 'contact',
+                    ],
+                    'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
                 ],
             ],
         ],
@@ -168,7 +200,8 @@ return [
             ],
         ],
         'defaultBackground' => 'img/bg-default.png',
-        'oAuthUrl' => 'https://openxcom.org/forum/index.php?action=oxcmpoauth'
+        'oAuthUrl' => 'https://openxcom.org/forum/index.php?action=oxcmpoauth',
+        'githubProjectUrl' => 'https://github.com/killermosi/OXC-ModPortal'
     ],
     'doctrine' => [
         'connection' => [

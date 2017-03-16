@@ -38,7 +38,7 @@
     echo $this->placeholder('mainmenu')
         ->setIndent(8)
         ->set(
-            $this->partial('layout/partial/mainmenu.phtml', ['userLoggedIn' => !empty($this->authenticatedUser)])
+            $this->partial('layout/partial/main-menu.phtml', ['userLoggedIn' => !empty($this->authenticatedUser)])
         );
     
     echo PHP_EOL;
@@ -62,9 +62,14 @@
         <div id="content">
 <?php echo $this->placeholder('content')->set($this->content)->setIndent(8) . PHP_EOL ?>
         </div>
-        <div>
-            footer
-        </div>
+<?php
+    echo $this->placeholder('footer')
+        ->setIndent(8)
+        ->set(
+            $this->partial('layout/partial/footer.phtml' , ['githubProjectUrl' => $this->config->layout->githubProjectUrl])
+        );
+    echo PHP_EOL;
+?>
 <?php
     //Login modal, only if not logged in
     if (empty($this->authenticatedUser)) {
