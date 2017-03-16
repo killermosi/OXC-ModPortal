@@ -131,19 +131,6 @@ return [
             __DIR__ . '/../view',
         ],
     ],
-    'view_helpers' => [
-        'factories' => [
-            View\Helper\AlertMessage::class => InvokableFactory::class,                    
-            View\Helper\Footer::class => InvokableFactory::class,                    
-            View\Helper\MainMenu::class => InvokableFactory::class,                    
-            View\Helper\Modal::class => InvokableFactory::class,                    
-        ],
-       'aliases' => [
-            'mainMenu' => View\Helper\MainMenu::class,
-            'modal' => View\Helper\Modal::class,
-            'alertMessage' => View\Helper\AlertMessage::class,
-       ]
-    ], 
     'translator' => [
         'locale' => 'en_US',
         'translation_file_patterns' => [

@@ -38,7 +38,7 @@
     echo $this->placeholder('mainmenu')
         ->setIndent(8)
         ->set(
-            $this->mainMenu()->render(!empty($this->authenticatedUser))
+            $this->partial('layout/partial/mainmenu.phtml', ['userLoggedIn' => !empty($this->authenticatedUser)])
         );
     
     echo PHP_EOL;
@@ -48,7 +48,9 @@
     if (isset($this->flashMessage)) {
         echo $this->placeholder('flashMessage')
             ->setIndent(12)
-            ->set($this->alertMessage()->render($this->flashMessage));
+            ->set(
+                $this->partial('layout/partial/alert.phtml', ['alert' => $this->flashMessage])
+            );
         
         echo PHP_EOL;
     }
@@ -69,7 +71,7 @@
         echo $this->placeholder('loginmodal')
             ->setIndent(8)
             ->set(
-                $this->modal()->renderLoginModal($this->config->layout->oAuthUrl)
+                $this->partial('layout/partial/modal-login.phtml', ['oAuthUrl' => $this->config->layout->oAuthUrl])
             );
         echo PHP_EOL;
     }

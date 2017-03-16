@@ -1,0 +1,16 @@
+<?php
+    /* 
+     * External variables:
+     * $alert (array)
+     *  - success (boolean) Boolean TRUE for success, FALSE for error
+     *  - message (string) The actual message
+     */
+    $alertClass = $alert['success'] ? 'alert-success' : 'alert-danger';
+    $alertMessage = $alert['message'];
+?>
+<div class="alert <?php echo $alertClass ?> alert-dismissible fade show" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="<?php echo $this->translate('global_close') ?>">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <?php echo $alertMessage . PHP_EOL ?>
+</div>

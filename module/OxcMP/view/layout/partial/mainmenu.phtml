@@ -1,0 +1,42 @@
+<?php
+    /*
+     * External variables:
+     * $userLoggedIn (boolean) 
+     */
+    $homeUrl = $this->url('home',[], ['force_canonical' => true]);
+?>
+<nav class="navbar navbar-toggleable-md navbar-light bg-faded">
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="<?php echo $this->translate('main_menu_nav_toggle')?>">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <a class="navbar-brand" href="<?php echo $homeUrl ?>">
+        <img src="<?php echo $homeUrl ?>/img/logo.svg" width="48" height="48" alt="">
+        <?php echo $this->translate('global_application_name') . PHP_EOL ?>
+    </a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+<?php if ($userLoggedIn) : ?>
+            <li class="nav-item">
+                <a class="nav-link" href="<?php echo $this->url('my-mods',[], ['force_canonical' => true]) ?>">
+                    <?php echo $this->translate('main_menu_link_mymods_txt') . PHP_EOL ?>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="<?php echo $this->url('logout',[], ['force_canonical' => true]) ?>">
+                    <?php echo $this->translate('main_menu_link_logout_txt') . PHP_EOL ?>
+                </a>
+            </li>
+<?php else : ?>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="modal" data-target="#loginModal" href="<?php echo $this->url('login',[], ['force_canonical' => true]) ?>">
+                    <?php echo $this->translate('main_menu_link_login_txt') . PHP_EOL ?>
+                </a>
+            </li>
+<?php endif; ?>
+        </ul>
+        <!-- <form class="form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="text" placeholder="Search">
+            <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
+        </form> -->
+    </div>
+</nav>

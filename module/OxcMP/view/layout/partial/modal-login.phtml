@@ -1,0 +1,27 @@
+<?php
+    /*
+     * External variables:
+     * - $oAuthUrl (string)
+     */
+?>
+<div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loginModalLabel"><?php echo $this->translate('login_modal_title') ?></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="<?php echo $this->translate('global_close') ?>">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center"><?php echo $this->translate('login_modal_description') ?></p>
+                <p class="text-center">
+                    <a href="<?php echo $oAuthUrl ?>" class="btn btn-primary"><?php echo $this->translate('login_modal_oauth_link_txt') ?></a>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><?php echo $this->translate('global_close') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
