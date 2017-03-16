@@ -2,6 +2,7 @@
 <html lang="en">
     <head>
 <?php
+    // Title
     echo $this->headTitle($this->translate('global_application_name'))
         ->setIndent(8)
         ->setSeparator(' :: ')
@@ -9,6 +10,12 @@
 
     echo PHP_EOL;
     
+    // Favicon
+    echo $this->partial('layout/partial/favicon.phtml');
+    
+    echo PHP_EOL;
+    
+    // Meta
     echo $this->headMeta()
         ->appendName('viewport', 'width=device-width, initial-scale=1, shrink-to-fit=no')
         ->appendName('charset', 'utf-8')
