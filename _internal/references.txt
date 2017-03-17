@@ -1,0 +1,8 @@
+High Performance Web Sites: Essential Knowledge for Front-End Engineers
+https://www.amazon.com/dp/0596529309
+
+Even Faster Web Sites: Performance Best Practices for Web Developers
+https://www.amazon.com/dp/0596522304
+
+The Varnish Book for Varnish 4.0
+http://book.varnish-software.com/4.0/

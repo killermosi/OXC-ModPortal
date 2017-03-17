@@ -200,7 +200,7 @@ return [
             ],
         ],
         'defaultBackground' => 'img/bg-default.png',
-        'oAuthUrl' => 'https://openxcom.org/forum/index.php?action=oxcmpoauth',
+        'oAuthUrl' => 'https://openxcom.org/forum/index.php?action=oxcmpoauth;board,',
         'githubProjectUrl' => 'https://github.com/killermosi/OXC-ModPortal'
     ],
     'doctrine' => [
