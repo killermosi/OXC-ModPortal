@@ -168,7 +168,7 @@ class AuthenticationAdapter implements AdapterInterface
         if ($validationResult->getCode() != Result::SUCCESS) {
             return $validationResult;
         }
-        
+
         // Authentication succeeded, update the last token check date
         $user->updateLastTokenCheckDate();
         
@@ -193,8 +193,10 @@ class AuthenticationAdapter implements AdapterInterface
             return new Result(Result::FAILURE_UNCATEGORIZED, null);
         }
         
-        // Return the success result
-        return $validationResult;
+        // Return success result
+        // (create a new result object since the current one does not contain the UserID, as it was only generated when
+        // the user was created in the local database, in the above try...catch section)
+        return new Result(Result::SUCCESS, $user->getId());
     }
     
     /**

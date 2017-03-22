@@ -34,12 +34,12 @@ class Role
     const GUEST         = 'guest';
     
     /**
-     * Standard member role, cand manage own resources
+     * Standard member role, can manage own resources
      */
     const MEMBER        = 'member';
     
     /**
-     * Adminstrator role, can manage all resources
+     * Administrator role, can manage all resources
      */
     const ADMINISTRATOR = 'administrator';
 }

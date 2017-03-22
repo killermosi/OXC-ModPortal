@@ -114,6 +114,7 @@ class Module
                 [$this, 'onDispatch'],
                 100
             );
+        
         Log::debug('Bootstrapping complete');
     }
     
@@ -125,8 +126,11 @@ class Module
      */
     public function onDispatch(MvcEvent $event)
     {
+        Log::info('Executing EVENT_DISPATCH actions');
+        
         // Update authenticated user, stop on error
         if (false === $this->checkAndUpdateAuthenticatedUser($event)) {
+            Log::debug('EVENT_DISPATCH result: redirect to "home"');
             return $event->getTarget()->redirect()->toRoute('home');
         }
 
@@ -168,8 +172,11 @@ class Module
             $errorMessage = $event->getTarget()->translate($errorKey);
             $event->getTarget()->flashMessenger()->addErrorMessage($errorMessage);
             
+            Log::debug('EVENT_DISPATCH result: redirect to "home"');
             return $event->getTarget()->redirect()->toRoute('home');
         }
+        
+        Log::debug('EVENT_DISPATCH actions handled');
     }
     
     /**
@@ -180,6 +187,8 @@ class Module
      */
     private function checkAndUpdateAuthenticatedUser(MvcEvent $event)
     {
+        Log::info('Checking authenticated user, updating if necessary');
+        
         // Services
         $serviceManager = $event->getApplication()->getServiceManager();
         

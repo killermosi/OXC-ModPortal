@@ -98,7 +98,7 @@ class UserRemoteService
      */
     public function checkAuthenticationToken(User $user)
     {
-        Log::info('Checking authentication token validity for User ID', $user->getId());
+        Log::info('Checking authentication token validity for User ID ', $user->getId());
         
         try {
             $params = [
