@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright © 2016-2017 OpenXcom Mod Portal Contributors
+ * Copyright © 2016-2017 OpenXcom Mod Portal Developers
  *
  * This file is part of OpenXcom Mod Portal.
  *
@@ -19,14 +19,14 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OxcMP\Service\User\Exception;
+namespace OxcMP\Service\User\Exception\JsonRpc;
 
 /**
- * UserJsonRpcMaintenanceModeActiveException
+ * UserJsonRpcMemberIdNotFoundException
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class UserJsonRpcMaintenanceModeActiveException extends \RuntimeException implements ExceptionInterface
+class UserJsonRpcMemberIdNotFoundException extends \RuntimeException implements ExceptionInterface
 {
     // Empty
 }

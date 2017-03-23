@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright © 2016-2017 OpenXcom Mod Portal Contributors
+ * Copyright © 2016-2017 OpenXcom Mod Portal Developers
  *
  * This file is part of OpenXcom Mod Portal.
  *
@@ -27,7 +27,7 @@ use Zend\Config\Config;
 use OxcMP\Service\User\UserPersistenceService;
 use OxcMP\Service\User\UserRetrievalService;
 use OxcMP\Service\User\UserRemoteService;
-use OxcMP\Service\User\Exception as UserException;
+use OxcMP\Service\User\Exception\JsonRpc as JsonRpcException;
 use OxcMP\Entity\User;
 use OxcMP\Util\Log;
 
@@ -194,8 +194,8 @@ class AuthenticationAdapter implements AdapterInterface
         }
         
         // Return success result
-        // (create a new result object since the current one does not contain the UserID, as it was only generated when
-        // the user was created in the local database, in the above try...catch section)
+        // (create a new result object since the current one does not contain the UserID, as the UserId is
+        // only generated when the user was actually created in the local database, in the above try...catch section)
         return new Result(Result::SUCCESS, $user->getId());
     }
     
@@ -282,20 +282,23 @@ class AuthenticationAdapter implements AdapterInterface
         
         try {
             $this->userRemoteService->checkAuthenticationToken($user);
-        } catch (UserException\UserJsonRpcGenericErrorException $exc) {
+        } catch (JsonRpcException\UserJsonRpcGenericErrorException $exc) {
             Log::notice('Unexpected error encountered while checking the authentication token');
             return new Result(Result::FAILURE_UNCATEGORIZED, null);
-        } catch (UserException\UserJsonRpcIncorrectApiKeyException $exc) {
+        } catch (JsonRpcException\UserJsonRpcIncorrectApiKeyException $exc) {
             Log::critical('API key is incorrect!');
             return new Result(Result::FAILURE_UNCATEGORIZED, null);
-        } catch (UserException\UserJsonRpcMemberIdNotFoundException $exc) {
+        } catch (JsonRpcException\UserJsonRpcMemberIdNotFoundException $exc) {
             Log::notice('MemberId not found');
             return new Result(Result::FAILURE_IDENTITY_NOT_FOUND, null);
-        } catch (UserException\UserJsonRpcIncorrectAuthenticationTokenException $exc) {
+        } catch (JsonRpcException\UserJsonRpcIncorrectAuthenticationTokenException $exc) {
             Log::notice('Incorrect authentication token');
             return new Result(Result::FAILURE_CREDENTIAL_INVALID, null);
-        } catch (UserException\UserJsonRpcMaintenanceModeActiveException $exc) {
+        } catch (JsonRpcException\UserJsonRpcMaintenanceModeActiveException $exc) {
             Log::notice('The board is in maintenance mode');
+            return new Result(Result::FAILURE_UNCATEGORIZED, null);
+        } catch (JsonRpcException\UserJsonRpcMemberBannedException $exc) {
+            Log::notice('The member is banned');
             return new Result(Result::FAILURE_UNCATEGORIZED, null);
         }
         

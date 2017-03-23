@@ -19,33 +19,18 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OxcMP\Controller\Plugin;
+namespace OxcMP\Service\User\Exception\JsonRpc;
 
-use Zend\Mvc\Controller\Plugin\AbstractPlugin;
+use OxcMP\Service\User\Exception\ExceptionInterface as UserExceptionInterface;
 
 /**
- * Add a title to the page
+ * JsonRpc Exception Interface
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class AddPageTitle extends AbstractPlugin
+interface ExceptionInterface extends UserExceptionInterface
 {
-    /**
-     * Add the specified title to the page
-     * 
-     * @param string $title The title
-     * @return void
-     */
-    public function __invoke($title)
-    {
-        $this->getController()
-            ->getEvent()
-            ->getApplication()
-            ->getServiceManager()
-            ->get('ViewHelperManager')
-            ->get('HeadTitle')
-            ->prepend($title);
-    }
+    // Empty
 }
 
 /* EOF */

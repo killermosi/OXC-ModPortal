@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright © 2016-2017 OpenXcom Mod Portal Contributors
+ * Copyright © 2016-2017 OpenXcom Mod Portal Developers
  *
  * This file is part of OpenXcom Mod Portal.
  *

@@ -29,6 +29,12 @@ return [
     // ACL
     'acl_not_logged_in' => 'You are not logged in.',
     'acl_not_allowed' => 'You are not allowed to access that action.',
+    // Module bootstrap
+    'module_bootstrap_usercheck_board_in_maintenance' => 'You have been logged out - The OpenXcom forum is in maintenance mode',
+    'module_bootstrap_usercheck_member_deleted' => 'You have been logged out - Your user was deleted from the OpenXcom forum',
+    'module_bootstrap_usercheck_member_banned' => 'You have been logged out - Your user was banned from the OpenXcom forum',
+    'module_bootstrap_usercheck_invalid_auth_token' => 'You have been logged out - Please re-authenticate',
+    'module_bootstrap_usercheck_invalid_api_key' => 'You have been logged out due to an internal error',
 ];
 
 /* EOF */

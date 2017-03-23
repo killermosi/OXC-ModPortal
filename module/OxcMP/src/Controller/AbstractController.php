@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright © 2016-2017 OpenXcom Mod Portal Contributors
+ * Copyright © 2016-2017 OpenXcom Mod Portal Developers
  *
  * This file is part of OpenXcom Mod Portal.
  *
@@ -55,7 +55,7 @@ class AbstractController extends AbstractActionController {
         
         // Messages go to the view model
         $viewModel = $this->getEvent()->getViewModel();
-        
+
         if ($this->flashMessenger()->hasErrorMessages()) {
             // Errors first
             $messages = $this->flashMessenger()->getErrorMessages();

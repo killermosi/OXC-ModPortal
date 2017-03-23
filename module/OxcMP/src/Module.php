@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright © 2016-2017 OpenXcom Mod Portal Contributors
+ * Copyright © 2016-2017 OpenXcom Mod Portal Developers
  *
  * This file is part of OpenXcom Mod Portal.
  *
@@ -32,6 +32,7 @@ use OxcMP\Service\Acl\Role;
 use OxcMP\Service\User\UserPersistenceService;
 use OxcMP\Service\User\UserRemoteService;
 use OxcMP\Service\User\UserRetrievalService;
+use OxcMP\Service\User\Exception\JsonRpc as JsonRpcException;
 use OxcMP\Util\Config as ConfigUtil;
 use OxcMP\Util\Log;
 
@@ -241,20 +242,31 @@ class Module
             }
             
             return true;
-        } catch (\OxcMP\Service\User\Exception\UserJsonRpcIncorrectApiKeyException $exc) {
+        } catch (JsonRpcException\UserJsonRpcIncorrectApiKeyException $exc) {
             Log::critical('The API key is incorrect');
-        } catch (\OxcMP\Service\User\Exception\UserJsonRpcIncorrectAuthenticationTokenException $exc) {
+            $messageKey = 'module_bootstrap_usercheck_invalid_api_key';
+        } catch (JsonRpcException\UserJsonRpcIncorrectAuthenticationTokenException $exc) {
             Log::notice('The user authentication token is invalid');
-        } catch (\OxcMP\Service\User\Exception\UserJsonRpcMemberIdNotFoundException $exc) {
+            $messageKey = 'module_bootstrap_usercheck_invalid_auth_token';
+        } catch (JsonRpcException\UserJsonRpcMemberIdNotFoundException $exc) {
             Log::notice('The currently authenticated user is no longer present in the OpenXcom forum');
+            $messageKey = 'module_bootstrap_usercheck_member_deleted';
             $user->setIsOrphan(true);
             $serviceManager->get(UserPersistenceService::class)->update($user);
-        } catch (\OxcMP\Service\User\Exception\UserJsonRpcMaintenanceModeActiveException $exc) {
+        } catch (JsonRpcException\UserJsonRpcMaintenanceModeActiveException $exc) {
             Log::notice('The OpenXcom forum is in maintenance mode, revoking authorization');
+            $messageKey = 'module_bootstrap_usercheck_board_in_maintenance';
+        } catch (JsonRpcException\UserJsonRpcMemberBannedException $exc) {
+            $messageKey = 'module_bootstrap_usercheck_member_banned';
+            Log::notice('The user is banned');
         }
         
         // This is reached only if an error occured
         $authenticationService->clearIdentity();
+        
+        $controller = $event->getTarget();
+        $controller->flashMessenger()->addErrorMessage($controller->translate($messageKey));
+        
         return false;
     }
 }

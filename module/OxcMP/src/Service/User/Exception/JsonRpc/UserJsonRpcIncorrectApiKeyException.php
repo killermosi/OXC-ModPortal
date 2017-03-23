@@ -19,33 +19,16 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OxcMP\Controller\Plugin;
-
-use Zend\Mvc\Controller\Plugin\AbstractPlugin;
+namespace OxcMP\Service\User\Exception\JsonRpc;
 
 /**
- * Add a title to the page
+ * UserJsonRpcIncorrectApiKeyException
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class AddPageTitle extends AbstractPlugin
+class UserJsonRpcIncorrectApiKeyException extends \RuntimeException implements ExceptionInterface
 {
-    /**
-     * Add the specified title to the page
-     * 
-     * @param string $title The title
-     * @return void
-     */
-    public function __invoke($title)
-    {
-        $this->getController()
-            ->getEvent()
-            ->getApplication()
-            ->getServiceManager()
-            ->get('ViewHelperManager')
-            ->get('HeadTitle')
-            ->prepend($title);
-    }
+    // Empty
 }
 
 /* EOF */

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright © 2016-2017 OpenXcom Mod Portal Contributors
+ * Copyright © 2016-2017 OpenXcom Mod Portal Developers
  *
  * This file is part of OpenXcom Mod Portal.
  *
@@ -26,6 +26,7 @@ use Zend\Json\Server\Exception\ErrorException;
 use Zend\Config\Config;
 use OxcMP\Entity\User;
 use OxcMP\Service\User\Support\JsonRpcClient;
+use OxcMP\Service\User\Exception\JsonRpc as Exception;
 use OxcMP\Util\Log;
 
 /**
@@ -95,6 +96,7 @@ class UserRemoteService
      * @throws Exception\UserJsonRpcMemberIdNotFoundException
      * @throws Exception\UserJsonRpcIncorrectAuthenticationTokenException
      * @throws Exception\UserJsonRpcMaintenanceModeActiveException
+     * @throws Exception\UserJsonRpcMemberBannedException
      */
     public function checkAuthenticationToken(User $user)
     {
@@ -180,6 +182,8 @@ class UserRemoteService
                 return new Exception\UserJsonRpcIncorrectAuthenticationTokenException();
             case -32003: // Maintenance mode active
                 return new Exception\UserJsonRpcMaintenanceModeActiveException();
+            case -32004: // Member is banned
+                return new Exception\UserJsonRpcMemberBannedException();
             default:
                 Log::critical('Unexpected JSON-RPC error code received: ', $exception->getCode());
                 return new Exception\UserJsonRpcGenericErrorException();
