@@ -58,6 +58,8 @@ class Module
         'db.name' => 'doctrine.connection.orm_default.params.dbname',
         // Session
         'session.cookie.path' => 'session_config.cookie_path',
+        // Static storage
+        'static.storage' => 'layout.staticStorageUrl',
         // Logging
         'log.enabled' => 'log.enabled',
         'log.file'    => 'log.stream',

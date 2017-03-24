@@ -34,7 +34,7 @@
             '',
             ['integrity' => $bootstrapMinCss->integrity, 'crossorigin' => $bootstrapMinCss->crossorigin]
         )
-        ->appendStylesheet('css/style.css');
+        ->appendStylesheet($this->staticUrl('css/style.css'));
     
     echo PHP_EOL;
 ?>
@@ -45,7 +45,7 @@
     echo $this->placeholder('mainmenu')
         ->setIndent(8)
         ->set(
-            $this->partial('layout/partial/main-menu.phtml', ['userLoggedIn' => !empty($this->authenticatedUser)])
+            $this->partial('layout/partial/main-menu.phtml', ['authenticatedUser' => $this->authenticatedUser])
         );
     
     echo PHP_EOL;

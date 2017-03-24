@@ -60,13 +60,13 @@ class Config
         // Adjust the config data
         $adjustedConfig = [];
         
-        foreach ($configMapping as $oldKey => $newKey) {
-            if (!isset($config[$oldKey])) {
-                throw new \Exception('Missing config key: ' . $oldKey);
+        foreach ($configMapping as $publicKey => $privateKey) {
+            if (!isset($config[$publicKey])) {
+                Log::notice('Missing config key: ', $publicKey);
+                continue;
             }
             
-            $adjustedConfig[$newKey] = $config[$oldKey];
-            unset($config[$oldKey]);
+            $adjustedConfig[$privateKey] = $config[$publicKey];
         }
         
         return self::dimensionalSplit($adjustedConfig);

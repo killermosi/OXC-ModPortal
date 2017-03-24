@@ -1,7 +1,7 @@
 <?php
     /*
      * External variables:
-     * $userLoggedIn (boolean) 
+     * $authenticatedUser (User) 
      */
     $homeUrl = $this->url('home',[], ['force_canonical' => true]);
 ?>
@@ -22,7 +22,7 @@
             </li>
         </ul>
         <ul class="navbar-nav ml-auto">
-<?php if ($userLoggedIn) : ?>
+<?php if ($authenticatedUser instanceof \OxcMP\Entity\User) : ?>
             <li class="nav-item">
                 <a class="nav-link" href="<?php echo $this->url('my-mods',[], ['force_canonical' => true]) ?>">
                     <?php echo $this->translate('main_menu_link_mymods_txt') . PHP_EOL ?>

@@ -14,8 +14,8 @@ use Zend\Authentication\AuthenticationService;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as PDOMySqlDriver;
 use OxcMP\Controller\AbstractController;
-use OxcMP\Service;
 use OxcMP\Service\Acl\Role;
+use OxcMP\Factory\ModuleFactory;
 
 /** !!! PRIVATE CONFIGURATION - DO NOT MODIFY !!! **/
 return [
@@ -108,9 +108,9 @@ return [
     ],
     'controllers' => [
         'factories' => [
-            Controller\IndexController::class => Controller\ControllerFactory::class,
-            Controller\UserController::class  => Controller\ControllerFactory::class,
-            Controller\ModController::class   => Controller\ControllerFactory::class,
+            Controller\IndexController::class => ModuleFactory::class,
+            Controller\UserController::class  => ModuleFactory::class,
+            Controller\ModController::class   => ModuleFactory::class,
         ],
     ],
     'controller_plugins' => [
@@ -130,21 +130,21 @@ return [
             
             /* Local services */
             // ACL
-            Service\Acl\AclService::class => Service\ServiceFactory::class,
+            Service\Acl\AclService::class => ModuleFactory::class,
             // Authentication
-            Service\Authentication\AuthenticationAdapter::class => Service\ServiceFactory::class,
+            Service\Authentication\AuthenticationAdapter::class => ModuleFactory::class,
             // Mod
-            Service\Mod\ModRetrievalService::class => Service\ServiceFactory::class,
+            Service\Mod\ModRetrievalService::class => ModuleFactory::class,
             // User
-            Service\User\UserPersistenceService::class => Service\ServiceFactory::class,
-            Service\User\UserRetrievalService::class   => Service\ServiceFactory::class,
-            Service\User\UserRemoteService::class      => Service\ServiceFactory::class,
+            Service\User\UserPersistenceService::class => ModuleFactory::class,
+            Service\User\UserRetrievalService::class   => ModuleFactory::class,
+            Service\User\UserRemoteService::class      => ModuleFactory::class,
             
             /* Remote services */
             // Config
-            Config::class => Service\ServiceFactory::class,
+            Config::class => ModuleFactory::class,
             // Authentication
-            AuthenticationService::class => Service\ServiceFactory::class,
+            AuthenticationService::class => ModuleFactory::class,
         ],
     ],
     'view_manager' => [
@@ -163,6 +163,14 @@ return [
             __DIR__ . '/../view',
         ],
     ],
+    'view_helpers' => [
+        'factories' => [
+            View\Helper\StaticUrl::class => ModuleFactory::class,                    
+        ],
+       'aliases' => [
+            'staticUrl' => View\Helper\StaticUrl::class
+       ]
+    ], 
     'translator' => [
         'locale' => 'en_US',
         'translation_file_patterns' => [
@@ -201,7 +209,8 @@ return [
         ],
         'defaultBackground' => 'img/bg-default.png',
         'oAuthUrl' => 'https://openxcom.org/forum/index.php?action=oxcmpoauth;board,',
-        'githubProjectUrl' => 'https://github.com/killermosi/OXC-ModPortal'
+        'githubProjectUrl' => 'https://github.com/killermosi/OXC-ModPortal',
+        'staticStorageUrl' => null
     ],
     'doctrine' => [
         'connection' => [
@@ -273,5 +282,5 @@ return [
         'tokenCheckDelay' => 60, //* 15, // 15 minutes
         'displayRefreshDelay' => 60, // * 60 * 2, // 2 hours
         'rememberMe' => 60 * 60 * 24 * 14 // 14 days
-    ]
+    ],
 ];
