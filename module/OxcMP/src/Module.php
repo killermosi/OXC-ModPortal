@@ -56,6 +56,8 @@ class Module
         'db.user' => 'doctrine.connection.orm_default.params.user',
         'db.pass' => 'doctrine.connection.orm_default.params.password',
         'db.name' => 'doctrine.connection.orm_default.params.dbname',
+        // Session
+        'session.cookie.path' => 'session_config.cookie_path',
         // Logging
         'log.enabled' => 'log.enabled',
         'log.file'    => 'log.stream',
