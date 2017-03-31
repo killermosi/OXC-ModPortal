@@ -43,7 +43,7 @@ class IndexController extends AbstractController
         // We can expect flash messages here
         $this->setViewFlashMessage();
         
-        return new ViewModel();
+        return $this->view;
     }
 }
 

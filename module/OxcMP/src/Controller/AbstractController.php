@@ -23,6 +23,7 @@ namespace OxcMP\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Mvc\Plugin\FlashMessenger\FlashMessenger;
+use Zend\View\Model\ViewModel;
 use OxcMP\Util\Log;
 
 /**
@@ -40,6 +41,20 @@ class AbstractController extends AbstractActionController {
      * Namespace for sessions
      */
     const SESSION_NAMESPACE = 'OxcMpSession';
+
+    /**
+     * The view
+     * @var ViewModel
+     */
+    protected $view;
+    
+    /**
+     * Class initialization
+     */
+    function __construct()
+    {
+        $this->view = new ViewModel();
+    }
 
     /**
      * Set the "flashMessage" view value with the last message from the

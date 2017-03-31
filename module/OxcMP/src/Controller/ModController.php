@@ -45,6 +45,8 @@ class ModController extends AbstractController
      */
     function __construct(ModRetrievalService $modRetrievalService)
     {
+        parent::__construct();
+        
         $this->modRetrievalService = $modRetrievalService;
     }
 
@@ -57,7 +59,7 @@ class ModController extends AbstractController
     {
         Log::info('Processing mod/my-mods action');
         
-        return new ViewModel();
+        return $this->view;
     }
 }
 

@@ -74,6 +74,8 @@ class UserController extends AbstractController
         SessionManager $sessionManager,
         Config $config
     ) {
+        parent::__construct();
+        
         $this->authenticationService = $authenticationService;
         $this->userRetrievalService = $userRetrievalService;
         $this->sessionManager = $sessionManager;
