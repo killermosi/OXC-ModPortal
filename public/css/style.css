@@ -49,3 +49,8 @@ div#header{
 body, body.modal-open {
     overflow-y: scroll;
 }
+
+/* Some text need to not be forced to stick to one line */
+.white-space-normal {
+    white-space: normal;
+}

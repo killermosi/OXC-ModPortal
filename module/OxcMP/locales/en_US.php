@@ -28,7 +28,7 @@ return [
     'login_logout_message' => 'You have successfully logged out.',
     // ACL
     'acl_not_logged_in' => 'You are not logged in.',
-    'acl_not_allowed' => 'You are not allowed to access that action.',
+    'acl_not_allowed' => 'Access denied.',
     // Module bootstrap
     'module_bootstrap_usercheck_board_in_maintenance' => 'You have been logged out - The OpenXcom forum is in maintenance mode',
     'module_bootstrap_usercheck_member_deleted' => 'You have been logged out - Your user was deleted from the OpenXcom forum',

@@ -11,7 +11,11 @@
     echo PHP_EOL;
     
     // Favicon
-    echo $this->partial('layout/partial/favicon.phtml');
+    echo $this->placeholder('mainmenu')
+        ->setIndent(8)
+        ->set(
+            $this->partial('layout/partial/favicon.phtml')
+        );
     
     echo PHP_EOL;
     
@@ -39,7 +43,7 @@
     echo PHP_EOL;
 ?>
     </head>
-    <body style="background: url('<?php echo $this->defaultBackground ?>') top center no-repeat" class="container">
+    <body style="background: url('<?php echo $this->staticUrl($this->defaultBackground) ?>') top center no-repeat" class="container">
 <?php
     // Main menu
     echo $this->placeholder('mainmenu')
