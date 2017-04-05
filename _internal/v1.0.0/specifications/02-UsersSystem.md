@@ -63,7 +63,8 @@ portal while waiting for responses, the `Users` table holds the last date and
 time when the respective information was last updated.
 
 This, combined with configurable delays on how log to wait before re-checking
-the user data will help providing a .
+the user data will help providing a smooth user experience without overloading
+the OpenXcom forum with sync requests.
 
 Furthermore, where possible, the portal will make batch requests when requesting
 details for multiple users.
@@ -80,11 +81,11 @@ The default delays are:
 There are several URLs that are used for authorization mechanism and and for API
 access.
 
-| Application    | Purpose                  | URL                                                                |
-| -------------- | ------------------------ | ------------------------------------------------------------------ |
-| OpenXcom Forum | Authorization page       | https://<forum.url>/index.php?action=oxcmpoauth                    |
-| Mod Portal     | Authorization return URL | https://<portal.url>/authorization/<user.id>/<authorization.token> |
-| OpenXcom Forum | API access point         | https://<forum.url>/OxcMpOauth.php                                 |
+| Application    | Purpose                  | URL                                                        |
+| -------------- | ------------------------ | ---------------------------------------------------------- |
+| OpenXcom Forum | Authorization page       | https://<forum.url>/index.php?action=oxcmpoauth            |
+| Mod Portal     | Authorization return URL | https://<portal.url>/login/<user.id>/<authorization.token> |
+| OpenXcom Forum | API access point         | https://<forum.url>/OxcMpOauth.php                         |
 
 #### Authorization page
 
