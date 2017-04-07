@@ -57,7 +57,7 @@ class StaticUrl extends AbstractHelper
         
         return empty($staticStorage)
             ? $this->view->url('home',[], ['force_canonical' => true]) . ltrim($resource, '/')
-            : '//' . rtrim($staticStorage, '/') . '/' . ltrim($resource, '/');
+            : rtrim($staticStorage, '/') . '/' . ltrim($resource, '/');
     }
 }
 

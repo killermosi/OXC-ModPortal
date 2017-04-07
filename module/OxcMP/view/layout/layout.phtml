@@ -43,7 +43,7 @@
     echo PHP_EOL;
 ?>
     </head>
-    <body style="background: url('<?php echo $this->staticUrl($this->defaultBackground) ?>') top center no-repeat" class="container">
+    <body style="background: url('<?php echo $this->staticUrl($this->config->layout->defaultBackground) ?>') top center no-repeat" class="container">
 <?php
     // Main menu
     echo $this->placeholder('mainmenu')
@@ -68,7 +68,7 @@
 ?>
         </div>
         <div id="header" class="pt-2 pb-2">
-            <p>header text</p>
+            <p><?php echo $this->serverUrl()?></p>
         </div>
         <div id="content">
 <?php echo $this->placeholder('content')->set($this->content)->setIndent(8) . PHP_EOL ?>

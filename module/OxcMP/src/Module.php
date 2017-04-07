@@ -101,14 +101,13 @@ class Module
         
         Log::info('Application starting, bootstrapping...');
         
-        // Config and default backgroud image
+        // Config for the views
         $event->getViewModel()->config = $config;
-        $event->getViewModel()->defaultBackground = $config->layout->defaultBackground;
-        
+
         // The following line instantiates the SessionManager and automatically
         // makes the SessionManager the 'default' one.
         $serviceManager->get(SessionManager::class);
-        
+
         // Check ACL
         $event->getApplication()
             ->getEventManager()
@@ -132,6 +131,11 @@ class Module
     public function onDispatch(MvcEvent $event)
     {
         Log::info('Executing EVENT_DISPATCH actions');
+        
+        // Determine if this request is done on the static domain
+        if ($this->isStaticRequest($event)) {
+            
+        }
         
         // Update authenticated user, stop on error
         if (false === $this->checkAndUpdateAuthenticatedUser($event)) {
@@ -272,6 +276,51 @@ class Module
         $controller->flashMessenger()->addErrorMessage($controller->translate($messageKey));
         
         return false;
+    }
+    
+    /**
+     * Check if this request was done to the static domain
+     * 
+     * @param MvcEvent $event The event
+     * @return boolean
+     */
+    private function isStaticRequest(MvcEvent $event)
+    {
+        Log::info('Checking if the request was done to the static resource domain');
+        
+        $serviceManager = $event->getApplication()->getServiceManager();
+        
+        // Get and check the static storage URL
+        $staticStorageUrl = strtolower($serviceManager->get(Config::class)->layout->staticStorageUrl);
+        
+        if (empty($staticStorageUrl)) {
+            Log::debug('No static storage defined, no static domain request possible');
+            return false;
+        }
+        
+        $urlHelper = $event->getApplication()
+            ->getServiceManager()
+            ->get('ViewHelperManager')
+            ->get('Url');
+            
+        $requestUrl = strtolower($urlHelper('home',[], ['force_canonical' => true]));
+
+        if (rtrim($staticStorageUrl, '/') == rtrim($requestUrl, '/')) {
+            Log::debug('The request was done to the static resource domain');
+            return true;
+        } else {
+            Log::debug('The request was done to the standard application domain');
+        }
+        
+    }
+    
+    /**
+     * Destroy the current session (and cookie)
+     * @param MvcEvent $event
+     */
+    private function destroySession(MvcEvent $event)
+    {
+        
     }
 }
 
