@@ -50,7 +50,7 @@ To accommodate the Varnish caching system, several architectural elements are
 needed:
 
  1. Static domain for the resources: **static.openxcom.org**
- 1. Normal domain for the application: **mods.openxcom.org**
+ 1. Standard domain for the application: **mods.openxcom.org**
 
 The static domain will operate in a cookie-less mode, meaning that cookies are
 neither expected, nor returned when requesting resources using this domain.
@@ -60,7 +60,9 @@ neither expected, nor returned when requesting resources using this domain.
 The application will load in two stages:
 
  1. When the user loads the portal for the first time in a browser session,
-    no "page content" is loaded
+    only the "page frame" is loaded: top menu, notifications area, "see through"
+    area and the footer. No actual "page content" is loaded, though the actual
+    area where the page content will be displayed is loaded.
  1. The application automatically  makes an AJAX request to the static domain
     to load the actual page content.
 
@@ -69,5 +71,14 @@ static page (like a mod):
 
  1. The application will intercept the link, and will make an AJAX request to
     the static domain to get the page data.
- 1. The URL will be updated to accommodate for page history navigation
+ 1. The URL will be updated to accommodate for page history navigation, so that
+    the browser "back" button will function normally for the user.
 
+#### Exemptions
+
+There are several pages that are exempt from the two step loading mechanic:
+
+ * `login`
+ * `logout`
+ * `my-mods`
+ * `edit-mod`
