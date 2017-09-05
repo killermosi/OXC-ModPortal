@@ -26,6 +26,7 @@ use Zend\Log\Logger;
 use Zend\Log\Writer\Stream;
 use Zend\Log\Filter\Priority;
 use Zend\Log\Formatter\Simple;
+use OxcMP\Util\SupportCode\LogProcessor;
 
 /**
  * Module Logger
@@ -44,13 +45,13 @@ class Log
      * The format to use when writing a line
      * @var string 
      */
-    private static $lineFormat = '%timestamp%|%priorityName%: %message% %extra%';
+    private static $lineFormat = '%timestamp%|%requestId%|%remoteIp%|%priorityName%| %message% %extra%';
     
     /**
      * The format to use when writing the date
      * @var string 
      */
-    private static $dateTimeFormat = 'Ymd H:i:s'; // TODO:: add microseconds (u)
+    private static $dateTimeFormat = 'Ymd H:i:s.u';
     
     /**
      * Initialize the logger
@@ -72,9 +73,14 @@ class Log
         
         $formatter = new Simple(self::$lineFormat, self::$dateTimeFormat);
         $writer->setFormatter($formatter);
-
+        
+        $processor = new LogProcessor();
+        $processor->setRequestId(mt_rand(100000, 999999));
+        $processor->setRemoteIp(Ip::getRemoteIp());
+        
         self::$logger = new Logger();        
         self::$logger->addWriter($writer);
+        self::$logger->addProcessor($processor);
         
         // Register the logger as error and exception handler
         Logger::registerErrorHandler(self::$logger);
@@ -183,7 +189,7 @@ class Log
         if (empty($messages)) {
             return;
         }
-        
+
         // Stop if the logger is not enabled
         if (is_null(self::$logger)) {
             return;
