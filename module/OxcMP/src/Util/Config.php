@@ -96,7 +96,7 @@ class Config
      *     'some' => [
      *         'deep' => [
      *             'nested' => [
-     *                 'section' => 'f'
+     *                 'section' => 'e'
      *             ]
      *         ]
      *     ]

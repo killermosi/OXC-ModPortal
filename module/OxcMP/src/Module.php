@@ -69,7 +69,7 @@ class Module
     ];
     
     /**
-     * Module config
+     * Module configuration
      * 
      * @return string
      */
@@ -132,21 +132,34 @@ class Module
     {
         Log::info('Executing EVENT_DISPATCH actions');
         
-        // Determine if this request is done on the static domain
+        // Services
+        $serviceManager = $event->getApplication()->getServiceManager();
+        /* @var $authenticationService AuthenticationService */
+        $authenticationService = $serviceManager->get(AuthenticationService::class);
+        
+        // The  requested route
+        $route = $event->getRouteMatch()->getMatchedRouteName();
+        
+        // For static domain requests, allow only GUEST access and destroy the session
         if ($this->isStaticRequest($event)) {
+            Log::debug('Handling request to static domain');
+            $this->destroySession($event);
             
+            if (!$serviceManager->get(AclService::class)->isAclAllowed($route, Role::GUEST)) {
+                Log::debug('EVENT_DISPATCH result: redirect to "home"');
+                return $event->getTarget()->redirect()->toRoute('home');
+            }
+            
+            return;
         }
+        
+        Log::debug('Handling request to non-static domain');
         
         // Update authenticated user, stop on error
         if (false === $this->checkAndUpdateAuthenticatedUser($event)) {
             Log::debug('EVENT_DISPATCH result: redirect to "home"');
             return $event->getTarget()->redirect()->toRoute('home');
         }
-
-        // Services
-        $serviceManager = $event->getApplication()->getServiceManager();
-        /* @var $authenticationService AuthenticationService */
-        $authenticationService = $serviceManager->get(AuthenticationService::class);
 
         // Retrieve the authenticated user
         if ($authenticationService->hasIdentity()) {
@@ -161,18 +174,16 @@ class Module
         $event->getViewModel()->authenticatedUser = $authenticatedUser;
         
         /* Check ACL */
-
-        // Route
-        $route = $event->getRouteMatch()->getMatchedRouteName();
-
-        // User role
-        $userRole = Role::GUEST;
         
+        // User role - default value
+        $userRole = Role::GUEST;
+
+        // If logged in, 
         if ($authenticatedUser instanceof User) {
             $userRole = $authenticatedUser->getIsAdministrator() ? Role::ADMINISTRATOR : Role::MEMBER;
         }
         
-        // Send the user to the home page if it is not allowed to access the page
+        // Redirect the user to the home page if it is not allowed to access the page
         if (!$serviceManager->get(AclService::class)->isAclAllowed($route, $userRole)) {
             $errorKey = (false == $authenticationService->hasIdentity())
                 ? 'acl_not_logged_in'
@@ -183,6 +194,11 @@ class Module
             
             Log::debug('EVENT_DISPATCH result: redirect to "home"');
             return $event->getTarget()->redirect()->toRoute('home');
+        }
+        
+        // Destroy session for guests
+        if (Role::GUEST == $userRole) {
+            $this->destroySession($event);
         }
         
         Log::debug('EVENT_DISPATCH actions handled');
@@ -298,11 +314,12 @@ class Module
             return false;
         }
         
+        // TODO: This seems hackish, find better way to determine if the requested domain was the static one or not
         $urlHelper = $event->getApplication()
             ->getServiceManager()
             ->get('ViewHelperManager')
             ->get('Url');
-            
+        
         $requestUrl = strtolower($urlHelper('home',[], ['force_canonical' => true]));
 
         if (rtrim($staticStorageUrl, '/') == rtrim($requestUrl, '/')) {
@@ -310,17 +327,39 @@ class Module
             return true;
         } else {
             Log::debug('The request was done to the standard application domain');
+            return false;
         }
-        
     }
     
     /**
-     * Destroy the current session (and cookie)
-     * @param MvcEvent $event
+     * Destroy the current session
+     * 
+     * @param MvcEvent $event The event (unused)
+     * @return void
      */
     private function destroySession(MvcEvent $event)
     {
+        Log::info('Destroying sesion');
+
+        // TODO: This seems hackish too, check for a better way
+        $_SESSION = array();
         
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(),
+                null,
+                1,
+                $params['path'],
+                $params['domain'],
+                $params['secure'],
+                $params['httponly']
+            );
+        }
+        
+        session_destroy();
+        
+        Log::debug('Session destroyed');
     }
 }
 
