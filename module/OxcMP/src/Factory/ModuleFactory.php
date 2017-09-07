@@ -115,6 +115,8 @@ class ModuleFactory implements FactoryInterface
                 return new $requestedName(
                     $container->get('doctrine.entitymanager.orm_default')
                 );
+            case Service\Module\ModuleService::class:
+                return new $requestedName();
             case Service\User\UserPersistenceService::class:
                 return new $requestedName(
                     $container->get('doctrine.entitymanager.orm_default'),

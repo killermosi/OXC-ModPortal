@@ -203,6 +203,8 @@ class Log
                 $logData .= $message;
             } elseif (is_null($message)) {
                 $logData .= 'NULL';
+            } elseif (is_bool($message)) {
+                $logData .= (true == $message) ? 'TRUE' : 'FALSE';
             } else {
                 $logData .= print_r($message, true);
             }

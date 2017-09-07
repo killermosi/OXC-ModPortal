@@ -21,18 +21,12 @@
 
 namespace OxcMP;
 
-use Zend\Authentication\AuthenticationService;
-use Zend\Mvc\MvcEvent;
+use Zend\Mvc\Application;
 use Zend\Mvc\Controller\AbstractActionController;
+use Zend\Mvc\MvcEvent;
 use Zend\Session\SessionManager;
 use Zend\Config\Config;
-use OxcMP\Entity\User;
-use OxcMP\Service\Acl\AclService;
-use OxcMP\Service\Acl\Role;
-use OxcMP\Service\User\UserPersistenceService;
-use OxcMP\Service\User\UserRemoteService;
-use OxcMP\Service\User\UserRetrievalService;
-use OxcMP\Service\User\Exception\JsonRpc as JsonRpcException;
+use OxcMP\Service\Module\ModuleService;
 use OxcMP\Util\Config as ConfigUtil;
 use OxcMP\Util\Log;
 
@@ -101,265 +95,35 @@ class Module
         
         Log::info('Application starting, bootstrapping...');
         
-        // Config for the views
+        // Config for the layout
         $event->getViewModel()->config = $config;
 
         // The following line instantiates the SessionManager and automatically
         // makes the SessionManager the 'default' one.
         $serviceManager->get(SessionManager::class);
 
-        // Check ACL
+        $moduleService = $serviceManager->get(ModuleService::class);
+        
+        // Attach events
         $event->getApplication()
             ->getEventManager()
             ->getSharedManager()
             ->attach(
                 AbstractActionController::class,
                 MvcEvent::EVENT_DISPATCH,
-                [$this, 'onDispatch'],
-                100
+                [$moduleService, 'onDispatch']
             );
         
+        $event->getApplication()
+            ->getEventManager()
+            ->getSharedManager()
+            ->attach(
+                Application::class,
+                MvcEvent::EVENT_FINISH,
+                [$moduleService, 'onFinish']
+            );
+
         Log::debug('Bootstrapping complete');
-    }
-    
-    /**
-     * Actions to execute on dispatch
-     * 
-     * @param MvcEvent $event The event
-     * @return void
-     */
-    public function onDispatch(MvcEvent $event)
-    {
-        Log::info('Executing EVENT_DISPATCH actions');
-        
-        // Services
-        $serviceManager = $event->getApplication()->getServiceManager();
-        /* @var $authenticationService AuthenticationService */
-        $authenticationService = $serviceManager->get(AuthenticationService::class);
-        
-        // The  requested route
-        $route = $event->getRouteMatch()->getMatchedRouteName();
-        
-        // For static domain requests, allow only GUEST access and destroy the session
-        if ($this->isStaticRequest($event)) {
-            Log::debug('Handling request to static domain');
-            $this->destroySession($event);
-            
-            if (!$serviceManager->get(AclService::class)->isAclAllowed($route, Role::GUEST)) {
-                Log::debug('EVENT_DISPATCH result: redirect to "home"');
-                return $event->getTarget()->redirect()->toRoute('home');
-            }
-            
-            return;
-        }
-        
-        Log::debug('Handling request to non-static domain');
-        
-        // Update authenticated user, stop on error
-        if (false === $this->checkAndUpdateAuthenticatedUser($event)) {
-            Log::debug('EVENT_DISPATCH result: redirect to "home"');
-            return $event->getTarget()->redirect()->toRoute('home');
-        }
-
-        // Retrieve the authenticated user
-        if ($authenticationService->hasIdentity()) {
-            $authenticatedUser = $serviceManager->get(UserRetrievalService::class)->findById(
-                $authenticationService->getIdentity()
-            );
-        } else {
-            $authenticatedUser = null;
-        }
-
-        // Set the authenticated user view value
-        $event->getViewModel()->authenticatedUser = $authenticatedUser;
-        
-        /* Check ACL */
-        
-        // User role - default value
-        $userRole = Role::GUEST;
-
-        // If logged in, 
-        if ($authenticatedUser instanceof User) {
-            $userRole = $authenticatedUser->getIsAdministrator() ? Role::ADMINISTRATOR : Role::MEMBER;
-        }
-        
-        // Redirect the user to the home page if it is not allowed to access the page
-        if (!$serviceManager->get(AclService::class)->isAclAllowed($route, $userRole)) {
-            $errorKey = (false == $authenticationService->hasIdentity())
-                ? 'acl_not_logged_in'
-                : 'acl_not_allowed';
-            
-            $errorMessage = $event->getTarget()->translate($errorKey);
-            $event->getTarget()->flashMessenger()->addErrorMessage($errorMessage);
-            
-            Log::debug('EVENT_DISPATCH result: redirect to "home"');
-            return $event->getTarget()->redirect()->toRoute('home');
-        }
-        
-        // Destroy session for guests
-        if (Role::GUEST == $userRole) {
-            $this->destroySession($event);
-        }
-        
-        Log::debug('EVENT_DISPATCH actions handled');
-    }
-    
-    /**
-     * Check the authentication token and update the authenticated user - if any
-     * 
-     * @param MvcEvent $event The event
-     * @return boolean True if check and/or update went OK, false otherwise
-     */
-    private function checkAndUpdateAuthenticatedUser(MvcEvent $event)
-    {
-        Log::info('Checking authenticated user, updating if necessary');
-        
-        // Services
-        $serviceManager = $event->getApplication()->getServiceManager();
-        
-        /* @var $authenticationService AuthenticationService */
-        $authenticationService = $serviceManager->get(AuthenticationService::class);
-        
-        if (!$authenticationService->hasIdentity()) {
-            Log::debug('No authenticated user found, nothing to update');
-            return true;
-        }
-        
-        // Retrieve the user from the database - as it may have been updated in another session
-        $user = $serviceManager->get(UserRetrievalService::class)->findById(
-            $authenticationService->getIdentity()
-        );
-
-        // Sanity check
-        if (!$user instanceof User) {
-            Log::notice('The current authenticated user was not found in the database, revoking authorization');
-            $authenticationService->clearIdentity();
-            return false;
-        }
-        
-        Log::debug('User ID ', $user->getId(), ' is authenticated');
-        
-        $config = $serviceManager->get(Config::class);
-        
-        // Stop if neither the token needs checking, nor the user details needs update
-        if (!$user->isDueTokenCheck($config) && !$user->isDueDetailsUpdate($config)) {
-            Log::debug('The authenticated user does not require token check or details update');
-            return true;
-        }
-        
-        // Pull remote data if needed
-        try {
-            if ($user->isDueTokenCheck($config)) {
-                Log::debug('Re-checking the user authentication token with the OpenXcom forum');
-                $serviceManager->get(UserRemoteService::class)->checkAuthenticationToken($user);
-                $user->updateLastTokenCheckDate();
-                $serviceManager->get(UserPersistenceService::class)->update($user);
-                Log::debug('User authentication token is valid');
-            }
-            
-            if ($user->isDueDetailsUpdate($config)) {
-                Log::debug('Updating the user data with the OpenXcom forum');
-                $userData = $serviceManager->get(UserRemoteService::class)->getDisplayData($user);
-                $user->updateDetails($userData);
-                $serviceManager->get(UserPersistenceService::class)->update($user);
-                Log::debug('User details updated');
-            }
-            
-            return true;
-        } catch (JsonRpcException\UserJsonRpcIncorrectApiKeyException $exc) {
-            Log::critical('The API key is incorrect');
-            $messageKey = 'module_bootstrap_usercheck_invalid_api_key';
-        } catch (JsonRpcException\UserJsonRpcIncorrectAuthenticationTokenException $exc) {
-            Log::notice('The user authentication token is invalid');
-            $messageKey = 'module_bootstrap_usercheck_invalid_auth_token';
-        } catch (JsonRpcException\UserJsonRpcMemberIdNotFoundException $exc) {
-            Log::notice('The currently authenticated user is no longer present in the OpenXcom forum');
-            $messageKey = 'module_bootstrap_usercheck_member_deleted';
-            $user->setIsOrphan(true);
-            $serviceManager->get(UserPersistenceService::class)->update($user);
-        } catch (JsonRpcException\UserJsonRpcMaintenanceModeActiveException $exc) {
-            Log::notice('The OpenXcom forum is in maintenance mode, revoking authorization');
-            $messageKey = 'module_bootstrap_usercheck_board_in_maintenance';
-        } catch (JsonRpcException\UserJsonRpcMemberBannedException $exc) {
-            $messageKey = 'module_bootstrap_usercheck_member_banned';
-            Log::notice('The user is banned');
-        }
-        
-        // This is reached only if an error occured
-        $authenticationService->clearIdentity();
-        
-        $controller = $event->getTarget();
-        $controller->flashMessenger()->addErrorMessage($controller->translate($messageKey));
-        
-        return false;
-    }
-    
-    /**
-     * Check if this request was done to the static domain
-     * 
-     * @param MvcEvent $event The event
-     * @return boolean
-     */
-    private function isStaticRequest(MvcEvent $event)
-    {
-        Log::info('Checking if the request was done to the static resource domain');
-        
-        $serviceManager = $event->getApplication()->getServiceManager();
-        
-        // Get and check the static storage URL
-        $staticStorageUrl = strtolower($serviceManager->get(Config::class)->layout->staticStorageUrl);
-        
-        if (empty($staticStorageUrl)) {
-            Log::debug('No static storage defined, no static domain request possible');
-            return false;
-        }
-        
-        // TODO: This seems hackish, find better way to determine if the requested domain was the static one or not
-        $urlHelper = $event->getApplication()
-            ->getServiceManager()
-            ->get('ViewHelperManager')
-            ->get('Url');
-        
-        $requestUrl = strtolower($urlHelper('home',[], ['force_canonical' => true]));
-
-        if (rtrim($staticStorageUrl, '/') == rtrim($requestUrl, '/')) {
-            Log::debug('The request was done to the static resource domain');
-            return true;
-        } else {
-            Log::debug('The request was done to the standard application domain');
-            return false;
-        }
-    }
-    
-    /**
-     * Destroy the current session
-     * 
-     * @param MvcEvent $event The event (unused)
-     * @return void
-     */
-    private function destroySession(MvcEvent $event)
-    {
-        Log::info('Destroying sesion');
-
-        // TODO: This seems hackish too, check for a better way
-        $_SESSION = array();
-        
-        if (ini_get('session.use_cookies')) {
-            $params = session_get_cookie_params();
-            setcookie(
-                session_name(),
-                null,
-                1,
-                $params['path'],
-                $params['domain'],
-                $params['secure'],
-                $params['httponly']
-            );
-        }
-        
-        session_destroy();
-        
-        Log::debug('Session destroyed');
     }
 }
 

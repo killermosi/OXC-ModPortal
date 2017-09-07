@@ -128,19 +128,21 @@ return [
     'service_manager' => [
         'factories' => [
             
-            /* Local services */
+            /* Local-defined services */
             // ACL
             Service\Acl\AclService::class => ModuleFactory::class,
             // Authentication
             Service\Authentication\AuthenticationAdapter::class => ModuleFactory::class,
             // Mod
             Service\Mod\ModRetrievalService::class => ModuleFactory::class,
+            // Module
+            Service\Module\ModuleService::class => ModuleFactory::class,
             // User
             Service\User\UserPersistenceService::class => ModuleFactory::class,
             Service\User\UserRetrievalService::class   => ModuleFactory::class,
             Service\User\UserRemoteService::class      => ModuleFactory::class,
             
-            /* Remote services */
+            /* Framework-defined services */
             // Config
             Config::class => ModuleFactory::class,
             // Authentication
@@ -279,8 +281,8 @@ return [
         ]
     ],
     'userRemote' => [ // All values are in seconds
-        'tokenCheckDelay' => 60, //* 15, // 15 minutes
-        'displayRefreshDelay' => 60, // * 60 * 2, // 2 hours
+        'tokenCheckDelay' => 60 * 15, // 15 minutes
+        'displayRefreshDelay' => 60  * 60 * 2, // 2 hours
         'rememberMe' => 60 * 60 * 24 * 14 // 14 days
     ],
 ];

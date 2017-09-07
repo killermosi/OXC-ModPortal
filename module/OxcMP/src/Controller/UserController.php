@@ -89,68 +89,53 @@ class UserController extends AbstractController
      */
     public function loginAction()
     {
-        Log::info('Processing login action');
+        Log::info('Processing login/login action');
         
         // Check the URL for login credentials
         $memberId = $this->params()->fromRoute('memberId', null);
         $authenticationToken = $this->params()->fromRoute('authenticationToken', null);
-        
-        // Use the 'login' namespace for the flash messenger
-        // Note: Although the flash messenger was not created for this, it is well suited for
-        // the task, as we need to remembered the credentials for the next request and only
-        // for the next request
-        $this->flashMessenger()->setNamespace('login');
-        
-        // If login credentials are in the URL, store them in the flash messenger
-        // and do a redirect back to the login page but without the parameters in the URL
-        if (!is_null($memberId) && !is_null($authenticationToken)) {
-            Log::debug('Login parameters found in the URL, redirecting back to the login page');
-            $this->flashMessenger()
-                ->addMessage($memberId)
-                ->addMessage($authenticationToken);
-            
-            $this->redirect()->toRoute('login');
+
+        // Redirect to the homepage after login or if the user visits
+        // this page without the proper credentials in the URL
+        if (is_null($memberId) || is_null($authenticationToken)) {
+            Log::debug('Login credentials not found in the URL, redirecting to the home');
+            $this->redirect()->toRoute('home');
             return;
         }
         
         // Perform login if the credentials are in the flash messenger
-        if ($this->flashMessenger()->hasMessages()) {
-            Log::debug('Attempting to login');
-            list($memberId, $authenticationToken) = $this->flashMessenger()->getMessages();
-            
-            // Try to login the user
-            $adapter = $this->authenticationService->getAdapter();
-            $adapter->setMemberId((int) $memberId);
-            $adapter->setAuthenticationToken($authenticationToken);
-            
-            $result = $this->authenticationService->authenticate();
-            
-            // Considering the login scenario, the login should succeed at all times,
-            // but we'll save ourseves a headache and keep an eye on failures too
-            if ($result->getCode() == Result::SUCCESS) {
-                Log::debug('Login successful');
-                
-                // Set session cookie lifetime
-                $this->sessionManager->rememberMe($this->config->userRemote->rememberMe);
-                
-                // Retrieve the user details
-                $user = $this->userRetrievalService->findById($result->getIdentity());
-                
-                // Success message
-                $userRealName = $this->escapeHtml($user->getRealName());
-                $this->flashMessenger()->addSuccessMessage($this->translate('login_success_message', $userRealName));
-                
-            } else {
-                Log::notice('Login failed');
-                $this->flashMessenger()->addErrorMessage($this->translate('login_fail_message'));
-            }
+        
+        Log::debug('Attempting to login');
+
+        // Try to login the user
+        $adapter = $this->authenticationService->getAdapter();
+        $adapter->setMemberId((int) $memberId);
+        $adapter->setAuthenticationToken($authenticationToken);
+
+        $result = $this->authenticationService->authenticate();
+
+        // Considering the login scenario, the login should succeed at all times,
+        // but we'll save ourseves a headache and keep an eye on failures too
+        if ($result->getCode() == Result::SUCCESS) {
+            Log::debug('Login successful');
+
+            // Set session cookie lifetime
+            $this->sessionManager->rememberMe($this->config->userRemote->rememberMe);
+
+            // Retrieve the user details
+            $user = $this->userRetrievalService->findById($result->getIdentity());
+
+            // Success message
+            $userRealName = $this->escapeHtml($user->getRealName());
+            $this->flashMessenger()->addSuccessMessage($this->translate('login_success_message', $userRealName));
+
+        } else {
+            Log::notice('Login failed');
+            $this->flashMessenger()->addErrorMessage($this->translate('login_fail_message'));
         }
         
-        // Redirect to the homepage after login or if the user visits
-        // this page without the proper credentials in the URL
-        
+        // Redirect to home regardless of outcome
         $this->redirect()->toRoute('home');
-        return;
     }
     
     /**
@@ -160,7 +145,7 @@ class UserController extends AbstractController
      */
     public function logoutAction()
     {
-        Log::info('Processing logout action');
+        Log::info('Processing login/logout action');
         
         if ($this->authenticationService->hasIdentity()) {
             Log::debug('Logging out');

@@ -43,6 +43,8 @@ class IndexController extends AbstractController
         // We can expect flash messages here
         $this->setViewFlashMessage();
         
+        Log::debug('Done processing index/index action');
+        
         return $this->view;
     }
 }
