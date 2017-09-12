@@ -5,42 +5,34 @@
      */
     $homeUrl = $this->url('home',[], ['force_canonical' => true]);
 ?>
-<nav class="navbar navbar-toggleable-md navbar-light bg-faded">
-    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#mainMenuNavbar" aria-controls="mainMenuNavbar" aria-expanded="false" aria-label="<?php echo $this->translate('main_menu_nav_toggle')?>">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#headerNavbar" aria-controls="headerNavbar" aria-expanded="false" aria-label="<?php echo $this->translate('main_menu_nav_toggle')?>">
         <span class="navbar-toggler-icon"></span>
     </button>
     <a class="navbar-brand" href="<?php echo $homeUrl ?>">
         <img src="<?php echo $homeUrl ?>img/logo.svg" width="48" height="48" alt="">
         <?php //echo $this->translate('global_application_name') . PHP_EOL ?>
     </a>
-    <div class="collapse navbar-collapse" id="mainMenuNavbar">
-        <ul class="navbar-nav">
-            <li class="nav-item active">
-                <a class="nav-link" href="<?php echo $homeUrl ?>">
-                    <?php echo $this->translate('global_application_name') . PHP_EOL ?>
-                </a>
-            </li>
-        </ul>
-        <ul class="navbar-nav ml-auto">
+    <div class="collapse navbar-collapse" id="headerNavbar">
+        <div class="navbar-nav">
+            <a class="nav-item nav-link active" href="<?php echo $homeUrl ?>">
+                <?php echo $this->translate('global_application_name') . PHP_EOL ?>
+            </a>
+        </div>
+        <div class="navbar-nav ml-auto">
 <?php if ($authenticatedUser instanceof \OxcMP\Entity\User) : ?>
-            <li class="nav-item">
-                <a class="nav-link" href="<?php echo $this->url('my-mods',[], ['force_canonical' => true]) ?>">
-                    <?php echo $this->translate('main_menu_link_mymods_txt') . PHP_EOL ?>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="<?php echo $this->url('logout',[], ['force_canonical' => true]) ?>">
-                    <?php echo $this->translate('main_menu_link_logout_txt') . PHP_EOL ?>
-                </a>
-            </li>
+            <a class="nav-item nav-link" href="<?php echo $this->url('my-mods',[], ['force_canonical' => true]) ?>">
+                <?php echo $this->translate('main_menu_link_mymods_txt') . PHP_EOL ?>
+            </a>
+            <a class="nav-item nav-link" href="<?php echo $this->url('logout',[], ['force_canonical' => true]) ?>">
+                <?php echo $this->translate('main_menu_link_logout_txt') . PHP_EOL ?>
+            </a>
 <?php else : ?>
-            <li class="nav-item">
-                <a class="nav-link" data-toggle="modal" data-target="#loginModal" href="<?php echo $this->url('login',[], ['force_canonical' => true]) ?>">
-                    <?php echo $this->translate('main_menu_link_login_txt') . PHP_EOL ?>
-                </a>
-            </li>
+            <a class="nav-item nav-link" data-toggle="modal" data-target="#loginModal" href="<?php echo $this->url('login',[], ['force_canonical' => true]) ?>">
+                <?php echo $this->translate('main_menu_link_login_txt') . PHP_EOL ?>
+            </a>
 <?php endif; ?>
-        </ul>
+        </div>
         <!-- <form class="form-inline my-2 my-lg-0">
             <input class="form-control mr-sm-2" type="text" placeholder="Search">
             <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>

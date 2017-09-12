@@ -36,7 +36,7 @@
             $bootstrapMinCss->href,
             'screen',
             '',
-            ['integrity' => $bootstrapMinCss->integrity, 'crossorigin' => $bootstrapMinCss->crossorigin]
+            ['integrity' => $bootstrapMinCss->integrity, 'crossorigin' => 'anonymous']
         )
         ->appendStylesheet($this->staticUrl('css/style.css'));
     
@@ -94,15 +94,13 @@
 ?>
 <?php
     // Add JS
-    $jquerySlimMinJs = $this->config->layout->js->jquerySlimMin;
-    $tetherMinJs = $this->config->layout->js->tetherMin;
-    $bootstrapMinJs = $this->config->layout->js->bootstrapMin;
-    echo $this->headScript()
-        ->setIndent(8)
-        ->setAllowArbitraryAttributes(true) // This is needed for the "integrity" attribute, which is not supported as of Feb 2017
-        ->appendFile($jquerySlimMinJs->src, 'text/javascript', ['integrity' => $jquerySlimMinJs->integrity, 'crossorigin' => $jquerySlimMinJs->crossorigin])
-        ->appendFile($tetherMinJs->src, 'text/javascript', ['integrity' => $tetherMinJs->integrity, 'crossorigin' => $tetherMinJs->crossorigin])
-        ->appendFile($bootstrapMinJs->src, 'text/javascript', ['integrity' => $bootstrapMinJs->integrity, 'crossorigin' => $bootstrapMinJs->crossorigin]);
+    $footerJs = $this->headScript()->setIndent(8);
+    
+    foreach ($this->config->layout->js as $js) {
+        $footerJs->appendFile($js->src, 'text/javascript', ['integrity' => $js->integrity, 'crossorigin' => 'anonymous']);
+    }
+    
+    echo $footerJs;
     
     echo PHP_EOL;
 ?>

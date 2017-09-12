@@ -119,6 +119,8 @@ create table tag (
 ) engine=InnoDB default charset=utf8 comment 'Available tags';
 ```
 
+When the `tag` table is edited, the `mod_tag` will be updated too.
+
 ### Files
 
 The files associated with a mod are stored on disk using their UUID, to avoid
@@ -149,7 +151,7 @@ Due to the complexity of a mod, editing will be done in a dedicated page.
 The mod slug will be used here to reference the mod. When the mod slug is
 changed during an editing session, the owner will be redirected to the new URL.
 
-#### Files
+#### Files management
 
 To allow some flexibility during an edit session, any changes that are done to
 the mod files are to be applied only when the user submits the edit form.
@@ -164,3 +166,7 @@ the mod files are to be applied only when the user submits the edit form.
     * Files uploaded will be moved from the temporary storage location to the
       normal storage location and added to the database
     * Changed files will have their properties updated
+
+### Files upload
+
+Since the mod files are potentially very large, they will be uploaded in chunks.

@@ -45,9 +45,29 @@ div#header{
     height: 200px;
 }
 
-/* Keep the body vertical scrollbar visible at all times (including when a modal is opened) */
-body, body.modal-open {
+/* 
+    Keep the body vertical scrollbar visible at all times (including when a
+    modal is opened), and prevent the body from shifting with the modal open
+
+    TODO: Check with multiple browsers and operating systems
+*/
+
+body {
     overflow-y: scroll;
+}
+
+div.modal {
+    overflow-y: auto;
+    padding-right: 0px !important
+}
+
+body.modal-open {
+    overflow: auto;
+    overflow-y:scroll
+}
+
+body.modal-open[style] {
+    padding-right: 15px !important;
 }
 
 /* Some text need to not be forced to stick to one line */
