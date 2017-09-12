@@ -17,9 +17,11 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
+create database oxcmp character set utf8 collate utf8_general_ci
+
 create table user (
     user_id int(10) not null auto_increment comment 'Internal identifier',
-    is_orphan tinyint(1) not null default 0 comment 'If this user is orphan - it does not exist on the forum',
+    is_orphan tinyint(1) not null default 0 comment 'If the user is orphan - it does not exist on the forum anymore',
     member_id int(10) not null unique comment 'Forum member identifier',
     authentication_token varchar(64) default null comment 'Forum authentication token',
     real_name varchar(128) default null comment 'Display name',
@@ -32,14 +34,48 @@ create table user (
 ) engine=InnoDB default charset=utf8 comment 'Users in the system';
 
 create table mod_data (
-    mod_id int(10) not null auto_increment comment 'Internal identifier',
-    user_id int(10) not null comment 'The owner identifier',
-    is_published tinyint(1) not null default 0 comment 'If this mod is published',
-    base_game tinyint(1) not null default 0 comment 'Base game for this mod: 0 - UFO, 1 - TFTD',
+    mod_id varchar(36) not null comment 'The internal identifier',
+    user_id int(10) not null comment 'The user identifier',
+    is_published tinyint(1) not null default 0 comment 'If the mod is published',
+    base_game tinyint(1) not null default 0 comment 'Base game for the mod: 0 - UFO, 1 - TFTD',
     title varchar(128) not null comment 'Mod title',
     description text null default null comment 'Mod description',
     slug varchar(128) not null unique comment 'A web-friendly URL identifier',
-    creation_date datetime not null comment 'The date and time when this mod was created',
-    background varchar(32) null default null comment 'MD5 hash of the image to use for page background',
-    primary key (mod_id)
-) engine=InnoDB default charset=utf8 comment 'Basic mod data';
+    date_created datetime not null comment 'The date and time when the mod was created',
+    date_updated datetime not null comment 'The date and time when the mod was updated',
+    downloads int(10) not null default 0 comment 'Completed downloads for the mod',
+    primary key (mod_id),
+    index idx_slug(slug),
+    index idx_is_published(is_published)
+) engine=InnoDB default charset=utf8 comment 'Mods list';
+
+create table mod_file (
+    file_id varchar(36) not null comment 'The internal identifier',
+    mod_id varchar(36) not null comment 'The mod identifier',
+    type tinyint(1) not null comment 'The file purpose: 0 - downloadable resource, 1 - gallery image, 2 - background image',
+    image_order tinyint(2) default 0 comment 'File order, for gallery images',
+    name varchar(128) not null comment 'The original file name, must be unique per mod_id and type',
+    date_added datetime not null comment 'The date and time when the file was added',
+    downloads int(10) not null default 0 comment 'Completed downloads for the file',
+    primary key (file_id),
+    index idx_mod_id_type (mod_id, type),
+    unique unique_mod_id_type_name(mod_id, type, name)
+) engine=InnoDB default charset=utf8 comment 'Mod associated files';
+
+create table mod_vote (
+    mod_id varchar(36) not null comment 'The mod identifier - UUID',
+    user_id int(10) not null comment 'The user identifier',
+    vote tinyint(1) not null comment  'The vote type: 0 - negative, 1 - positive',
+    primary key (mod_id, user_id)
+) engine=InnoDB default charset=utf8 comment 'Mod votes';
+
+create table mod_tag (
+    mod_id varchar(36) not null comment 'The mod identifier - UUID',
+    tag varchar(32) not null comment 'The tag',
+    primary key (mod_id, tag)
+) engine=InnoDB default charset=utf8 comment 'Mod associated tags';
+
+create table tag (
+    tag varchar(32) not null comment 'The tag',
+    primary key (tag)
+) engine=InnoDB default charset=utf8 comment 'Available tags';
