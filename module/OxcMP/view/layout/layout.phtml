@@ -11,7 +11,7 @@
     echo PHP_EOL;
     
     // Favicon
-    echo $this->placeholder('mainmenu')
+    echo $this->placeholder('favicon')
         ->setIndent(8)
         ->set(
             $this->partial('layout/partial/favicon.phtml')
@@ -26,6 +26,15 @@
         ->setIndent(8)
         ->appendHttpEquiv('X-UA-Compatible', 'IE=edge');
 
+    echo PHP_EOL;
+    
+    // OpenGraph
+    echo $this->placeholder('opengraph')
+        ->setIndent(8)
+        ->set(
+            $this->partial('layout/partial/open-graph.phtml', ['openGraph' => $this->openGraph])
+        );
+    
     echo PHP_EOL;
     
     // Add CSS

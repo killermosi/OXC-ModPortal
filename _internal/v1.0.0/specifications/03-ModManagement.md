@@ -15,6 +15,7 @@ are detailed below.
 ### Editable properties
 * **Name**: This is the mod name, and the standard searches are done on this
   field only.
+* **Summary**: A brief description of the mod.
 * **Slug**: The unique "friendly URL" of the mod, used to differentiate
   one mod from another. It is automatically derived from the title when the mod
   is created, but can be changed as needed.
@@ -66,6 +67,7 @@ create table mod_data (
     is_published tinyint(1) not null default 0 comment 'If the mod is published',
     base_game tinyint(1) not null default 0 comment 'Base game for the mod: 0 - UFO, 1 - TFTD',
     title varchar(128) not null comment 'Mod title',
+    summary varchar(256) not null commend 'Mod summary',
     description text null default null comment 'Mod description',
     slug varchar(128) not null unique comment 'A web-friendly URL identifier',
     date_created datetime not null comment 'The date and time when the mod was created',

@@ -1,0 +1,14 @@
+<?php
+    /*
+     * External variables:
+     * $openGraph (array)
+     * - url (string) Canonical URL for the page
+     * - title (string) Page title
+     * - description (string) Page description
+     * - image (string) Page image
+     */
+?>
+<meta property="og:url" content="<?php echo $openGraph['url'] ?>" />
+<meta property="og:title" content="<?php echo $this->escapeHtml($openGraph['title']) ?>" />
+<meta property="og:description" content="<?php echo $this->escapeHtml($openGraph['description']) ?>" />
+<meta property="og:image" content="<?php echo $openGraph['image'] ?>" />

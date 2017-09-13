@@ -23,7 +23,10 @@ namespace OxcMP\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Mvc\Plugin\FlashMessenger\FlashMessenger;
+use Zend\Mvc\MvcEvent;
 use Zend\View\Model\ViewModel;
+use OxcMP\Entity\User;
+use OxcMP\Entity\Mod;
 use OxcMP\Util\Log;
 
 /**
@@ -51,24 +54,40 @@ class AbstractController extends AbstractActionController {
     /**
      * Class initialization
      */
-    function __construct()
+    public function __construct()
     {
         $this->view = new ViewModel();
     }
-
+    
     /**
-     * Set the "flashMessage" view value with the last message from the
+     * Execute the request
+     *
+     * @param  MvcEvent $e
+     * @return mixed
+     * @throws Exception\DomainException
+     */
+    public function onDispatch(MvcEvent $e)
+    {
+        $response = parent::onDispatch($e);
+        
+        $this->setLayoutOpenGraph();
+        
+        return $response;
+    }
+    
+    /**
+     * Set the "flashMessage" layout value with the last message from the
      * flash messenger as a list with two keys:
-     * - success: If this is a success or error message
-     * - message: The actual message
+     * - success (boolean): If this is a success or error message
+     * - message (string):  The actual message
      * 
      * @return void
      */
-    protected function setViewFlashMessage()
+    protected function setLayoutFlashMessage()
     {
         Log::info('Looking for flash messages in the flash messenger');
         
-        // Messages go to the view model
+        // Messages go to the layout
         $viewModel = $this->getEvent()->getViewModel();
 
         if ($this->flashMessenger()->hasErrorMessages()) {
@@ -96,5 +115,59 @@ class AbstractController extends AbstractActionController {
         } else {
             Log::debug('No flash messages in the flash messenger');
         }
+    }
+    
+    /**
+     * Set the Open Graph values for the layout. By default, it sets the standard
+     * OG values for the portal, should be called as needed in various controller
+     * actions
+     * 
+     * @param Mod|User|null $entity The entity to set the OG for
+     * @return void
+     */
+    private function setLayoutOpenGraph($entity = null)
+    {
+        Log::info('Setting OG values');
+        
+        $viewHelperManager = $this->getEvent()->getApplication()->getServiceManager()->get('ViewHelperManager');
+        
+        $staticUrl = $viewHelperManager->get('staticUrl');
+        
+        // OG data
+        $ogUrl = $ogTitle = $ogDescription = $ogImage = null;
+        
+        if ($entity instanceof User) {
+            Log::debug('Setting OG values for user');
+            
+            $ogUrl = $entity->getMemberId(); // TODO: build the complete URL once the user page is created
+            $ogTitle = $entity->getRealName();
+            $ogDescription = $entity->getPersonalText();
+            $ogImage = $entity->getAvatarUrl();
+        } elseif ($entity instanceof Mod) {
+            Log::debug('Setting OG values for mod');
+            
+            $ogUrl = $entity->getSlug(); // TODO: build the complete URL once the mod page is created
+            $ogTitle = $entity->getTitle();
+            $ogDescription = $entity->getSummary();
+            $ogImage = null; // TODO: build the url to the mod image
+        } else {
+            Log::debug('Setting OG values for portal');
+            
+            $ogUrl = $this->getRequest()->getUriString();
+            $ogTitle = $this->translate('global_application_name');
+            $ogDescription = $ogTitle;
+            $ogImage = $staticUrl('android-chrome-512x512.png'); // TODO: use a separate resource for OG?
+        }
+        
+        $openGraph = [
+            'url' => $ogUrl,
+            'title' => $ogTitle,
+            'description' => $ogDescription,
+            'image' => $ogImage
+        ];
+        
+        Log::debug('OG set to: ', $openGraph);
+        
+        $this->getEvent()->getViewModel()->openGraph = $openGraph;
     }
 }

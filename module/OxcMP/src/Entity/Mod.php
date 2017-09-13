@@ -84,6 +84,12 @@ class Mod
     private $title;
     
     /**
+     * Mod summary
+     * @var string
+     */
+    private $summary;
+    
+    /**
      * Mod description
      * @var string
      * 
@@ -217,6 +223,27 @@ class Mod
         $this->title = $title;
     }
 
+    /**
+     * Get the mod summary
+     * 
+     * @return string
+     */
+    function getSummary()
+    {
+        return $this->summary;
+    }
+
+    /**
+     * Set the mod summary
+     * 
+     * @param string $summary The summary
+     * @return void
+     */
+    function setSummary($summary)
+    {
+        $this->summary = $summary;
+    }
+    
     /**
      * Get the mod description
      * 
