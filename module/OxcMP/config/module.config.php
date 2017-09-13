@@ -2,8 +2,6 @@
 
 namespace OxcMP;
 
-use Zend\Router\Http\Literal;
-use Zend\Router\Http\Segment;
 use Zend\Log\Logger;
 use Zend\ServiceManager\Factory\InvokableFactory;
 use Zend\Session\Storage\SessionArrayStorage;
@@ -14,98 +12,11 @@ use Zend\Authentication\AuthenticationService;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as PDOMySqlDriver;
 use OxcMP\Controller\AbstractController;
-use OxcMP\Service\Acl\Role;
 use OxcMP\Factory\ModuleFactory;
 
 /** !!! PRIVATE CONFIGURATION - DO NOT MODIFY !!! **/
 return [
-    'router' => [
-        'routes' => [
-            'home' => [
-                'type' => Literal::class,
-                'options' => [
-                    'route'    => '/',
-                    'defaults' => [
-                        'controller' => Controller\IndexController::class,
-                        'action'     => 'index',
-                    ],
-                    'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
-                ],
-            ],
-            'login' => [
-                'type'    => Segment::class,
-                'options' => [
-                    'route'    => '/login/[:memberId/:authenticationToken]',
-                    'constraints' => [
-                        // All numeric: 123
-                        'memberId' => '[0-9]*',
-                        // MD5 hash, with a bit of formating: 2c797f70-d4c3b6b3-dbe4d500-71a94b04
-                        'authenticationToken' => '[a-z0-9]{8}-[a-z0-9]{8}-[a-z0-9]{8}-[a-z0-9]{8}'
-                    ],
-                    'defaults' => [
-                        'controller' => Controller\UserController::class,
-                        'action'     => 'login',
-                    ],
-                    'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
-                ],
-            ],
-            'logout' => [
-                'type'    => Segment::class,
-                'options' => [
-                    'route'    => '/logout[/]',
-                    'defaults' => [
-                        'controller' => Controller\UserController::class,
-                        'action'     => 'logout',
-                    ],
-                    'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
-                ],
-            ],
-            'my-mods' => [
-                'type'    => Segment::class,
-                'options' => [
-                    'route'    => '/my-mods',
-                    'defaults' => [
-                        'controller' => Controller\ModController::class,
-                        'action'     => 'my-mods',
-                    ],
-                    'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
-                ],
-            ],
-            'about' => [
-                'type' => Literal::class,
-                'options' => [
-                    'route'    => '/about',
-                    'defaults' => [
-                        'controller' => Controller\IndexController::class,
-                        'action'     => 'about',
-                    ],
-                    'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
-                ],
-            ],
-            'disclaimer' => [
-                'type' => Literal::class,
-                'options' => [
-                    'route'    => '/disclaimer',
-                    'defaults' => [
-                        'controller' => Controller\IndexController::class,
-                        'action'     => 'disclaimer',
-                    ],
-                    'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
-                ],
-            ],
-            'contact' => [
-                'type' => Literal::class,
-                'options' => [
-                    'route'    => '/contact',
-                    'defaults' => [
-                        'controller' => Controller\IndexController::class,
-                        'action'     => 'contact',
-                    ],
-                    'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
-                ],
-            ],
-        ],
-    ],
+    'router' => require('module.config.router.php'),
     'controllers' => [
         'factories' => [
             Controller\IndexController::class => ModuleFactory::class,

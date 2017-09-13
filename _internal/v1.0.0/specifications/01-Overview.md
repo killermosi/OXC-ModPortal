@@ -8,6 +8,7 @@ portal:
 * Users system
 * Mod management
 * Mod search
+* Open graph integration
 
 ## Page structure
 
