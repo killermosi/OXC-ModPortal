@@ -141,7 +141,7 @@ class User
      * 
      * @return boolean
      */
-    function getIsOrphan()
+    public function getIsOrphan()
     {
         return $this->isOrphan;
     }
@@ -152,7 +152,7 @@ class User
      * @param boolean $isOrphan If the user is orphan
      * @return void
      */
-    function setIsOrphan($isOrphan)
+    public function setIsOrphan($isOrphan)
     {
         $this->isOrphan = $isOrphan;
     }
@@ -264,7 +264,7 @@ class User
      * 
      * @return \DateTime
      */
-    function getLastDetailUpdateDate() {
+    public function getLastDetailUpdateDate() {
         return $this->lastDetailUpdateDate;
     }
 

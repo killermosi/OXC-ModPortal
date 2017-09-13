@@ -28,9 +28,9 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  * 
- * @ORM\Entity
- * @ORM\Table(name="mod_data")
  * @ORM\Entity(repositoryClass="\OxcMP\Entity\Repository\ModRepository")
+ * @ORM\Table(name="mod_data")
+ * @ORM\HasLifecycleCallbacks
  */
 class Mod
 {
@@ -45,7 +45,6 @@ class Mod
      * @var integer
      * 
      * @ORM\Id
-     * @ORM\GeneratedValue
      * @ORM\Column(name="mod_id", type="integer", nullable=false, unique=true)
      */
     private $id;
@@ -67,8 +66,7 @@ class Mod
     private $isPublished = false;
     
     /**
-     * For which base game was this mod designed:
-     * 0 - UFO, 1 - TFTD
+     * For which base game was this mod designed: 0 - UFO, 1 - TFTD
      * @var integer
      * 
      * @ORM\Column(name="base_game", type="integer", nullable=false)
@@ -86,6 +84,8 @@ class Mod
     /**
      * Mod summary
      * @var string
+     * 
+     * @ORM\Column(name="summary", type="string", length=256, nullable=false)
      */
     private $summary;
     
@@ -101,7 +101,7 @@ class Mod
      * Mod slug
      * @var string
      * 
-     * @ORM\Column(name="slug", type="integer", length=128, nullable=false)
+     * @ORM\Column(name="slug", type="integer", nullable=false)
      */
     private $slug;
     
@@ -109,32 +109,32 @@ class Mod
      * The date and time when this mod was created
      * @var \DateTime 
      * 
-     * @ORM\Column(name="creation_date", type="datetime", nullable=false)
+     * @ORM\Column(name="date_created", type="datetime", nullable=false)
      */
-    private $creationDate;
+    private $dateCreated;
     
     /**
-     * MD5 hash of the image to use for page background
+     * The date and time when this mod was updated
+     * @var \DateTime 
+     * 
+     * @ORM\Column(name="date_updated", type="datetime", nullable=false)
+     */
+    private $dateUpdated;
+    
+    /**
+     * Completed downloads for the mod
      * @var string
      * 
-     * @ORM\Column(name="background", type="string", length=32, nullable=true)
+     * @ORM\Column(name="downloads", type="integer", nullable=false)
      */
-    private $background;
-    
-    /**
-     * Class initialization
-     */
-    public function __construct()
-    {
-        $this->creationDate = new \DateTime();
-    }
+    private $dowloads = 0;
     
     /**
      * Get the internal identifier
      * 
      * @return integer
      */
-    function getId()
+    public function getId()
     {
         return $this->id;
     }
@@ -144,7 +144,7 @@ class Mod
      * 
      * @return integer
      */
-    function getUserId()
+    public function getUserId()
     {
         return $this->userId;
     }
@@ -155,7 +155,7 @@ class Mod
      * @param integer $userId The user ID
      * @return void
      */
-    function setUserId($userId)
+    public function setUserId($userId)
     {
         $this->userId = $userId;
     }
@@ -165,7 +165,7 @@ class Mod
      * 
      * @return boolean
      */
-    function getIsPublished()
+    public function getIsPublished()
     {
         return $this->isPublished;
     }
@@ -176,7 +176,7 @@ class Mod
      * @param boolean $isPublished The status
      * @return void
      */
-    function setIsPublished($isPublished)
+    public function setIsPublished($isPublished)
     {
         $this->isPublished = $isPublished;
     }
@@ -186,7 +186,7 @@ class Mod
      * 
      * @return integer
      */
-    function getBaseGame()
+    public function getBaseGame()
     {
         return $this->baseGame;
     }
@@ -197,7 +197,7 @@ class Mod
      * @param integer $baseGame Game type
      * @return void
      */
-    function setBaseGame($baseGame)
+    public function setBaseGame($baseGame)
     {
         $this->baseGame = $baseGame;
     }
@@ -207,7 +207,7 @@ class Mod
      * 
      * @return string
      */
-    function getTitle()
+    public function getTitle()
     {
         return $this->title;
     }
@@ -218,7 +218,7 @@ class Mod
      * @param string $title The title
      * @return void
      */
-    function setTitle($title)
+    public function setTitle($title)
     {
         $this->title = $title;
     }
@@ -228,7 +228,7 @@ class Mod
      * 
      * @return string
      */
-    function getSummary()
+    public function getSummary()
     {
         return $this->summary;
     }
@@ -239,7 +239,7 @@ class Mod
      * @param string $summary The summary
      * @return void
      */
-    function setSummary($summary)
+    public function setSummary($summary)
     {
         $this->summary = $summary;
     }
@@ -249,7 +249,7 @@ class Mod
      * 
      * @return string
      */
-    function getDescription()
+    public function getDescription()
     {
         return $this->description;
     }
@@ -260,7 +260,7 @@ class Mod
      * @param string $description The description
      * @return void
      */
-    function setDescription($description)
+    public function setDescription($description)
     {
         $this->description = $description;
     }
@@ -270,7 +270,7 @@ class Mod
      * 
      * @return string
      */
-    function getSlug()
+    public function getSlug()
     {
         return $this->slug;
     }
@@ -281,40 +281,67 @@ class Mod
      * @param string $slug The slug
      * @return void
      */
-    function setSlug($slug)
+    public function setSlug($slug)
     {
         $this->slug = $slug;
     }
 
     /**
-     * Get the creation date
+     * Get the date and time when this mod was created
      * 
      * @return \DateTime
      */
-    function getCreationDate()
+    public function getDateCreated()
     {
-        return $this->creationDate;
+        return $this->dateCreated;
     }
     
     /**
-     * Get the background image
+     * Get the date and time when this mod was updated
      * 
-     * @return string
+     * @return \DateTime
      */
-    function getBackground()
+    public function getDateUpdated()
     {
-        return $this->background;
+        return $this->dateUpdated;
+    }
+    
+    /**
+     * Completed downloads for the mod
+     * 
+     * @return integer
+     */
+    public  function getDowloads()
+    {
+        return $this->dowloads;
     }
 
     /**
-     * Set the background image
+     * Increment the completed downloads for the mod
      * 
-     * @param string $background the background image
      * @return void
      */
-    function setBackground($background)
+    public function incrDowloads()
     {
-        $this->background = $background;
+        $this->dowloads++;
+    }
+
+    /**
+     * PrePersist callback
+     * 
+     * @return void
+     * @ORM\PrePersist
+     */
+    public function prePersist()
+    {
+        // Set the dateCreated and  dateUpdated properties as needed
+        $date = new \DateTime();
+        
+        if (is_null($this->dateCreated)) {
+            $this->dateCreated = $date;
+        }
+        
+        $this->dateUpdated = $date;
     }
 }
 
