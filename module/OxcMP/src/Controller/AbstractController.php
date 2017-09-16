@@ -129,6 +129,8 @@ class AbstractController extends AbstractActionController {
     {
         Log::info('Setting OG values');
         
+        // TODO: Skip certain pages, like login
+        
         $viewHelperManager = $this->getEvent()->getApplication()->getServiceManager()->get('ViewHelperManager');
         
         $staticUrl = $viewHelperManager->get('staticUrl');

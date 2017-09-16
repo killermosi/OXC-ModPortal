@@ -103,8 +103,7 @@ class UserController extends AbstractController
             return;
         }
         
-        // Perform login if the credentials are in the flash messenger
-        
+        // Perform login if the credentials are in the URL
         Log::debug('Attempting to login');
 
         // Try to login the user
@@ -122,11 +121,8 @@ class UserController extends AbstractController
             // Set session cookie lifetime
             $this->sessionManager->rememberMe($this->config->userRemote->rememberMe);
 
-            // Retrieve the user details
-            $user = $this->userRetrievalService->findById($result->getIdentity());
-
             // Success message
-            $userRealName = $this->escapeHtml($user->getRealName());
+            $userRealName = $this->escapeHtml($result->getIdentity()->getRealName());
             $this->flashMessenger()->addSuccessMessage($this->translate('login_success_message', $userRealName));
 
         } else {

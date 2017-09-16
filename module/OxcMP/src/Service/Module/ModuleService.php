@@ -93,9 +93,7 @@ class ModuleService
         
         // Retrieve the authenticated user
         if ($authenticationService->hasIdentity()) {
-            $authenticatedUser = $serviceManager->get(UserRetrievalService::class)->findById(
-                $authenticationService->getIdentity()
-            );
+            $authenticatedUser = $authenticationService->getIdentity();
         } else {
             $authenticatedUser = null;
         }
@@ -153,7 +151,7 @@ class ModuleService
         
         // Retrieve the user from the database - as it may have been updated in another session
         $user = $serviceManager->get(UserRetrievalService::class)->findById(
-            $authenticationService->getIdentity()
+            $authenticationService->getIdentity()->getId()
         );
 
         // Sanity check

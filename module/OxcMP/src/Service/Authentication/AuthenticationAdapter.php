@@ -137,7 +137,7 @@ class AuthenticationAdapter implements AdapterInterface
                 'Member ID ',
                 $this->memberId,
                 ' was authenticated before, and has the local ID ',
-                $user->getId()
+                $user->getId()->toString()
             );
            return  $this->authenticateExistingUser($user);
         } else {
@@ -193,10 +193,8 @@ class AuthenticationAdapter implements AdapterInterface
             return new Result(Result::FAILURE_UNCATEGORIZED, null);
         }
         
-        // Return success result
-        // (create a new result object since the current one does not contain the UserID, as the UserId is
-        // only generated when the user was actually created in the local database, in the above try...catch section)
-        return new Result(Result::SUCCESS, $user->getId());
+        // Return the previously received success result
+        return $validationResult;
     }
     
     /**
@@ -303,7 +301,7 @@ class AuthenticationAdapter implements AdapterInterface
         }
         
         Log::debug('Authentication token is valid!');
-        return new Result(Result::SUCCESS, $user->getId());
+        return new Result(Result::SUCCESS, $user);
     }
 }
 

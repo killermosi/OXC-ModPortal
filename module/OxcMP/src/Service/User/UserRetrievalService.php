@@ -22,6 +22,7 @@
 namespace OxcMP\Service\User;
 
 use Doctrine\ORM\EntityManager;
+use Ramsey\Uuid\DegradedUuid as Uuid;
 use OxcMP\Entity\User;
 use OxcMP\Util\Log;
 
@@ -53,12 +54,12 @@ class UserRetrievalService
     /**
      * Retrieve a user by its internal ID
      * 
-     * @param integer $id The user internal ID
+     * @param string $id The user internal ID
      * @return User
      */
-    public function findById($id)
+    public function findById(Uuid $id)
     {
-        Log::info('Trying to retrieve the user having the ID: ', $id);
+        Log::info('Trying to retrieve the user having the ID: ', $id->toString());
         
         $user = $this->entityManager->getRepository(User::class)->find($id);
         
