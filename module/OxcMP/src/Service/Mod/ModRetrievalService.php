@@ -118,7 +118,7 @@ class ModRetrievalService
      */
     public function getModsByUser(User $user)
     {
-        Log::info('Retrieving all mods belonging to user ID ', $user->getId());
+        Log::info('Retrieving all mods belonging to user ID ', $user->getId()->toString());
         
         $mods = $this->entityManager->getRepository(Mod::class)->getModsByUserId($user->getId());
         

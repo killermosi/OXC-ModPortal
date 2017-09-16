@@ -163,7 +163,7 @@ class ModuleService
             return false;
         }
         
-        Log::debug('User ID ', $user->getId(), ' is authenticated');
+        Log::debug('User ID ', $user->getId()->toString(), ' is authenticated');
         
         $config = $serviceManager->get(Config::class);
         

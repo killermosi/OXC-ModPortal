@@ -36,11 +36,12 @@ class User
 {
     /**
      * Internal identifier
-     * @var integer
+     * @var  \Ramsey\Uuid\DegradedUuid
      * 
      * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(name="user_id", type="integer", nullable=false, unique=true)
+     * @ORM\Column(name="user_id", type="uuid", nullable=false, unique=true)
+     * @ORM\GeneratedValue(strategy="CUSTOM")
+     * @ORM\CustomIdGenerator(class="Ramsey\Uuid\Doctrine\UuidGenerator")
      */
     private $id;
     
@@ -129,7 +130,7 @@ class User
     /**
      * Get the internal identifier
      * 
-     * @return integer
+     * @return \Ramsey\Uuid\DegradedUuid
      */
     public function getId()
     {

@@ -13,6 +13,7 @@ A mod is composed of several elements, some being editable, and some not. They
 are detailed below.
 
 ### Editable properties
+
 * **Name**: This is the mod name, and the standard searches are done on this
   field only.
 * **Summary**: A brief description of the mod.
@@ -63,11 +64,11 @@ In the database, the mod is primarily stored in the `mod_data` table.
 ```mysql
 create table mod_data (
     mod_id varchar(36) not null comment 'The internal identifier',
-    user_id int(10) not null comment 'The user identifier',
+    user_id varchar(36) not null comment 'The user identifier',
     is_published tinyint(1) not null default 0 comment 'If the mod is published',
     base_game tinyint(1) not null default 0 comment 'Base game for the mod: 0 - UFO, 1 - TFTD',
     title varchar(128) not null comment 'Mod title',
-    summary varchar(256) not null commend 'Mod summary',
+    summary varchar(256) not null comment 'Mod summary',
     description text null default null comment 'Mod description',
     slug varchar(128) not null unique comment 'A web-friendly URL identifier',
     date_created datetime not null comment 'The date and time when the mod was created',
@@ -91,15 +92,17 @@ create table mod_file (
     date_added datetime not null comment 'The date and time when the file was added',
     downloads int(10) not null default 0 comment 'Completed downloads for the file',
     primary key (file_id),
-    index idx_mod_id_type (mod_id, type),
+    index idx_mod_id (mod_id),
     unique unique_mod_id_type_name(mod_id, type, name)
 ) engine=InnoDB default charset=utf8 comment 'Mod associated files';
 
 create table mod_vote (
     mod_id varchar(36) not null comment 'The mod identifier - UUID',
-    user_id int(10) not null comment 'The user identifier',
+    user_id varchar(36) not null comment 'The user identifier',
     vote tinyint(1) not null comment  'The vote type: 0 - negative, 1 - positive',
-    primary key (mod_id, user_id)
+    date datetime not null comment 'Date and time when the vote was cast',
+    primary key (mod_id, user_id),
+    index idx_mod_id(mod_id)
 ) engine=InnoDB default charset=utf8 comment 'Mod votes';
 
 create table mod_tag (
@@ -126,16 +129,76 @@ When the `tag` table is edited, the `mod_tag` will be updated too.
 ### Files
 
 The files associated with a mod are stored on disk using their UUID, to avoid
-collisions and other issues with the file names themselves.
+collisions and other issues with the file names themselves:
 
 `/path/to/storage/<mod_uuid>/<file_uuid>`
 
-When served back to the user, the original file name will be presented, with the
-exception of the background image which will use the generic name
- `background.png` at all times.
+#### Downloadable resources
 
-`portal.url/mod/<mod_slug>/file/<file_name.ext>`
-`portal.url/mod/<mod_slug>/file/<background.png>`
+The mod resources will be stored on disk using the default storage pattern.
+
+The following URL format will be used to request a mod's downloadable resource:
+
+`portal.url/mod-resource/<mod_slug>/<file_name>.<ext>`
+
+The proper `Content-Disposition` header must be set:
+
+`Content-Disposition: attachment; filename="<file_name>.<ext>"`
+
+**Notes**:
+
+* For a non-existent mod slug or non-existent filename, the response will be a
+  `not found` page with the `404` response code.
+* When successfully downloaded, the file download counter and the mod download
+  counter will be incremented both.
+
+
+#### Background images
+
+The background image will be recoded using the `png` format, regardless of the
+original format, and will be stored on disk using the default storage pattern.
+
+The following URL format will be used to request a mod's background image:
+
+`portal.url/mod-background/<mod_slug>/background.png`
+
+**Notes**:
+
+* For a non-existent mod slug, the response will be empty and will have a `404`
+  response code.
+* If a mod does not have a custom background defined, the default portal
+  background image will be returned instead.
+* The proper `png` header must be set, except for non-existent mods.
+
+
+#### Gallery images
+
+The gallery images will be recoded using the `png` format, regardless of the
+original format, and stored using the default storage pattern.
+
+However, since gallery images must be presented at different resolutions, the
+original image will be re-sampled (and cropped if needed) to the requested
+sizes. These additional images will be stored alongside the original image,
+using the pattern:
+
+`/path/to/storage/<mod_uuid>/<file_uuid>_<width>x<height>`
+
+The following URL format will be used to request a mod's gallery image:
+
+`portal.url/mod-gallery/<mod_slug>/<width>/<height>/<image_name>.png`
+
+**Notes**:
+
+* For a non-existent mod slug, unsupported width/height, or unknown image name,
+  the response will be empty and will have a `404` response code.
+* The additional images will created when first requested, and then served from
+  storage when requested again.
+* The list of accepted image sizes will be stored in the configuration file.
+
+
+The file will be resized and cropped as needed. The available resolutions will
+be stored in the configuration file.
+
 
 ## Mod management
 
@@ -168,6 +231,9 @@ the mod files are to be applied only when the user submits the edit form.
     * Files uploaded will be moved from the temporary storage location to the
       normal storage location and added to the database
     * Changed files will have their properties updated
+
+This way, if the user changes its mind halfway in the edit process, all
+"changes" will be canceled.
 
 ### Files upload
 

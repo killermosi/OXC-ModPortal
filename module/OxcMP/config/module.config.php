@@ -11,6 +11,7 @@ use Zend\Config\Config;
 use Zend\Authentication\AuthenticationService;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as PDOMySqlDriver;
+use Ramsey\Uuid\Doctrine\UuidType;
 use OxcMP\Controller\AbstractController;
 use OxcMP\Factory\ModuleFactory;
 
@@ -133,6 +134,13 @@ return [
                     'user'     => null,
                     'password' => null,
                     'dbname'   => null,
+                ]
+            ]
+        ],
+        'configuration' => [
+            'orm_default' => [
+                'types' => [
+                    UuidType::NAME => UuidType::class
                 ]
             ]
         ],

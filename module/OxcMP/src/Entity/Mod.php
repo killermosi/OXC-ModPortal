@@ -22,6 +22,7 @@
 namespace OxcMP\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Ramsey\Uuid\DegradedUuid as Uuid;
 
 /**
  * Mod entity
@@ -42,18 +43,20 @@ class Mod
     
     /**
      * Internal identifier
-     * @var integer
+     * @var Uuid
      * 
      * @ORM\Id
-     * @ORM\Column(name="mod_id", type="integer", nullable=false, unique=true)
+     * @ORM\Column(name="mod_id", type="uuid", nullable=false, unique=true)
+     * @ORM\GeneratedValue(strategy="CUSTOM")
+     * @ORM\CustomIdGenerator(class="Ramsey\Uuid\Doctrine\UuidGenerator")
      */
     private $id;
     
     /**
      * The owner identifier
-     * @var integer
+     * @var Uuid
      * 
-     * @ORM\Column(name="user_id", type="integer", nullable=false)
+     * @ORM\Column(name="user_id", type="uuid", nullable=false)
      */
     private $userId;
     
@@ -132,7 +135,7 @@ class Mod
     /**
      * Get the internal identifier
      * 
-     * @return integer
+     * @return Uuid
      */
     public function getId()
     {
@@ -142,7 +145,7 @@ class Mod
     /**
      * Get the user ID
      * 
-     * @return integer
+     * @return Uuid
      */
     public function getUserId()
     {
@@ -155,7 +158,7 @@ class Mod
      * @param integer $userId The user ID
      * @return void
      */
-    public function setUserId($userId)
+    public function setUserId(Uuid $userId)
     {
         $this->userId = $userId;
     }
@@ -321,26 +324,28 @@ class Mod
      * 
      * @return void
      */
-    public function incrDowloads()
+    public function incrDownloads()
     {
         $this->dowloads++;
     }
 
     /**
-     * PrePersist callback
+     * PreUpdate callback
      * 
      * @return void
-     * @ORM\PrePersist
+     * @ORM\PreUpdate
      */
-    public function prePersist()
+    public function PreUpdate()
     {
-        // Set the dateCreated and  dateUpdated properties as needed
+        // Set the date and time for dateCreated and dateUpdated as needed
         $date = new \DateTime();
         
+        // Set the dateCreated if not aready set
         if (is_null($this->dateCreated)) {
             $this->dateCreated = $date;
         }
         
+        // Update the dateUpdated before every update
         $this->dateUpdated = $date;
     }
 }

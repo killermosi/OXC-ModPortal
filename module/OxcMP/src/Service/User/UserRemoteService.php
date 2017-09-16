@@ -71,7 +71,7 @@ class UserRemoteService
      */
     public function getDisplayData(User $user)
     {
-        Log::info('Retrieving member display data for User ID: ', $user->getId());
+        Log::info('Retrieving member display data for User ID: ', $user->getId()->toString());
         
         try {
             $memberData = $this->jsonRpcClient->call('Member.GetDisplayData', ['MemberId' => $user->getMemberId()]);
@@ -100,7 +100,7 @@ class UserRemoteService
      */
     public function checkAuthenticationToken(User $user)
     {
-        Log::info('Checking authentication token validity for User ID ', $user->getId());
+        Log::info('Checking authentication token validity for User ID ', $user->getId()->toString());
         
         try {
             $params = [

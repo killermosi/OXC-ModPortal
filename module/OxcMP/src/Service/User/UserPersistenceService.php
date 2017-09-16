@@ -78,7 +78,7 @@ class UserPersistenceService
             throw new Exception\UserCannotCreateUserException();
         }
         
-        Log::debug('User successfully created with ID: ', $user->getId());
+        Log::debug('User successfully created with ID: ', $user->getId()->toString());
     }
     
     /**
@@ -89,7 +89,7 @@ class UserPersistenceService
      */
     public function update(User $user)
     {
-        Log::info('Updating user having the ID: ', $user->getId());
+        Log::info('Updating user having the ID: ', $user->getId()->toString());
         
         try {
             $this->entityManager->beginTransaction();
@@ -107,7 +107,7 @@ class UserPersistenceService
             return;
         }
         
-        Log::debug('Successfully updated the user having the ID: ', $user->getId());
+        Log::debug('Successfully updated the user having the ID: ', $user->getId()->toString());
     }
     
     /**

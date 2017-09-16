@@ -206,7 +206,7 @@ class AuthenticationAdapter implements AdapterInterface
      */
     private function authenticateExistingUser(User $user)
     {
-        Log::info('Attempting to re-authenticate the User ID ', $user->getId());
+        Log::info('Attempting to re-authenticate the User ID ', $user->getId()->toString());
         
         // Check if it's orphan
         if ($user->getIsOrphan()) {
