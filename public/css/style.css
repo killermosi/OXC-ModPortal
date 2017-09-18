@@ -27,10 +27,12 @@ body, html{
 body {
     display: flex;
     flex-direction: column;
+    background-color: #cccccc;
 }
 
 div#content{
     flex-grow: 1;
+    background: #ffffff;
 }
 
 /* Alerts are shown here */

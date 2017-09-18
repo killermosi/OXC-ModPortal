@@ -52,7 +52,7 @@
     echo PHP_EOL;
 ?>
     </head>
-    <body style="background: url('<?php echo $this->staticUrl($this->config->layout->defaultBackground) ?>') top center no-repeat" class="container">
+    <body style="background-image: url('<?php echo $this->staticUrl($this->config->layout->defaultBackground) ?>'); background-position: top center; background-repeat: no-repeat"  class="container">
 <?php
     // Main menu
     echo $this->placeholder('mainmenu')
