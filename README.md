@@ -15,12 +15,11 @@ This portal is a repository for OpenXcom modifications.
 ### QOL
 
 * Common users roster with the OpenXcom forum.
-* File versions history for modifications.
 * Comments and rating system.
 * Responsive theme for mobile users.
 * Large file uploads.
 * Deep search in archives content.
-* Markdown and BBCode for comments and descriptions.
+* Markdown for comments and descriptions.
 * Moderate comments for own mods.
 * Advanced features for administrators.
 

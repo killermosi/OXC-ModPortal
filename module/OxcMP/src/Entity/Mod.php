@@ -93,12 +93,20 @@ class Mod
     private $summary;
     
     /**
-     * Mod description
+     * Mod description, compiled to HTML
      * @var string
      * 
      * @ORM\Column(name="description", type="text", nullable=true)
      */
     private $description;
+    
+    /**
+     * Mod description, as entered by the owner
+     * @var string
+     * 
+     * @ORM\Column(name="description_raw", type="text", nullable=true)
+     */
+    private $descriptionRaw;
     
     /**
      * Mod slug
@@ -248,7 +256,7 @@ class Mod
     }
     
     /**
-     * Get the mod description
+     * Get the mod description, compiled to HTML
      * 
      * @return string
      */
@@ -258,7 +266,7 @@ class Mod
     }
 
     /**
-     * Set the mod description
+     * Set the mod description, compiled to HTML
      * 
      * @param string $description The description
      * @return void
@@ -268,6 +276,27 @@ class Mod
         $this->description = $description;
     }
 
+    /**
+     * Get the raw description text
+     * 
+     * @return string
+     */
+    public function getDescriptionRaw()
+    {
+        return $this->descriptionRaw;
+    }
+
+    /**
+     * Set the raw description text
+     * 
+     * @param string $descriptionRaw The raw description
+     * @return void
+     */
+    public function setDescriptionRaw($descriptionRaw)
+    {
+        $this->descriptionRaw = $descriptionRaw;
+    }
+        
     /**
      * Get the mod slug
      * 
