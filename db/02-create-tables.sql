@@ -36,7 +36,7 @@ create table mod_data (
     user_id varchar(36) not null comment 'The user identifier',
     is_published tinyint(1) not null default 0 comment 'If the mod is published',
     base_game tinyint(1) not null default 0 comment 'Base game for the mod: 0 - UFO, 1 - TFTD',
-    title varchar(128) not null comment 'Mod title',
+    title varchar(64) not null comment 'Mod title',
     summary varchar(256) not null comment 'Mod summary',
     description text null default null comment 'Mod description, compiled to HTML',
     description_raw null default null comment 'Mod description, as entered by the owner',

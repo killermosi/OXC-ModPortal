@@ -76,3 +76,18 @@ body.modal-open[style] {
 .white-space-normal {
     white-space: normal;
 }
+
+/* Header text needs have a grey background, to improve readability on dark images */
+div#header{
+    text-shadow: 1px 1px 2px #cccccc, 0 0 1em #cccccc, 0 0 0.2em #cccccc;
+}
+
+/* Adjust the header a bit on small screens */
+@media (max-width: 575px) {
+    div#header h1 {
+        font-size: 1.75rem;
+    }
+    div#header p {
+        display: none;
+    }
+}

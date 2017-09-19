@@ -76,8 +76,16 @@
     }
 ?>
         </div>
-        <div id="header" class="pt-2 pb-2">
-            <p><?php echo $this->serverUrl()?></p>
+        <div id="header" class="p-2">
+<?php
+        echo $this->placeholder('seeThrough')
+            ->setIndent(12)
+            ->set(
+                $this->partial('layout/partial/header.phtml')
+            );
+        
+        echo PHP_EOL;
+?>            
         </div>
         <div id="content">
 <?php echo $this->placeholder('content')->set($this->content)->setIndent(8) . PHP_EOL ?>
