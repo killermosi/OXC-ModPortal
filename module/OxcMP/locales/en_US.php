@@ -6,6 +6,7 @@ return [
     '' => ['plural_forms' => 'nplurals=2; plural=(n==1 ? 0 : 1)'],
     // Global
     'global_application_name' => 'OpenXcom Mod Portal',
+    'global_application_description' => 'Portal description in a few words, with some feature hightlights, or portal slogan?',
     'global_close' => 'Close',
     // Main menu
     'main_menu_nav_toggle' => 'Toggle navigation',
@@ -35,6 +36,9 @@ return [
     'module_bootstrap_usercheck_member_banned' => 'You have been logged out - Your user was banned from the OpenXcom forum.',
     'module_bootstrap_usercheck_invalid_auth_token' => 'You have been logged out - Please re-authenticate.',
     'module_bootstrap_usercheck_invalid_api_key' => 'You have been logged out due to an internal error.',
+    // My Mods page
+    'page_mymods_title' => 'My Mods',
+    'page_mymods_description' => 'Manage your mods.'
 ];
 
 /* EOF */

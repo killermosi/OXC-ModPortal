@@ -23,7 +23,6 @@ namespace OxcMP\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Mvc\Plugin\FlashMessenger\FlashMessenger;
-use Zend\Mvc\MvcEvent;
 use Zend\View\Model\ViewModel;
 use OxcMP\Entity\User;
 use OxcMP\Entity\Mod;
@@ -35,7 +34,6 @@ use OxcMP\Util\Log;
  * @author Silviu Ghita <killermosi@yahoo.com>
  * @method string translate(string $string The string to translate, mixed $values Additional values to format the translated string with) Translate a string
  * @method FlashMessenger flashMessenger() The flash messenger
- * @method void addPageTitle(string $title The title to add) Add a title to the page
  * @method string escapeHtml(string $string The string to escape) Escape the HTML characters from the string
  */
 class AbstractController extends AbstractActionController {
@@ -57,22 +55,6 @@ class AbstractController extends AbstractActionController {
     public function __construct()
     {
         $this->view = new ViewModel();
-    }
-    
-    /**
-     * Execute the request
-     *
-     * @param  MvcEvent $e
-     * @return mixed
-     * @throws Exception\DomainException
-     */
-    public function onDispatch(MvcEvent $e)
-    {
-        $response = parent::onDispatch($e);
-        
-        $this->setLayoutOpenGraph();
-        
-        return $response;
     }
     
     /**
@@ -122,54 +104,66 @@ class AbstractController extends AbstractActionController {
      * OG values for the portal, should be called as needed in various controller
      * actions
      * 
-     * @param Mod|User|null $entity The entity to set the OG for
+     * @param Mod|User|null $entity      The entity to set the data for
+     * @param string        $title       Custom title for portal pages
+     * @param string        $description Custom description for portal pages
      * @return void
      */
-    private function setLayoutOpenGraph($entity = null)
+    protected function setLayoutData($entity = null, $title = null, $description = null)
     {
-        Log::info('Setting OG values');
-        
-        // TODO: Skip certain pages, like login
+        Log::info('Setting layout data values');
         
         $viewHelperManager = $this->getEvent()->getApplication()->getServiceManager()->get('ViewHelperManager');
         
         $staticUrl = $viewHelperManager->get('staticUrl');
         
-        // OG data
-        $ogUrl = $ogTitle = $ogDescription = $ogImage = null;
+        // Data
+        $dUrl = $dTitle = $dDescription = $dImage = null;
         
         if ($entity instanceof User) {
-            Log::debug('Setting OG values for user');
+            Log::debug('Setting data values for user');
             
-            $ogUrl = $entity->getMemberId(); // TODO: build the complete URL once the user page is created
-            $ogTitle = $entity->getRealName();
-            $ogDescription = $entity->getPersonalText();
-            $ogImage = $entity->getAvatarUrl();
+            $dUrl = $entity->getMemberId(); // TODO: build the complete URL once the user page is created
+            $dTitle = $entity->getRealName();
+            $dDescription = $entity->getPersonalText();
+            $dImage = $entity->getAvatarUrl();
         } elseif ($entity instanceof Mod) {
-            Log::debug('Setting OG values for mod');
+            Log::debug('Setting data values for mod');
             
-            $ogUrl = $entity->getSlug(); // TODO: build the complete URL once the mod page is created
-            $ogTitle = $entity->getTitle();
-            $ogDescription = $entity->getSummary();
-            $ogImage = null; // TODO: build the url to the mod image
+            $dUrl = $entity->getSlug(); // TODO: build the complete URL once the mod page is created
+            $dTitle = $entity->getTitle();
+            $dDescription = $entity->getSummary();
+            $dImage = null; // TODO: build the url to the mod image
         } else {
-            Log::debug('Setting OG values for portal');
+            Log::debug('Setting data values for portal');
             
-            $ogUrl = $this->getRequest()->getUriString();
-            $ogTitle = $this->translate('global_application_name');
-            $ogDescription = $ogTitle;
-            $ogImage = $staticUrl('android-chrome-512x512.png'); // TODO: use a separate resource for OG?
+            $dUrl = $this->getRequest()->getUriString();
+            $dTitle = isset($title) ? $title : $this->translate('global_application_name');
+            $dDescription = isset($description) ? $description : $dTitle;
+            $dImage = $staticUrl('android-chrome-512x512.png'); // TODO: use a separate resource for OG?
         }
         
         $openGraph = [
-            'url' => $ogUrl,
-            'title' => $ogTitle,
-            'description' => $ogDescription,
-            'image' => $ogImage
+            'url' => $dUrl,
+            'title' => $dTitle,
+            'description' => $dDescription,
+            'image' => $dImage
         ];
         
         Log::debug('OG set to: ', $openGraph);
-        
         $this->getEvent()->getViewModel()->openGraph = $openGraph;
+        
+        $headerData = [
+            'title' => $dTitle,
+            'description' => $dDescription
+        ];
+        
+        Log::debug('Header data set to: ', $headerData);
+        $this->getEvent()->getViewModel()->headerData = $headerData;
+        
+        Log::debug('Page title set to: ', $title);
+        $this->getEvent()->getViewModel()->pageTitle = $title;
+        
+        Log::debug('Done setting layout data values');
     }
 }

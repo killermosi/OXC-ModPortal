@@ -59,6 +59,8 @@ class ModController extends AbstractController
     {
         Log::info('Processing mod/my-mods action');
         
+        $this->setLayoutData(null, $this->translate('page_mymods_title'), $this->translate('page_mymods_description'));
+        
         return $this->view;
     }
 }

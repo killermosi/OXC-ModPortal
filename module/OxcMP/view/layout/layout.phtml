@@ -3,11 +3,17 @@
     <head>
 <?php
     // Title
-    echo $this->headTitle($this->translate('global_application_name'))
+    $this->headTitle($this->translate('global_application_name'))
         ->setIndent(8)
         ->setSeparator(' :: ')
         ->setAutoEscape(false);
-
+    
+    if (!empty($this->pageTitle)) {
+        $this->headTitle()->prepend($this->pageTitle);
+    }
+    
+    echo $this->headTitle();
+    
     echo PHP_EOL;
     
     // Favicon
@@ -29,13 +35,15 @@
     echo PHP_EOL;
     
     // OpenGraph
-    echo $this->placeholder('opengraph')
-        ->setIndent(8)
-        ->set(
-            $this->partial('layout/partial/open-graph.phtml', ['openGraph' => $this->openGraph])
-        );
-    
-    echo PHP_EOL;
+    if (isset($this->openGraph)) {
+        echo $this->placeholder('opengraph')
+            ->setIndent(8)
+            ->set(
+                $this->partial('layout/partial/open-graph.phtml', ['openGraph' => $this->openGraph])
+            );
+
+        echo PHP_EOL;
+    }
     
     // Add CSS
     $bootstrapMinCss = $this->config->layout->css->bootstrapMin;
@@ -78,10 +86,16 @@
         </div>
         <div id="header" class="p-2">
 <?php
-        echo $this->placeholder('seeThrough')
+        if (!isset($this->headerData)) {
+            $this->headerData = [
+                'title' => $this->translate('global_application_name'),
+                'description' => $this->translate('global_application_description')
+            ];
+        }
+        echo $this->placeholder('header')
             ->setIndent(12)
             ->set(
-                $this->partial('layout/partial/header.phtml')
+                $this->partial('layout/partial/header.phtml', ['headerData' => $this->headerData])
             );
         
         echo PHP_EOL;

@@ -33,7 +33,6 @@ return [
         ],
         'aliases' => [
             'translate' => Controller\Plugin\Translate::class,
-            'addPageTitle' => Controller\Plugin\Translate::class,
             'escapeHtml' => Controller\Plugin\EscapeHtml::class,
         ]
     ],
