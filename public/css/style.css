@@ -85,9 +85,12 @@ div#header{
 /* Adjust the header a bit on small screens */
 @media (max-width: 575px) {
     div#header h1 {
-        font-size: 1.75rem;
+        font-size: 1.50rem;
+        padding-top: 0rem !important
     }
     div#header p {
-        display: none;
+        /*display: none;*/
+        font-size: .90rem;
+        line-height: 1.15;
     }
 }
