@@ -18,7 +18,7 @@
  */
 
 create table user (
-    user_id varchar(36) not null comment 'Internal identifier',
+    user_id char(36) not null comment 'Internal identifier',
     is_orphan tinyint(1) not null default 0 comment 'If the user is orphan - it does not exist on the forum anymore',
     member_id int(10) not null unique comment 'Forum member identifier',
     authentication_token varchar(64) default null comment 'Forum authentication token',
@@ -32,8 +32,8 @@ create table user (
 ) engine=InnoDB default charset=utf8 comment 'Users in the system';
 
 create table mod_data (
-    mod_id varchar(36) not null comment 'The internal identifier',
-    user_id varchar(36) not null comment 'The user identifier',
+    mod_id char(36) not null comment 'The internal identifier',
+    user_id char(36) not null comment 'The user identifier',
     is_published tinyint(1) not null default 0 comment 'If the mod is published',
     base_game tinyint(1) not null default 0 comment 'Base game for the mod: 0 - UFO, 1 - TFTD',
     title varchar(64) not null comment 'Mod title',
@@ -50,8 +50,8 @@ create table mod_data (
 ) engine=InnoDB default charset=utf8 comment 'Mods list';
 
 create table mod_file (
-    file_id varchar(36) not null comment 'The internal identifier',
-    mod_id varchar(36) not null comment 'The mod identifier',
+    file_id char(36) not null comment 'The internal identifier',
+    mod_id char(36) not null comment 'The mod identifier',
     type tinyint(1) not null comment 'The file purpose: 0 - downloadable resource, 1 - gallery image, 2 - background image',
     image_order tinyint(2) default 0 comment 'File order, for gallery images',
     name varchar(256) not null comment 'The original file name, must be unique per mod_id and type',
@@ -63,8 +63,8 @@ create table mod_file (
 ) engine=InnoDB default charset=utf8 comment 'Mod associated files';
 
 create table mod_vote (
-    mod_id varchar(36) not null comment 'The mod identifier - UUID',
-    user_id varchar(36) not null comment 'The user identifier',
+    mod_id char(36) not null comment 'The mod identifier - UUID',
+    user_id char(36) not null comment 'The user identifier',
     vote tinyint(1) not null comment  'The vote type: 0 - negative, 1 - positive',
     date datetime not null comment 'Date and time when the vote was cast',
     primary key (mod_id, user_id),
@@ -72,7 +72,7 @@ create table mod_vote (
 ) engine=InnoDB default charset=utf8 comment 'Mod votes';
 
 create table mod_tag (
-    mod_id varchar(36) not null comment 'The mod identifier - UUID',
+    mod_id char(36) not null comment 'The mod identifier - UUID',
     tag varchar(32) not null comment 'The tag',
     primary key (mod_id, tag)
 ) engine=InnoDB default charset=utf8 comment 'Mod associated tags';
