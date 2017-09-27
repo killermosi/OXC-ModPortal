@@ -39,7 +39,7 @@ create table mod_data (
     title varchar(64) not null comment 'Mod title',
     summary varchar(256) not null comment 'Mod summary',
     description text null default null comment 'Mod description, compiled to HTML',
-    description_raw null default null comment 'Mod description, as entered by the owner',
+    description_raw text null default null comment 'Mod description, as entered by the owner',
     slug varchar(128) not null unique comment 'A web-friendly URL identifier',
     date_created datetime not null comment 'The date and time when the mod was created',
     date_updated datetime not null comment 'The date and time when the mod was updated',
