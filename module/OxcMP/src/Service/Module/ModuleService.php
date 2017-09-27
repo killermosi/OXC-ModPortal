@@ -118,11 +118,14 @@ class ModuleService
                 ? 'acl_not_logged_in'
                 : 'acl_not_allowed';
             
-            $errorMessage = $event->getTarget()->translate($errorKey);
-            $event->getTarget()->flashMessenger()->addErrorMessage($errorMessage);
+            $translate = $serviceManager->get('ViewHelperManager')->get('Translate');
+            
+            $errorMessage = $translate($errorKey);
+            $serviceManager->get('ControllerPluginManager')->get('FlashMessenger')
+                                                           ->addErrorMessage($errorMessage);
             
             Log::debug('EVENT_DISPATCH result: redirect to "home"');
-            return $event->getTarget()->redirect()->toRoute('home');
+            return $this->redirectTo($event, 'home');
         }
         
         Log::debug('EVENT_DISPATCH actions handled');
@@ -212,8 +215,9 @@ class ModuleService
         // This is reached only if an error occured
         $authenticationService->clearIdentity();
         
-        $controller = $event->getTarget();
-        $controller->flashMessenger()->addErrorMessage($controller->translate($messageKey));
+        $translate = $serviceManager->get('ViewHelperManager')->get('Translate');
+        $serviceManager->get('ControllerPluginManager')->get('FlashMessenger')
+                                                       ->addErrorMessage($translate($messageKey));
         
         return false;
     }
@@ -292,8 +296,9 @@ class ModuleService
             ->get('ControllerPluginManager')
             ->get('FlashMessenger');
         
-        // There seems to be a bug with the hasMessages() and hasCurrentMessages() methods,
-        // as they always return false, so we check using the specific methods for messages types
+        // There seems to be a bug with the hasMessages() and hasCurrentMessages() methods
+        // (or I missed something during testing), as they always return false,
+        // so we check using the specific methods for messages types
         if (
             $flashMessenger->hasCurrentSuccessMessages()
             || $flashMessenger->hasCurrentErrorMessages()
@@ -315,6 +320,24 @@ class ModuleService
             'the session must be destroyed'
         );
         return true;
+    }
+    
+    /**
+     * Build a redirect response  to the specified route
+     * 
+     * @param \OxcMP\Service\Module\MvsEvent $event
+     * @param type $routeName
+     */
+    private function redirectTo(MvcEvent $event, $routeName)
+    {
+        $url = $event->getRouter()->assemble([], ['name' => $routeName]);
+        
+        $response = $event->getResponse();
+        $response->getHeaders()->addHeaderLine('Location', $url);
+        $response->setStatusCode(307);
+        $response->sendHeaders();
+        
+        return $response;
     }
     
     /**

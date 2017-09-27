@@ -109,8 +109,8 @@ class Module
             ->getEventManager()
             ->getSharedManager()
             ->attach(
-                AbstractActionController::class,
-                MvcEvent::EVENT_DISPATCH,
+                Application::class,
+                MvcEvent::EVENT_ROUTE,
                 [$moduleService, 'onDispatch']
             );
         
