@@ -51,7 +51,7 @@ div#header{
     Keep the body vertical scrollbar visible at all times (including when a
     modal is opened), and prevent the body from shifting with the modal open
 
-    TODO: Check with multiple browsers and operating systems
+    TODO: Validate with multiple browsers and operating systems
 */
 
 body {
@@ -77,13 +77,13 @@ body.modal-open[style] {
     white-space: normal;
 }
 
-/* Header text needs have a grey background, to improve readability on dark images */
+/* Header text needs to have a grey background, to improve readability on dark images */
 div#header{
     text-shadow: 1px 1px 2px #cccccc, 0 0 1em #cccccc, 0 0 0.2em #cccccc;
 }
 
-/* Adjust the header a bit on small screens */
-@media (max-width: 575px) {
+/*Extra small devices (portrait phones, less than 576px)*/
+@media (max-width: 575px) { 
     div#header h1 {
         font-size: 1.50rem;
         padding-top: 0rem !important
@@ -93,4 +93,14 @@ div#header{
         font-size: .90rem;
         line-height: 1.15;
     }
+}
+
+/*Small devices (landscape phones, less than 768px)*/
+@media (max-width: 767px) { 
+
+}
+
+/*Medium devices (tablets, less than 992px)*/
+@media (max-width: 991px) { 
+
 }

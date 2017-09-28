@@ -22,7 +22,9 @@
 namespace OxcMP\Controller;
 
 use Zend\View\Model\ViewModel;
+use OxcMP\Entity\Mod;
 use OxcMP\Service\Mod\ModRetrievalService;
+use Zend\Authentication\AuthenticationService;
 use OxcMP\Util\Log;
 
 /**
@@ -33,6 +35,12 @@ use OxcMP\Util\Log;
 class ModController extends AbstractController
 {
     /**
+     * The authentication service
+     * @var AuthenticationService
+     */
+    private $authenticationService;
+    
+    /**
      * The mod retrieval service
      * @var ModRetrievalService 
      */
@@ -41,13 +49,15 @@ class ModController extends AbstractController
     /**
      * Class initialization
      * 
-     * @param ModRetrievalService $modRetrievalService The mod retrieval service
+     * @param AuthenticationService $authenticationService The authentication service
+     * @param ModRetrievalService   $modRetrievalService   The mod retrieval service
      */
-    function __construct(ModRetrievalService $modRetrievalService)
+    function __construct(AuthenticationService $authenticationService, ModRetrievalService $modRetrievalService)
     {
         parent::__construct();
         
-        $this->modRetrievalService = $modRetrievalService;
+        $this->authenticationService = $authenticationService;
+        $this->modRetrievalService   = $modRetrievalService;
     }
 
     /**
@@ -59,9 +69,56 @@ class ModController extends AbstractController
     {
         Log::info('Processing mod/my-mods action');
         
-        $this->setLayoutData(null, $this->translate('page_mymods_title'), $this->translate('page_mymods_description'));
+        $mods = $this->modRetrievalService->getModsByUser($this->authenticationService->getIdentity());
+        
+        $this->setLayoutData(null, $this->translate('page_mymods_title'), $this->buildMyModsDescriptionText($mods));
+        
+        $this->view->setVariable('mods', $mods);
         
         return $this->view;
+    }
+    
+    /**
+     * Build the description text for the MyMods page
+     * 
+     * @param array $mods The mods
+     * #return string
+     */
+    private function buildMyModsDescriptionText(array $mods)
+    {
+        Log::info('Building MyMods page description text');
+        
+        // Count published and unpublished mods
+        $published = $unpublished = 0;
+        
+        /* @var $mod Mod */
+        foreach ($mods as $mod) {
+            if ($mod->getIsPublished()) {
+                $published++;
+            } else {
+                $unpublished++;
+            }
+        }
+        
+        Log::debug('There are ', $published, ' published mod(s) and ', $unpublished, ' mod(s) by this user');
+        
+        $translationKey = '';
+        
+        if ($published == 0 && $unpublished == 0) {
+            $translationKey = 'page_mymods_description_no_mods';
+        } elseif ($published != 0 && $unpublished == 0) {
+            $translationKey = 'page_mymods_description_ony_published_mods';
+        } elseif ($published == 0 && $unpublished !=0 ) {
+            $translationKey = 'page_mymods_description_ony_unpublished_mods';
+        } else {
+            $translationKey = 'page_mymods_description_published_and_unpublished_mods';
+        }
+        
+        $translation = $this->translate($translationKey);
+        
+        Log::debug('MyMods page description text is: ', $translation);
+        
+        return $translation;
     }
 }
 

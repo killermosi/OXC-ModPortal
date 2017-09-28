@@ -37,8 +37,12 @@ return [
     'module_bootstrap_usercheck_invalid_auth_token' => 'You have been logged out - Please re-authenticate.',
     'module_bootstrap_usercheck_invalid_api_key' => 'You have been logged out due to an internal error.',
     // My Mods page
-    'page_mymods_title' => 'My Mods',
-    'page_mymods_description' => 'Manage your mods.'
+    'page_mymods_title' => 'Manage your mods',
+    'page_mymods_description_no_mods' => 'You have not added any mods',
+    'page_mymods_description_ony_published_mods' => 'You have added %s mod(s)',
+    'page_mymods_description_ony_unpublished_mods' => 'You have added %s mod(s), all of which are unpublished',
+    'page_mymods_description_published_and_unpublished_mods' => 'You have added %s mod(s), out of which %s mod(s) are unpublished',
+    
 ];
 
 /* EOF */

@@ -42,7 +42,7 @@ class ModRepository extends EntityRepository
         $queryBuilder = $this->getEntityManager()->createQueryBuilder();
         
         $queryBuilder->select('m')
-            ->from(Mod::class)
+            ->from(Mod::class, 'm')
             ->where('m.isPublished = 1')
             ->orderBy('m.creationDate', 'desc')
             ->setMaxResults($limit);
@@ -61,10 +61,10 @@ class ModRepository extends EntityRepository
         $queryBuilder = $this->getEntityManager()->createQueryBuilder();
         
         $queryBuilder->select('m')
-            ->from(Mod::class)
+            ->from(Mod::class, 'm')
             ->where('m.isPublished = 1')
             ->andWhere('m.userId = :userId')
-            ->orderBy('m.creationDate', 'desc')
+            ->orderBy('m.dateCreated', 'desc')
             ->setParameter('userId', $userId);
         
         return $queryBuilder->getQuery()->getResult();
