@@ -113,14 +113,15 @@ class ModRetrievalService
     /**
      * Retrieve all mods belonging to a certain user
      * 
-     * @param User $user The user entity
+     * @param User    $user              The user entity
+     * @param boolean $publishedModsOnly If to retrieve only published mods
      * @return array
      */
-    public function getModsByUser(User $user)
+    public function getModsByUser(User $user, $publishedModsOnly = true)
     {
         Log::info('Retrieving all mods belonging to user ID ', $user->getId()->toString());
         
-        $mods = $this->entityManager->getRepository(Mod::class)->getModsByUserId($user->getId());
+        $mods = $this->entityManager->getRepository(Mod::class)->getModsByUserId($user->getId(), $publishedModsOnly);
         
         Log::debug('Retrieved ', count($mods), ' mod(s)');
         

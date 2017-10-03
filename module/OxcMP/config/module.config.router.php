@@ -79,6 +79,17 @@ return [
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],
         ],
+        'add-mod' => [
+            'type'    => Segment::class,
+            'options' => [
+                'route'    => '/add-mod',
+                'defaults' => [
+                    'controller' => Controller\ModController::class,
+                    'action'     => 'add-mod',
+                ],
+                'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
+            ],
+        ],
         'about' => [
             'type' => Literal::class,
             'options' => [

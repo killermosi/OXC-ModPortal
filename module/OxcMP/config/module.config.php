@@ -46,6 +46,7 @@ return [
             Service\Authentication\AuthenticationAdapter::class => ModuleFactory::class,
             // Mod
             Service\Mod\ModRetrievalService::class => ModuleFactory::class,
+            Service\Mod\ModPersistenceService::class => ModuleFactory::class,
             // Module
             Service\Module\ModuleService::class => ModuleFactory::class,
             // User
@@ -75,6 +76,9 @@ return [
         'template_path_stack' => [
             __DIR__ . '/../view',
         ],
+        'strategies' => [
+            'ViewJsonStrategy'
+        ]
     ],
     'view_helpers' => [
         'factories' => [
@@ -103,17 +107,17 @@ return [
             ],
         ],
         'js' => [
-            'jquerySlimMin' => [
-                'src' => 'https://code.jquery.com/jquery-3.2.1.slim.min.js',
-                'integrity' => 'sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN'
+            'bootstrapMin' => [
+                'src' => 'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js',
+                'integrity' => 'sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1'
             ],
             'popperMin' => [
                 'src' => 'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js',
                 'integrity' => 'sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4'
             ],
-            'bootstrapMin' => [
-                'src' => 'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js',
-                'integrity' => 'sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1'
+            'jqueryMin' => [
+                'src' => 'https://code.jquery.com/jquery-3.2.1.min.js',
+                'integrity' => 'sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f'
             ],
         ],
         'defaultBackground' => 'img/bg-default.png',

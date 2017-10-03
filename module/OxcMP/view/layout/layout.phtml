@@ -128,7 +128,7 @@
     $footerJs = $this->headScript()->setIndent(8);
     
     foreach ($this->config->layout->js as $js) {
-        $footerJs->appendFile($js->src, 'text/javascript', ['integrity' => $js->integrity, 'crossorigin' => 'anonymous']);
+        $footerJs->prependFile($js->src, 'text/javascript', ['integrity' => $js->integrity, 'crossorigin' => 'anonymous']);
     }
     
     echo $footerJs;

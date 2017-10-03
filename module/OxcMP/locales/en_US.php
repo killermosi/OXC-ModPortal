@@ -6,7 +6,7 @@ return [
     '' => ['plural_forms' => 'nplurals=2; plural=(n==1 ? 0 : 1)'],
     // Global
     'global_application_name' => 'OpenXcom Mod Portal',
-    'global_application_description' => 'Portal description in a few words, with some feature hightlights, or portal slogan?',
+    'global_application_description' => 'Portal description in a few words, with some feature highlights, or portal slogan?',
     'global_close' => 'Close',
     // Main menu
     'main_menu_nav_toggle' => 'Toggle navigation',
@@ -42,6 +42,18 @@ return [
     'page_mymods_description_ony_published_mods' => 'You have added %s mod(s)',
     'page_mymods_description_ony_unpublished_mods' => 'You have added %s mod(s), all of which are unpublished',
     'page_mymods_description_published_and_unpublished_mods' => 'You have added %s mod(s), out of which %s mod(s) are unpublished',
+    'page_mymods_card_new_mod_title' => 'Create new mod',
+    'page_mymods_card_new_mod_description' => 'Showcase your creativity',
+    'page_mymods_card_new_btn_create' => 'Create',
+    'page_mymods_create_modal_title' => 'Create a new mod',
+    'page_mymods_create_modal_mod_title_title' => 'Type a title for the mod:',
+    'page_mymods_create_modal_mod_title_placeholder' => 'Mod title',
+    'page_mymods_create_modal_mod_title_help' => 'Must contain 4 to 64 latin letters, numbers and basic punctuation',
+    'page_mymods_create_modal_submit' => 'Create mod',
+    'page_mymods_create_error_title_length_short' => 'Title too short',
+    'page_mymods_create_error_title_length_long' => 'Title too long',
+    'page_mymods_create_error_title_characters_forbidden' => 'Title contains forbidden characters',
+    'page_mymods_create_error_unknown' => 'System error, please try again later'
     
 ];
 

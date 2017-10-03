@@ -77,7 +77,7 @@ class ModuleService
             
             if (!$serviceManager->get(AclService::class)->isAclAllowed($route, Role::GUEST)) {
                 Log::debug('EVENT_DISPATCH result: redirect to "home"');
-                return $event->getTarget()->redirect()->toRoute('home');
+                return $this->redirectTo($event, 'home');
             }
             
             return;
@@ -88,7 +88,7 @@ class ModuleService
         // Update authenticated user, stop on error
         if (false === $this->checkAndUpdateAuthenticatedUser($event)) {
             Log::debug('EVENT_DISPATCH result: redirect to "home"');
-            return $event->getTarget()->redirect()->toRoute('home');
+            return $this->redirectTo($event, 'home');
         }
         
         // Retrieve the authenticated user

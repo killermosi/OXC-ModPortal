@@ -82,6 +82,15 @@ div#header{
     text-shadow: 1px 1px 2px #cccccc, 0 0 1em #cccccc, 0 0 0.2em #cccccc;
 }
 
+div.card a.card-link span {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
 /*Extra small devices (portrait phones, less than 576px)*/
 @media (max-width: 575px) { 
     div#header h1 {

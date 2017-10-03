@@ -88,7 +88,7 @@ class Mod
      * Mod summary
      * @var string
      * 
-     * @ORM\Column(name="summary", type="string", length=256, nullable=false)
+     * @ORM\Column(name="summary", type="string", length=256, nullable=true)
      */
     private $summary;
     
@@ -362,14 +362,15 @@ class Mod
      * PreUpdate callback
      * 
      * @return void
+     * @ORM\PrePersist
      * @ORM\PreUpdate
      */
-    public function PreUpdate()
+    public function preUpdate()
     {
         // Set the date and time for dateCreated and dateUpdated as needed
         $date = new \DateTime();
         
-        // Set the dateCreated if not aready set
+        // Set the dateCreated if not yet set (new mod)
         if (is_null($this->dateCreated)) {
             $this->dateCreated = $date;
         }

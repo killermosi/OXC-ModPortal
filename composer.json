@@ -25,7 +25,8 @@
         "zendframework/zend-json-server": "^3.0",
         "zendframework/zend-mvc-plugin-flashmessenger": "^1.0",
         "zendframework/zend-permissions-acl": "^2.6",
-        "ramsey/uuid-doctrine": "^1.4"
+        "ramsey/uuid-doctrine": "^1.4",
+        "behat/transliterator": "^1.2"
     },
     "autoload": {
         "psr-4": {
