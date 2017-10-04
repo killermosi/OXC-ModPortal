@@ -63,11 +63,11 @@ class NewModManager {
      */
     handleSubmitDone(data, textStatus, jqXHR) {
         if (data.success) {
-            window.location.href = data.modUrl;
+            window.location.href = data.content;
             return;
         }
         
-        $('div.alert', newModManager.$createModForm).text(data.errorMessage).removeClass('d-none');
+        $('div.alert', newModManager.$createModForm).text(data.content).removeClass('d-none');
         $('input[name="modName"]', newModManager.$createModForm).addClass('is-invalid');
         newModManager.setLoadingState(false);
         

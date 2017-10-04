@@ -105,11 +105,9 @@ class ModController extends AbstractController
             return $this->redirect()->toRoute('my-mods');
         }
         
-        $result = [
-            'success' => false,
-            'modUrl' => null,
-            'errorMessage' => null
-        ];
+        $result = new JsonModel();
+        $result->success = false;
+        $result->content = null;
         
         $modTitle = (new SupportCode\ModFilter())->buildModTitleFilter()->filter(
             $this->getRequest()->getPost('modTitle', '')
@@ -123,9 +121,8 @@ class ModController extends AbstractController
         if (!$validator->isValid($modTitle)) {
             $errorMessages = $validator->getMessages();
             
-            $result['errorMessage'] = $this->translate(reset($errorMessages));
-            
-            return new JsonModel($result);
+            $result->content = $this->translate(reset($errorMessages));
+            return $result;
         }
         
         $mod = $validator = (new SupportCode\ModTranslator())->createMod(
@@ -138,12 +135,12 @@ class ModController extends AbstractController
         } catch (\Exception $exc) {
             Log::error('Unexpected error: ', $exc->getMessage());
             
-            $result['errorMessage'] = $this->translate('page_mymods_create_error_unknown');
-            return new JsonModel($result);
+            $result->content = $this->translate('page_mymods_create_error_unknown');
+            return $result;
         }
         
-        $result['success'] = false;
-        return new JsonModel($result);
+        $result->success = false;
+        return $result;
     }
     
     /**
