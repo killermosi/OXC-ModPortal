@@ -67,7 +67,8 @@ class ModPersistenceService {
             $this->entityManager->getConnection()
                                 ->beginTransaction();
             
-            $this->buildModSlug($mod);
+            $slug = $this->buildModSlug($mod);
+            $mod->setSlug($slug);
             
             $this->entityManager->persist($mod);
             $this->entityManager->flush();
@@ -89,18 +90,23 @@ class ModPersistenceService {
     /**
      * Create a slug for the specified mod
      * 
-     * @param Mod $mod The mod entity
-     * @return void
+     * @param Mod    $mod   The mod entity
+     * @param string $title Explicit mod title
+     * @return string
      */
-    private function buildModSlug(Mod $mod)
+    public function buildModSlug(Mod $mod, $title = null)
     {
         Log::info(
             'Building slug for mod: ',
             !is_null($mod->getId()) ? $mod->getId()->toString() : 'new mod'
         );
         
+        if (is_null($title)) {
+            $title = $mod->getTitle();
+        }
+        
         // The initial slug, based on the title
-        $titleSlug = Transliterator::transliterate($mod->getTitle());
+        $titleSlug = Transliterator::transliterate($title);
         Log::debug('Title slug: ', $titleSlug);
         
         // The working slug
@@ -131,8 +137,8 @@ class ModPersistenceService {
             $slug = $titleSlug . '-' . $counter++;
         }
         
-        $mod->setSlug($slug);
-        
         Log::debug('Unique slug built: ', $slug);
+        
+        return $slug;
     }
 }

@@ -112,7 +112,7 @@ class Mod
      * Mod slug
      * @var string
      * 
-     * @ORM\Column(name="slug", type="integer", nullable=false)
+     * @ORM\Column(name="slug", type="string", length=128, nullable=false)
      */
     private $slug;
     

@@ -71,7 +71,7 @@ class ModRepository extends EntityRepository
         if ($publishedModsOnly) {
             $queryBuilder->andWhere('m.isPublished = 1');
         }
-        \OxcMP\Util\Log::notice($queryBuilder->getDQL());
+        
         return $queryBuilder->getQuery()->getResult();
     }
 }

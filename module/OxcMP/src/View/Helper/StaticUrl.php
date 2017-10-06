@@ -48,16 +48,18 @@ class StaticUrl extends AbstractHelper
     }
 
     /**
+     * Build a URL for a resource
      * 
-     * @param type $resource
+     * @param string $resourcePath Path to the resource
+     * @return void
      */
-    public function __invoke($resource = null)
+    public function __invoke($resourcePath = null)
     {
         $staticStorage = $this->config->layout->staticStorageUrl;
         
         return empty($staticStorage)
-            ? $this->view->url('home',[], ['force_canonical' => true]) . ltrim($resource, '/')
-            : rtrim($staticStorage, '/') . '/' . ltrim($resource, '/');
+            ? $this->view->url('home',[], ['force_canonical' => true]) . trim($resourcePath, '/')
+            : rtrim($staticStorage, '/') . '/' . trim($resourcePath, '/');
     }
 }
 

@@ -21,6 +21,7 @@
 
 namespace OxcMP\Service\Mod;
 
+use Ramsey\Uuid\DegradedUuid as Uuid;
 use Doctrine\ORM\EntityManager;
 use OxcMP\Entity\Mod;
 use OxcMP\Entity\User;
@@ -54,14 +55,14 @@ class ModRetrievalService
     /**
      * Find a mod by its internal identifier
      * 
-     * @param integer $id The internal identifier
+     * @param Uuid $uuid The internal identifier
      * @return null|Mod
      */
-    public function findModById($id)
+    public function findModById(Uuid $uuid)
     {
-        Log::info('Trying to retrieve the mod having the ID: ', $id);
+        Log::info('Trying to retrieve the mod having the ID: ', $uuid->toString());
         
-        $mod = $this->entityManager->getRepository(Mod::class)->find($id);
+        $mod = $this->entityManager->getRepository(Mod::class)->find($uuid);
         
         if ($mod instanceof Mod) {
             Log::debug('Mod found');

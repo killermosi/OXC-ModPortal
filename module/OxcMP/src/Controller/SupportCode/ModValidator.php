@@ -24,6 +24,7 @@ namespace OxcMP\Controller\SupportCode;
 use Zend\Validator\ValidatorChain;
 use Zend\Validator\StringLength;
 use Zend\Validator\Regex;
+use Ramsey\Uuid\DegradedUuid as Uuid;
 
 /**
  * Validator for mod data
@@ -54,5 +55,15 @@ class ModValidator {
         $validators->attach($chars, true);
         
         return $validators;
+    }
+    
+    /**
+     * Build the mod UUID validator
+     * 
+     * @return Regex
+     */
+    public function buildModUuidValidator()
+    {
+        return new Regex('/' . Uuid::VALID_PATTERN . '/');
     }
 }

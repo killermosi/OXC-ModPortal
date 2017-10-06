@@ -1,0 +1,18 @@
+<?php
+    use OxcMP\Entity\Mod;
+    
+    $this->headScript()->appendFile($this->url('home', [], ['force_canonical' => true]) . 'js/edit-mod.js');
+    
+    /* @var $mod Mod  */
+?>
+<form name="editMod" id="editMod" class="p-2" action="<?php //echo $this->url('preview-mod-slug',[], ['force_canonical' => true]) ?>" method="post" autocomplete="off" enctype="text/plain" novalidate data-slugpreviewaction="<?php echo $this->url('preview-mod-slug',[], ['force_canonical' => true]) ?>">
+    <input type="hidden" name="id" id="id" value="<?php echo $mod->getId()->toString(); ?>"/>
+    <div class="form-group">
+        <label for="title"><?php echo $this->translate('page_editmod_form_title_title'); ?></label>
+        <input class="form-control" type="text" name="title" id="title" aria-described-by="title-help" placeholder="<?php echo $this->translate('page_editmod_form_title_placeholder'); ?>" value="<?php echo $this->escapeHtml($mod->getTitle()); ?>" />
+        <small id="title-help" class="form-text text-muted"><?php echo $this->translate('page_editmod_form_title_help'); ?></small>
+        <label for="slug"><?php echo $this->translate('page_editmod_form_slug_title'); ?></label>
+        <input class="form-control" type="text" name="slug" id="slug" aria-described-by="slug-help" placeholder="<?php echo $this->translate('page_editmod_form_slug_placeholder'); ?>" value="<?php echo $mod->getSlug(); ?>" disabled />
+        <small id="slug-help" class="form-text text-muted"><?php echo $this->translate('page_editmod_form_slug_help'); ?></small>
+    </div>
+</form>

@@ -21,6 +21,7 @@
 
 namespace OxcMP\Controller;
 
+use Ramsey\Uuid\DegradedUuid as Uuid;
 use Zend\View\Model\JsonModel;
 use Zend\View\Model\ViewModel;
 use OxcMP\Entity\Mod;
@@ -83,6 +84,8 @@ class ModController extends AbstractController
         
         $mods = $this->modRetrievalService->getModsByUser($this->authenticationService->getIdentity(), false);
         
+        // We can expect flash messages here
+        $this->setLayoutFlashMessage();
         $this->setLayoutData(null, $this->translate('page_mymods_title'), $this->buildMyModsDescriptionText($mods));
         
         $this->view->setVariable('mods', $mods);
@@ -107,7 +110,7 @@ class ModController extends AbstractController
         
         $result = new JsonModel();
         $result->success = false;
-        $result->content = null;
+        $result->content = null; // Error message or new mod URL
         
         $modTitle = (new SupportCode\ModFilter())->buildModTitleFilter()->filter(
             $this->getRequest()->getPost('modTitle', '')
@@ -139,7 +142,133 @@ class ModController extends AbstractController
             return $result;
         }
         
-        $result->success = false;
+        // Everything went OK, build the mod edit URL
+        $result->success = true;
+        $result->content = $this->url()->fromRoute(
+            'edit-mod',
+            ['modUuid' =>  $mod->getId()->toString()],
+            ['force_canonical' => true]
+        );
+
+        return $result;
+    }
+    
+    /**
+     * Display the mod edit form
+     * 
+     * @return mixed
+     */
+    public function editModAction()
+    {
+        Log::info('Processing mod/edit-mod action');
+        
+        // Validate the mod UUID
+        $modUuid = $this->params()->fromRoute('modUuid', null);
+        
+        Log::debug('Received mod UUID: "', $modUuid, '"');
+        
+        $validator = (new SupportCode\ModValidator())->buildModUuidValidator();
+        
+        if (!$validator->isValid($modUuid)) {
+            Log::notice('The mod UUID "', $modUuid, '" is invalid, redirecting to "my-mods" page');
+            // Simply show the "not found" message, no need for additional details
+            $this->flashMessenger()->addErrorMessage($this->translate('page_editmod_mod_not_found'));
+            return $this->redirect()->toRoute('my-mods');
+        }
+        
+        // Retrieve the mod from the database
+        $mod = $this->modRetrievalService->findModById(Uuid::fromString($modUuid));
+        
+        if (!$mod instanceof Mod) {
+            Log::notice('The mod having the UUID "', $modUuid, '" could not be found, redirecting to "my-mods" page');
+            $this->flashMessenger()->addErrorMessage($this->translate('page_editmod_mod_not_found'));
+            return $this->redirect()->toRoute('my-mods');
+        }
+        
+        // Only administrators can edit mods that they don't own
+        if (false == $this->authenticationService->getIdentity()->getIsAdministrator()
+            && $mod->getId() != $this->authenticationService->getIdentity()->getId()
+        ) {
+            Log::notice(
+                'Non-administrator user attempted to edit the mod having the UUID "',
+                $modUuid,
+                '", redirecting to "my-mods"'
+            );
+            $this->flashMessenger()->addErrorMessage($this->translate('page_editmod_mod_not_found'));
+            return $this->redirect()->toRoute('my-mods');
+        }
+        
+        $this->setLayoutData(
+            null,
+            $this->translate('page_editmod_title'),
+            $this->translate('page_editmod_description')
+        );
+        
+        // Assign data to view
+        $this->view->mod = $mod;
+        
+        return $this->view;
+    }
+    
+    /**
+     * Preview the mod slug
+     * 
+     * @return JsonModel
+     */
+    public function previewModSlugAction()
+    {
+        Log::info('Processing mod/preview-mod-slug action');
+        
+        // Since this is a utility method, we don't really care if the received data is invalid
+        // (we do validate it, to avoid unnecessary operations), so we return an empty response
+        // in that case
+        
+        $result = new JsonModel();
+        $result->slug = null;
+        
+        // Validators and filters
+        $filter = new SupportCode\ModFilter();
+        $validator = new SupportCode\ModValidator();
+        
+        // Collect data
+        $modId = $this->getRequest()->getPost('id', '');
+        $modTitle = $filter->buildModTitleFilter()->filter(
+            $this->getRequest()->getPost('title', '')
+        );
+        
+        // Validate
+        if (!$validator->buildModUuidValidator()->isValid($modId)) {
+            Log::notice('Received invalid mod UUID: "', $modId, '"');
+            return $result;
+        }
+        
+        if (!$validator->buildModTitleValidator()->isValid($modTitle)) {
+            Log::notice('Received invalid mod title: "', $modTitle, '"');
+            return $result;
+        }
+        
+        // Retrieve the mod
+        $mod = $this->modRetrievalService->findModById(Uuid::fromString($modId));
+        
+        if (!$mod instanceof Mod) {
+            Log::notice('Could not find a mod having the UUID ', $modId);
+            return $result;
+        }
+        
+        // Check that the user owns the mod, for completion sake
+        if (false == $this->authenticationService->getIdentity()->getIsAdministrator()
+            && $mod->getId() != $this->authenticationService->getIdentity()->getId()
+        ) {
+            Log::notice(
+                'Non-administrator user attempted to preview the mod slug for the mod having the UUID "',
+                $modId,
+                '"'
+            );
+            return $result;
+        }
+        
+        $result->slug = $this->modPersistenceService->buildModSlug($mod, $modTitle);
+        
         return $result;
     }
     
@@ -167,19 +296,19 @@ class ModController extends AbstractController
         
         Log::debug('There are ', $published, ' published mod(s) and ', $unpublished, ' mod(s) by this user');
         
-        $translationKey = '';
-        
         if ($published == 0 && $unpublished == 0) {
-            $translationKey = 'page_mymods_description_no_mods';
+            $translation = $this->translate('page_mymods_description_no_mods');
         } elseif ($published != 0 && $unpublished == 0) {
-            $translationKey = 'page_mymods_description_ony_published_mods';
+            $translation = $this->translate('page_mymods_description_ony_published_mods', $published);
         } elseif ($published == 0 && $unpublished !=0 ) {
-            $translationKey = 'page_mymods_description_ony_unpublished_mods';
+            $translation = $this->translate('page_mymods_description_ony_unpublished_mods', $unpublished);
         } else {
-            $translationKey = 'page_mymods_description_published_and_unpublished_mods';
+            $translation = $this->translate(
+                'page_mymods_description_published_and_unpublished_mods',
+                $published,
+                $unpublished
+            );
         }
-        
-        $translation = $this->translate($translationKey);
         
         Log::debug('MyMods page description text is: ', $translation);
         

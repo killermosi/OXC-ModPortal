@@ -90,6 +90,28 @@ return [
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],
         ],
+        'edit-mod' => [
+            'type'    => Segment::class,
+            'options' => [
+                'route'    => '/edit-mod/[:modUuid]',
+                'defaults' => [
+                    'controller' => Controller\ModController::class,
+                    'action'     => 'edit-mod',
+                ],
+                'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
+            ],
+        ],
+        'preview-mod-slug' => [
+            'type'    => Segment::class,
+            'options' => [
+                'route'    => '/preview-mod-slug',
+                'defaults' => [
+                    'controller' => Controller\ModController::class,
+                    'action'     => 'preview-mod-slug',
+                ],
+                'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
+            ],
+        ],
         'about' => [
             'type' => Literal::class,
             'options' => [

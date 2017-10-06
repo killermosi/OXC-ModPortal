@@ -38,10 +38,10 @@ return [
     'module_bootstrap_usercheck_invalid_api_key' => 'You have been logged out due to an internal error.',
     // My Mods page
     'page_mymods_title' => 'Manage your mods',
-    'page_mymods_description_no_mods' => 'You have not added any mods',
-    'page_mymods_description_ony_published_mods' => 'You have added %s mod(s)',
-    'page_mymods_description_ony_unpublished_mods' => 'You have added %s mod(s), all of which are unpublished',
-    'page_mymods_description_published_and_unpublished_mods' => 'You have added %s mod(s), out of which %s mod(s) are unpublished',
+    'page_mymods_description_no_mods' => 'You have not created any mods',
+    'page_mymods_description_ony_published_mods' => 'You have created %s mod(s)',
+    'page_mymods_description_ony_unpublished_mods' => 'You have created %s mod(s), all of which are unpublished',
+    'page_mymods_description_published_and_unpublished_mods' => 'You have created %s mod(s), out of which %s mod(s) are unpublished',
     'page_mymods_card_new_mod_title' => 'Create new mod',
     'page_mymods_card_new_mod_description' => 'Showcase your creativity',
     'page_mymods_card_new_btn_create' => 'Create',
@@ -50,11 +50,23 @@ return [
     'page_mymods_create_modal_mod_title_placeholder' => 'Mod title',
     'page_mymods_create_modal_mod_title_help' => 'Must contain 4 to 64 latin letters, numbers and basic punctuation',
     'page_mymods_create_modal_submit' => 'Create mod',
-    'page_mymods_create_error_title_length_short' => 'Title too short',
-    'page_mymods_create_error_title_length_long' => 'Title too long',
-    'page_mymods_create_error_title_characters_forbidden' => 'Title contains forbidden characters',
-    'page_mymods_create_error_unknown' => 'System error, please try again later'
-    
+    'page_mymods_create_error_title_length_short' => 'Title too short.',
+    'page_mymods_create_error_title_length_long' => 'Title too long.',
+    'page_mymods_create_error_title_characters_forbidden' => 'Title contains forbidden characters.',
+    'page_mymods_create_error_unknown' => 'System error, please try again later.',
+    // Edit Mod Page
+    'page_editmod_title' => 'Edit mod',
+    'page_editmod_description' => 'Make changes to your mod',
+    'page_editmod_mod_not_found' => 'The specified mod could not be found.',
+    'page_editmod_form_title_title' => 'Title:',
+    'page_editmod_form_title_placeholder' => 'Mod title',
+    'page_editmod_form_title_help' => 'Must contain 4 to 64 latin letters, numbers and basic punctuation',
+    'page_editmod_error_title_length_short' => 'Title too short.',
+    'page_editmod_error_title_length_long' => 'Title too long.',
+    'page_editmod_error_title_characters_forbidden' => 'Title contains forbidden characters.',
+    'page_editmod_form_slug_title' => 'Slug:',
+    'page_editmod_form_slug_placeholder' => '<unavailable>',
+    'page_editmod_form_slug_help' => 'Generated automatically based on the mod title',
 ];
 
 /* EOF */

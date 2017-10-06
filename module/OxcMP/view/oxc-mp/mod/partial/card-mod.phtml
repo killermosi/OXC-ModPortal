@@ -9,7 +9,7 @@
             <p class="card-text">Add new mod description</p>
         </div>
         <div class="card_footer">
-            <a class="btn btn-primary" href="/add">Add</a>
+            <a class="btn btn-primary" href="<?php echo $this->url('edit-mod', ['modUuid' =>  $mod->getId()->toString()], ['force_canonical' => true]) ?>">Edit</a>
         </div>
     </div>
 </div>
