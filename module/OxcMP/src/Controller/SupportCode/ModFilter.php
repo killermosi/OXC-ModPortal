@@ -24,7 +24,6 @@ namespace OxcMP\Controller\SupportCode;
 use Zend\Filter\FilterChain;
 use Zend\Filter\StringTrim;
 use Zend\Filter\StripNewlines;
-use Zend\Filter\StripTags;
 
 /**
  * Filter for mode data

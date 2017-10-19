@@ -83,7 +83,7 @@ class ModValidator {
     /**
      * Build the mod update data validator
      * 
-     * @return array A list of validators indexed by the filed name in lowerCamelCase
+     * @return array A list of validators indexed by the field name in lowerCamelCase
      */
     public function buildModUpdateValidator()
     {

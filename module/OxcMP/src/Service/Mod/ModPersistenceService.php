@@ -112,12 +112,6 @@ class ModPersistenceService {
             $this->entityManager->getConnection()
                                 ->beginTransaction();
             
-            // Update the slug if needed
-            $this->buildModSlug($mod);
-            
-            // Update the description if needed
-            $this->markdownService->buildModDescription($mod);
-            
             $this->entityManager->persist($mod);
             $this->entityManager->flush();
             

@@ -82,6 +82,7 @@ div#header{
     text-shadow: 1px 1px 2px #cccccc, 0 0 1em #cccccc, 0 0 0.2em #cccccc;
 }
 
+/* Cover the entire card with a link */
 div.card a.card-link span {
     position: absolute;
     width: 100%;
@@ -94,7 +95,9 @@ div.card a.card-link span {
 .font-monospace {
     font-family: "Courier New", Courier, monospace
 }
-
+.overflow-y-auto{
+    overflow-y: auto;
+}
 /*Extra small devices (portrait phones, less than 576px)*/
 @media (max-width: 575px) { 
 /*    div#header h1 {

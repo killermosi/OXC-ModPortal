@@ -268,15 +268,15 @@ class ModManagementController extends AbstractController
             }
             
             if (in_array($fieldName, $hardFail)) {
-                Log::notice('Bad user request');
                 $errorMessageKey = 'global_bad_request';
             } else {
                 $errorMessages = $validator->getMessages();
                 $errorMessageKey = reset($errorMessages);
-                Log::notice('Validation failed: ', $errorMessageKey);
+                
             }
             
             $result->content = $this->translate($errorMessageKey);
+            Log::notice('Validation failed: ', $result->content);
             return $result;
         }
         
@@ -303,10 +303,30 @@ class ModManagementController extends AbstractController
             return $result;
         }
         
+        // Update the user mod data
         $mod->setTitle($updateData['title']);
         $mod->setSummary($updateData['summary']);
         $mod->setIsPublished((bool) $updateData['isPublished']);
         $mod->setDescriptionRaw($updateData['descriptionRaw']);
+        
+        // Update the mod description and slug if needed
+        $this->modPersistenceService->buildModSlug($mod);
+        $this->markdownService->buildModDescription($mod);
+        
+        // Validate the number of visible characters in the processed description,
+        // as it may get stripped below the minimum limit
+        if ($mod->wasDescriptionRawChanged()) {
+            /* @var $descriptionValidator \Zend\Validator\ValidatorChain */
+            $descriptionValidator = $updateValidator['descriptionRaw'];
+            $strippedDescription = preg_replace('/\s\s+/', '', strip_tags($mod->getDescription()));
+            
+            if (!$descriptionValidator->isValid($strippedDescription)) {
+                $errorMessages = $descriptionValidator->getMessages();
+                $result->content = $this->translate(reset($errorMessages));
+                Log::notice('Validation failed: ', $result->content);
+                return $result;
+            }
+        }
         
         try {
             $this->modPersistenceService->updateMod($mod);
