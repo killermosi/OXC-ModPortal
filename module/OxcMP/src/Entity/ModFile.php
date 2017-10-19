@@ -69,18 +69,26 @@ class ModFile
     private $type = self::TYPE_RESOURCE;
     
     /**
-     * File order, for gallery images
+     * File order, for gallery images and resources
      * @var integer
      * 
-     * @ORM\Column(name="image_order", type="integer", nullable=false)
+     * @ORM\Column(name="file_order", type="integer", nullable=false)
      */
-    private $imageOrder = 0;
+    private $fileOrder = 0;
+    
+    /**
+     * File version, for resources
+     * @var string
+     * 
+     * @ORM\Column(name="file_version", type="string", length=64, nullable=true)
+     */
+    private $fileVersion;
     
     /**
      * The original file name, must be unique per mod_id and type
      * @var string
      * 
-     * @ORM\Column(name="name", type="string", length=256, nullable=false)
+     * @ORM\Column(name="name", type="string", length=128, nullable=false)
      */
     private $name;
     
@@ -99,6 +107,14 @@ class ModFile
      * @ORM\Column(name="downloads", type="integer", nullable=false)
      */
     private $downloads = 0;
+    
+    /**
+     * File size, in bytes
+     * 
+     * @var integer
+     * @ORM\Column(name="size", type="integer", nullable=false)
+     */
+    private $size = 0;
     
     /**
      * Get the internal identifier
@@ -158,11 +174,31 @@ class ModFile
      * @param integer $imageOrder The order
      * @return void
      */
-    public function setImageOrder($imageOrder)
+    public function setFileOrder($imageOrder)
     {
-        $this->imageOrder = $imageOrder;
+        $this->fileOrder = $imageOrder;
     }
 
+    /**
+     * Get the file version
+     * 
+     * @return string
+     */
+    function getFileVersion() {
+        return $this->fileVersion;
+    }
+
+    /**
+     * Set the file version
+     * 
+     * @param string $fileVersion The file version
+     * @return void
+     */
+    function setFileVersion($fileVersion) {
+        $this->fileVersion = $fileVersion;
+    }
+
+        
     /**
      * Get the file name
      * 
@@ -214,6 +250,27 @@ class ModFile
         $this->downloads++;
     }
 
+    /**
+     * Get the file size
+     * 
+     * @return integer
+     */
+    function getSize()
+    {
+        return $this->size;
+    }
+
+    /**
+     * Set the file size
+     * 
+     * @param integer $size The file size
+     * @return void
+     */
+    function setSize($size)
+    {
+        $this->size = $size;
+    }
+        
     /**
      * PrePersist callback
      * 

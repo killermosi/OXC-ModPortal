@@ -91,17 +91,21 @@ div.card a.card-link span {
     z-index: 1;
 }
 
+.font-monospace {
+    font-family: "Courier New", Courier, monospace
+}
+
 /*Extra small devices (portrait phones, less than 576px)*/
 @media (max-width: 575px) { 
-    div#header h1 {
+/*    div#header h1 {
         font-size: 1.50rem;
         padding-top: 0rem !important
     }
     div#header p {
-        /*display: none;*/
+        display: none;
         font-size: .90rem;
         line-height: 1.15;
-    }
+    }*/
 }
 
 /*Small devices (landscape phones, less than 768px)*/

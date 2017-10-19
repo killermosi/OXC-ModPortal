@@ -24,6 +24,7 @@ namespace OxcMP\Controller\SupportCode;
 use Zend\Filter\FilterChain;
 use Zend\Filter\StringTrim;
 use Zend\Filter\StripNewlines;
+use Zend\Filter\StripTags;
 
 /**
  * Filter for mode data
@@ -38,16 +39,42 @@ class ModFilter {
      */
     public function buildModTitleFilter()
     {
-        $filterChain = new FilterChain();
+        return (new FilterChain())->attach(new StringTrim())
+                                  ->attach(new StripNewlines());
+    }
+    
+    /**
+     * Build filters for the mod update data
+     * 
+     * @return array A list of filters indexed by the filed name in lowerCamelCase
+     */
+    public function buildModUpdateFilter()
+    {
+        $titleFilter = (new FilterChain())
+            ->attach(new StringTrim())
+            ->attach(new StripNewlines());
         
-        $stringTrim = new StringTrim();
-        $filterChain->attach($stringTrim);
+        $summaryFilter = (new FilterChain())
+            ->attach(new StringTrim())
+            ->attach(new StripNewlines());
         
-        $stripNewLines = new StripNewlines();
-        $filterChain->attach($stripNewLines);
+        $descriptionRawFilter = (new FilterChain())
+            ->attach(new StringTrim());
         
-        // TODO: Strip more than one consecutive whitespace characters? (PregReplace /\s\s+/)
-        
-        return $filterChain;
+        return [
+            'title' => $titleFilter,
+            'summary' => $summaryFilter,
+            'descriptionRaw' => $descriptionRawFilter
+        ];
+    }
+    
+    /**
+     * Build the mod description preview filter
+     * 
+     * @return FilterChain
+     */
+    public function buildModDescriptionRawFilter()
+    {
+        return (new FilterChain())->attach(new StringTrim()); // TODO: StripTags?
     }
 }

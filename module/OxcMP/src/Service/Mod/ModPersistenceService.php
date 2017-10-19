@@ -21,10 +21,11 @@
 
 namespace OxcMP\Service\Mod;
 
+use Behat\Transliterator\Transliterator;
 use Doctrine\ORM\EntityManager;
 use OxcMP\Entity\Mod;
+use OxcMP\Service\Markdown\MarkdownService;
 use OxcMP\Util\Log;
-use Behat\Transliterator\Transliterator;
 
 /**
  * Mod persistence service
@@ -39,19 +40,27 @@ class ModPersistenceService {
     private $entityManager;
     
     /**
+     * The Markdown Service;
+     * @var MarkdownService 
+     */
+    private $markdownService;
+    
+    /**
      * Class initialization
      * 
-     * @param EntityManager $entityManager The entity manager
+     * @param EntityManager   $entityManager   The entity manager
+     * @param MarkdownService $markdownService The markdown service
      */
-    public function __construct(EntityManager $entityManager)
+    public function __construct(EntityManager $entityManager, MarkdownService $markdownService)
     {
         Log::info('Initializing ModPersistenceService');
         
-        $this->entityManager = $entityManager;
+        $this->entityManager   = $entityManager;
+        $this->markdownService = $markdownService;
     }
     
     /**
-     * Create a new mod
+     * Create a new mod entity
      * 
      * @param Mod $mod The mod entity
      * @return void
@@ -67,8 +76,8 @@ class ModPersistenceService {
             $this->entityManager->getConnection()
                                 ->beginTransaction();
             
-            $slug = $this->buildModSlug($mod);
-            $mod->setSlug($slug);
+            // Create mod slug
+            $this->buildModSlug($mod);
             
             $this->entityManager->persist($mod);
             $this->entityManager->flush();
@@ -77,7 +86,7 @@ class ModPersistenceService {
                                 ->commit();
             
         } catch (\Exception $exc) {
-            Log::notice('Failed to create mod');
+            Log::error('Failed to create the mod');
             $this->entityManager->getConnection()
                                 ->rollBack();
             
@@ -88,26 +97,68 @@ class ModPersistenceService {
     }
     
     /**
+     * Update an existing mod entity
+     * 
+     * @param Mod $mod The mod entity
+     * @return void
+     * @throws \Exception
+     */
+    public function updateMod(Mod $mod)
+    {
+        Log::info('Updating the mod having the ID ', $mod->getId()->toString());
+        
+        try {
+            // Everything goes into a transaction
+            $this->entityManager->getConnection()
+                                ->beginTransaction();
+            
+            // Update the slug if needed
+            $this->buildModSlug($mod);
+            
+            // Update the description if needed
+            $this->markdownService->buildModDescription($mod);
+            
+            $this->entityManager->persist($mod);
+            $this->entityManager->flush();
+            
+            $this->entityManager->getConnection()
+                                ->commit();
+        } catch (\Exception $exc) {
+            Log::error('Failed to update the mod');
+            $this->entityManager->getConnection()
+                                ->rollBack();
+            
+            throw $exc;
+        }
+    }
+    
+    /**
      * Create a slug for the specified mod
      * 
-     * @param Mod    $mod   The mod entity
-     * @param string $title Explicit mod title
-     * @return string
+     * @param Mod $mod The mod entity
+     * @return void
      */
-    public function buildModSlug(Mod $mod, $title = null)
+    public function buildModSlug(Mod $mod)
     {
         Log::info(
-            'Building slug for mod: ',
-            !is_null($mod->getId()) ? $mod->getId()->toString() : 'new mod'
+            'Building slug for ',
+            !is_null($mod->getId())
+                ? 'mod ' . $mod->getId()->toString()
+                : 'new mod'
         );
         
-        if (is_null($title)) {
-            $title = $mod->getTitle();
+        // Don't build it if the mod title is the same
+        if (!$mod->wasTitleChanged()) {
+            Log::debug('The mod title was not changed, not building the mod slug');
+            return;
         }
+        
+        $title = $mod->getTitle();
+
         
         // The initial slug, based on the title
         $titleSlug = Transliterator::transliterate($title);
-        Log::debug('Title slug: ', $titleSlug);
+        Log::debug('Slug derived from title: ', $titleSlug);
         
         // The working slug
         $slug = $titleSlug;
@@ -138,7 +189,6 @@ class ModPersistenceService {
         }
         
         Log::debug('Unique slug built: ', $slug);
-        
-        return $slug;
+        $mod->setSlug($slug);
     }
 }

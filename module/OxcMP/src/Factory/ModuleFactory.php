@@ -87,7 +87,9 @@ class ModuleFactory implements FactoryInterface
                 return new $requestedName(
                     $container->get(AuthenticationService::class),
                     $container->get(Service\Mod\ModRetrievalService::class),
-                    $container->get(Service\Mod\ModPersistenceService::class)
+                    $container->get(Service\Mod\ModPersistenceService::class),
+                    $container->get(Service\Markdown\MarkdownService::class),
+                    $container->get(Config::class)
                 );
             case Controller\UserController::class:
                 return new $requestedName(
@@ -113,13 +115,16 @@ class ModuleFactory implements FactoryInterface
                     $container->get(Service\User\UserRemoteService::class),
                     $container->get(Config::class)
                 );
+            case Service\Markdown\MarkdownService::class:
+                return new $requestedName();
             case Service\Mod\ModRetrievalService::class:
                 return new $requestedName(
                     $container->get('doctrine.entitymanager.orm_default')
                 );
             case Service\Mod\ModPersistenceService::class:
                 return new $requestedName(
-                    $container->get('doctrine.entitymanager.orm_default')
+                    $container->get('doctrine.entitymanager.orm_default'),
+                    $container->get(Service\Markdown\MarkdownService::class)
                 );
             case Service\Module\ModuleService::class:
                 return new $requestedName();

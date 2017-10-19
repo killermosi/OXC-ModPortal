@@ -44,6 +44,8 @@ return [
             Service\Acl\AclService::class => ModuleFactory::class,
             // Authentication
             Service\Authentication\AuthenticationAdapter::class => ModuleFactory::class,
+            // Markdown
+            Service\Markdown\MarkdownService::class => ModuleFactory::class,
             // Mod
             Service\Mod\ModRetrievalService::class => ModuleFactory::class,
             Service\Mod\ModPersistenceService::class => ModuleFactory::class,
@@ -123,7 +125,8 @@ return [
         'defaultBackground' => 'img/bg-default.png',
         'oAuthUrl' => 'https://openxcom.org/forum/index.php?action=oxcmpoauth;board,',
         'githubProjectUrl' => 'https://github.com/killermosi/OXC-ModPortal',
-        'staticStorageUrl' => null
+        'staticStorageUrl' => null,
+        'gitHubFlavoredMarkdownGuideUrl' => 'https://guides.github.com/features/mastering-markdown/'
     ],
     'doctrine' => [
         'connection' => [

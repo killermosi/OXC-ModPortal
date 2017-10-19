@@ -24,10 +24,12 @@ namespace OxcMP\Controller;
 use Ramsey\Uuid\DegradedUuid as Uuid;
 use Zend\View\Model\JsonModel;
 use Zend\View\Model\ViewModel;
+use Zend\Authentication\AuthenticationService;
+use Zend\Config\Config;
 use OxcMP\Entity\Mod;
+use OxcMP\Service\Markdown\MarkdownService;
 use OxcMP\Service\Mod\ModRetrievalService;
 use OxcMP\Service\Mod\ModPersistenceService;
-use Zend\Authentication\AuthenticationService;
 use OxcMP\Util\Log;
 
 /**
@@ -56,21 +58,39 @@ class ModController extends AbstractController
     private $modPersistenceService;
     
     /**
+     * The Markdown service
+     * @var MarkdownService 
+     */
+    private $markdownService;
+    
+    /**
+     * The configuration
+     * @var Config 
+     */
+    private $config;
+    /**
      * Class initialization
      * 
      * @param AuthenticationService $authenticationService The authentication service
      * @param ModRetrievalService   $modRetrievalService   The mod retrieval service
+     * @param ModPersistenceService $modPersistenceService The mod persistence service
+     * @param MarkdownService       $markdownService       The markdown service
+     * @param Config                $config                The configuration
      */
     function __construct(
         AuthenticationService $authenticationService,
         ModRetrievalService $modRetrievalService,
-        ModPersistenceService $modPersistenceService
+        ModPersistenceService $modPersistenceService,
+        MarkdownService $markdownService,
+        Config $config
     ) {
         parent::__construct();
         
         $this->authenticationService = $authenticationService;
         $this->modRetrievalService   = $modRetrievalService;
         $this->modPersistenceService = $modPersistenceService;
+        $this->markdownService       = $markdownService;
+        $this->config                = $config;
     }
 
     /**
@@ -88,7 +108,7 @@ class ModController extends AbstractController
         $this->setLayoutFlashMessage();
         $this->setLayoutData(null, $this->translate('page_mymods_title'), $this->buildMyModsDescriptionText($mods));
         
-        $this->view->setVariable('mods', $mods);
+        $this->view->mods = $mods;
         
         return $this->view;
     }
@@ -128,15 +148,14 @@ class ModController extends AbstractController
             return $result;
         }
         
-        $mod = $validator = (new SupportCode\ModTranslator())->createMod(
-            $modTitle,
-            $this->authenticationService->getIdentity()
-        );
+        $mod = new Mod();
+        $mod->setTitle($modTitle);
+        $mod->setUserId = $this->authenticationService->getIdentity()->getId();
         
         try {
             $this->modPersistenceService->createMod($mod);
         } catch (\Exception $exc) {
-            Log::error('Unexpected error: ', $exc->getMessage());
+            Log::notice('Unexpected error while creating the mod entity: ', $exc->getMessage());
             
             $result->content = $this->translate('page_mymods_create_error_unknown');
             return $result;
@@ -190,7 +209,7 @@ class ModController extends AbstractController
             && $mod->getId() != $this->authenticationService->getIdentity()->getId()
         ) {
             Log::notice(
-                'Non-administrator user attempted to edit the mod having the UUID "',
+                'Non-administrator user attempted to edit the unowned mod having the UUID "',
                 $modUuid,
                 '", redirecting to "my-mods"'
             );
@@ -206,8 +225,181 @@ class ModController extends AbstractController
         
         // Assign data to view
         $this->view->mod = $mod;
+        $this->view->gitHubFlavoredMarkdownGuideUrl = $this->config->layout->gitHubFlavoredMarkdownGuideUrl;
         
         return $this->view;
+    }
+    
+    /**
+     * Save a mod
+     * 
+     * @return JsonModel
+     */
+    public function saveModAction()
+    {
+        Log::info('Processing mod/save-mod action');
+        
+        // Go to MyMods if the request is not AJAX
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            Log::notice('Request is not AJAX, ignoring');
+            return $this->redirect()->toRoute('my-mods');
+        }
+        
+        $result = new JsonModel();
+        $result->success = false;
+        $result->content = null; // Error message or MyMods page URL
+        
+        // Collect and validate update data
+        $updateData = $this->collectModUpdateData();
+        $updateValidator = (new SupportCode\ModValidator())->buildModUpdateValidator();
+        
+        // These fields are not directly editable by the user and should not ever fail validation
+        $hardFail = [
+            'id',
+            'isPublished'
+        ];
+        
+        foreach ($updateData as $fieldName => $data) {
+            /* @var $validator \Zend\Validator\ValidatorChain */
+            $validator = $updateValidator[$fieldName];
+            
+            if ($validator->isValid($data)) {
+                continue;
+            }
+            
+            if (in_array($fieldName, $hardFail)) {
+                Log::notice('Bad user request');
+                $errorMessageKey = 'global_bad_request';
+            } else {
+                $errorMessages = $validator->getMessages();
+                $errorMessageKey = reset($errorMessages);
+                Log::notice('Validation failed: ', $errorMessageKey);
+            }
+            
+            $result->content = $this->translate($errorMessageKey);
+            return $result;
+        }
+        
+        // Retrieve the mod
+        $modId = $updateData['id'];
+        $mod = $this->modRetrievalService->findModById(Uuid::fromString($modId));
+        
+        if (!$mod instanceof Mod) {
+            Log::notice('Could not find a mod having the UUID ', $modId);
+            $result->content = $this->translate('global_bad_request');
+            return $result;
+        }
+        
+        // Check that the user owns the mod, for completion sake
+        if (false == $this->authenticationService->getIdentity()->getIsAdministrator()
+            && $mod->getId() != $this->authenticationService->getIdentity()->getId()
+        ) {
+            Log::notice(
+                'Non-administrator user attempted to preview the mod slug for the mod having the UUID "',
+                $modId,
+                '"'
+            );
+            $result->content = $this->translate('global_bad_request');
+            return $result;
+        }
+        
+        $mod->setTitle($updateData['title']);
+        $mod->setSummary($updateData['summary']);
+        $mod->setIsPublished((bool) $updateData['isPublished']);
+        $mod->setDescriptionRaw($updateData['descriptionRaw']);
+        
+        try {
+            $this->modPersistenceService->updateMod($mod);
+        } catch (\Exception $exc) {
+            Log::notice('Unexpected error while updating the mod entity:', $exc->getMessage());
+            $result->content = $this->translate('page_editmod_error_unknown');
+            return $result;
+        }
+        
+        // Everything went OK, build MyMods page URL
+        $result->success = true;
+        $result->content = $this->url()->fromRoute('my-mods', [], ['force_canonical' => true]);
+        
+        // Place the success message in the FlashMessenger
+         $this->flashMessenger()->addSuccessMessage($this->translate('page_editmod_success'));
+         
+        return $result;
+    }
+    
+    /**
+     * Preview the mod description
+     * 
+     * @return JsonModel
+     */
+    public function previewModDescriptionAction()
+    {
+        Log::info('Processing mod/preview-mod-description action');
+        
+        // Go to MyMods if the request is not AJAX
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            Log::notice('Request is not AJAX, ignoring');
+            return $this->redirect()->toRoute('my-mods');
+        }
+        
+        $result = new JsonModel();
+        $result->success = false;
+        $result->content = null; // Error message or description preview
+        
+        // Validators and filters
+        $validator = new SupportCode\ModValidator();
+        
+        // Collect data
+        $modId = $this->getRequest()->getPost('id', '');
+        $modDescriptionRaw = (new SupportCode\ModFilter())->buildModDescriptionRawFilter()->filter(
+            $this->getRequest()->getPost('descriptionRaw', '')
+        );
+        
+        // Validate mod UUID
+        if (!$validator->buildModUuidValidator()->isValid($modId)) {
+            Log::notice('Received invalid mod UUID: "', $modId, '"');
+            
+            // No specific error message in this case
+            return $result;
+        }
+        
+        // Validate mod description
+        $modDescriptionValidator = $validator->buildModDescriptionRawValidator();
+        if (!$modDescriptionValidator->isValid($modDescriptionRaw)) {
+            Log::notice('Received invalid mod description: ', $modDescriptionValidator->getMessages());
+            
+            $errorMessages = $modDescriptionValidator->getMessages();
+            $result->content = $this->translate(reset($errorMessages));
+            return $result;
+        }
+        
+        // Retrieve the mod
+        $mod = $this->modRetrievalService->findModById(Uuid::fromString($modId));
+        
+        if (!$mod instanceof Mod) {
+            Log::notice('Could not find a mod having the UUID ', $modId);
+            return $result;
+        }
+        
+        // Check that the user owns the mod, for completion sake
+        if (false == $this->authenticationService->getIdentity()->getIsAdministrator()
+            && $mod->getId() != $this->authenticationService->getIdentity()->getId()
+        ) {
+            Log::notice(
+                'Non-administrator user attempted to preview the mod slug for the mod having the UUID "',
+                $modId,
+                '"'
+            );
+            return $result;
+        }
+        
+        // Preview the description
+        $mod->setDescriptionRaw($modDescriptionRaw);
+        $this->markdownService->buildModDescription($mod);
+        
+        $result->success = true;
+        $result->content = $mod->getDescription();
+        
+        return $result;
     }
     
     /**
@@ -267,7 +459,11 @@ class ModController extends AbstractController
             return $result;
         }
         
-        $result->slug = $this->modPersistenceService->buildModSlug($mod, $modTitle);
+        // Create slug preview
+        $mod->setTitle($modTitle);
+        $this->modPersistenceService->buildModSlug($mod);
+        $result->slug = $mod->getSlug();
+
         
         return $result;
     }
@@ -313,6 +509,25 @@ class ModController extends AbstractController
         Log::debug('MyMods page description text is: ', $translation);
         
         return $translation;
+    }
+    
+    /**
+     * Collect mod update data from the post
+     * 
+     * @return array
+     */
+    private function collectModUpdateData()
+    {
+        $filters = (new SupportCode\ModFilter())->buildModUpdateFilter();
+        $request = $this->getRequest();
+        
+        return [
+            'id' => $request->getPost('id', ''),
+            'title' => $filters['title']->filter($request->getPost('id', '')),
+            'summary' => $filters['summary']->filter($request->getPost('summary', '')),
+            'isPublished' => $request->getPost('isPublished', ''),
+            'descriptionRaw' => $filters['descriptionRaw']->filter($request->getPost('descriptionRaw', ''))
+        ];
     }
 }
 

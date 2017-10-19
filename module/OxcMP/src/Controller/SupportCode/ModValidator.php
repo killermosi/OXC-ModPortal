@@ -24,7 +24,7 @@ namespace OxcMP\Controller\SupportCode;
 use Zend\Validator\ValidatorChain;
 use Zend\Validator\StringLength;
 use Zend\Validator\Regex;
-use Ramsey\Uuid\DegradedUuid as Uuid;
+use Zend\Validator\Uuid;
 
 /**
  * Validator for mod data
@@ -32,6 +32,19 @@ use Ramsey\Uuid\DegradedUuid as Uuid;
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
 class ModValidator {
+    /**
+     * Regexp for "Latin letters, numbers and basic punctuation" validation
+     * @TODO: improve it
+     * @var string
+     */
+    const BASIC_LATIN_REGEXP = '/^[A-Za-z0-9 _:\-\.\/\*\(\)\&]*$/';
+    
+    /**
+     * Regexp for "Latin letters, numbers, basic punctuation and Markdown syntax" validation
+     * @TODO: Is it really needed?
+     * @var string
+     */
+    const MARKDOWN_REGEXP = '/^[A-Za-z0-9 _:\-\.\/\*\s]+$/';
     
     /**
      * Build the mod title validator
@@ -50,7 +63,7 @@ class ModValidator {
         $validators->attach($length, true);
         
         // Numbers, letters, spaces, and some punctuation
-        $chars = new Regex('/^[A-Za-z0-9 _:\-\.\/\*]+$/');
+        $chars = new Regex(self::BASIC_LATIN_REGEXP);
         $chars->setMessage('page_mymods_create_error_title_characters_forbidden', Regex::NOT_MATCH);
         $validators->attach($chars, true);
         
@@ -64,6 +77,90 @@ class ModValidator {
      */
     public function buildModUuidValidator()
     {
-        return new Regex('/' . Uuid::VALID_PATTERN . '/');
+        return new Uuid();
+    }
+    
+    /**
+     * Build the mod update data validator
+     * 
+     * @return array A list of validators indexed by the filed name in lowerCamelCase
+     */
+    public function buildModUpdateValidator()
+    {
+        // Id
+        $idValidator = new Uuid();
+        
+        $isPublishedValidator = new Regex('/^[0|1]$/');
+        
+        // Title
+        $titleValidator = new ValidatorChain();
+        
+        $titleLength = new StringLength();
+        $titleLength->setMin(4);
+        $titleLength->setMax(64);
+        $titleLength->setMessage('page_editmod_error_title_length_short', StringLength::TOO_SHORT);
+        $titleLength->setMessage('page_editmod_error_title_length_long', StringLength::TOO_LONG);
+        $titleValidator->attach($titleLength, true);
+        
+        $titleChars = new Regex(self::BASIC_LATIN_REGEXP);
+        $titleChars->setMessage('page_editmod_error_title_characters_forbidden', Regex::NOT_MATCH);
+        $titleValidator->attach($titleChars, true);
+        
+        // Summary
+        $summaryValidator = new ValidatorChain();
+        
+        $summaryLength = new StringLength();
+        $summaryLength->setMin(4);
+        $summaryLength->setMax(128);
+        $summaryLength->setMessage('page_editmod_error_summary_length_short', StringLength::TOO_SHORT);
+        $summaryLength->setMessage('page_editmod_error_summary_length_long', StringLength::TOO_LONG);
+        $summaryValidator->attach($summaryLength, true);
+        
+        $summaryChars = new Regex(self::BASIC_LATIN_REGEXP);
+        $summaryChars->setMessage('page_editmod_error_summary_characters_forbidden', Regex::NOT_MATCH);
+        $summaryValidator->attach($summaryChars, true);
+        
+        // Description
+        $descriptionRawValidator = new ValidatorChain();
+        
+//        $descriptionRawChars = new Regex(self::MARKDOWN_REGEXP); 
+//        $descriptionRawChars->setMessage('page_editmod_error_description_characters_forbidden', Regex::NOT_MATCH);
+//        $descriptionRawValidator->attach($descriptionRawChars, true);
+        
+        $descriptionRawLength = new StringLength();
+        $descriptionRawLength->setMin(4);
+        $descriptionRawLength->setMax(65535);
+        $descriptionRawLength->setMessage('page_editmod_error_description_length_short', StringLength::TOO_SHORT);
+        $descriptionRawLength->setMessage('page_editmod_error_description_length_long', StringLength::TOO_LONG);
+        $descriptionRawValidator->attach($descriptionRawLength, true);
+        
+        return [
+            'id' => $idValidator,
+            'isPublished' => $isPublishedValidator,
+            'title' => $titleValidator,
+            'summary' => $summaryValidator,
+            'descriptionRaw' => $descriptionRawValidator
+        ];
+    }
+    
+    /**
+     * Build the raw description validator
+     * 
+     * @return ValidatorChain
+     */
+    public function buildModDescriptionRawValidator()
+    {
+        $validator = new ValidatorChain();
+        
+        $descriptionLength = new StringLength();
+        $descriptionLength->setMax(65535);
+        $descriptionLength->setMessage('page_editmod_error_description_length_long', StringLength::TOO_LONG);
+        $validator->attach($descriptionLength, true);
+        
+//        $descriptionRawChars = new Regex(self::MARKDOWN_REGEXP); 
+//        $descriptionRawChars->setMessage('page_editmod_error_description_characters_forbidden', Regex::NOT_MATCH);
+//        $validator->attach($descriptionRawChars, true);
+        
+        return $validator;
     }
 }

@@ -42,7 +42,7 @@ class NewModManager {
         
         newModManager.setLoadingState(true);
         $('input[name="modName"]', newModManager.$createModForm).removeClass('is-invalid');
-        $('div.alert', newModManager.$createModForm).addClass('d-none');
+        $('div#error-message', newModManager.$createModForm).addClass('d-none');
         
         $.ajax(newModManager.$createModForm.attr('action'), {
             method: 'post',
@@ -67,7 +67,7 @@ class NewModManager {
             return;
         }
         
-        $('div.alert', newModManager.$createModForm).text(data.content).removeClass('d-none');
+        $('div#error-message', newModManager.$createModForm).text(data.content).removeClass('d-none');
         $('input[name="modName"]', newModManager.$createModForm).addClass('is-invalid');
         newModManager.setLoadingState(false);
         

@@ -35,12 +35,6 @@ use Ramsey\Uuid\DegradedUuid as Uuid;
  */
 class Mod
 {
-    /*
-     * Base game types
-     */
-    const BASE_GAME_UFO  = 0;
-    const BASE_GAME_TFTD = 1;
-    
     /**
      * Internal identifier
      * @var Uuid
@@ -67,14 +61,6 @@ class Mod
      * @ORM\Column(name="is_published", type="boolean", nullable=false)
      */
     private $isPublished = false;
-    
-    /**
-     * For which base game was this mod designed: 0 - UFO, 1 - TFTD
-     * @var integer
-     * 
-     * @ORM\Column(name="base_game", type="integer", nullable=false)
-     */
-    private $baseGame = self::BASE_GAME_UFO;
     
     /**
      * Mod title
@@ -139,6 +125,18 @@ class Mod
      * @ORM\Column(name="downloads", type="integer", nullable=false)
      */
     private $dowloads = 0;
+
+    /**
+     * The initial title, set when the entity is loaded, used to determine if the title was changed
+     * @var string 
+     */
+    private $initialTitle;
+    
+    /**
+     * The initial raw description, set when the entity is loaded, used to determine if the description was changed
+     * @var string 
+     */
+    private $initialDescriptionRaw;
     
     /**
      * Get the internal identifier
@@ -190,27 +188,6 @@ class Mod
     public function setIsPublished($isPublished)
     {
         $this->isPublished = $isPublished;
-    }
-
-    /**
-     * Get the base game type
-     * 
-     * @return integer
-     */
-    public function getBaseGame()
-    {
-        return $this->baseGame;
-    }
-
-    /**
-     * Set the base game type
-     * 
-     * @param integer $baseGame Game type
-     * @return void
-     */
-    public function setBaseGame($baseGame)
-    {
-        $this->baseGame = $baseGame;
     }
 
     /**
@@ -359,6 +336,30 @@ class Mod
     }
 
     /**
+     * Check if the mod title was changed
+     * 
+     * @return boolean
+     */
+    public function wasTitleChanged()
+    {
+        return $this->title !== $this->initialTitle;
+    }
+    
+    /**
+     * Check if the mod raw description was changed
+     * 
+     * @return boolean
+     */
+    public function wasDescriptionRawChanged()
+    {
+        if (strlen($this->descriptionRaw) != strlen($this->initialDescriptionRaw)) {
+            return true;
+        }
+        
+        return $this->descriptionRaw !== $this->initialDescriptionRaw;
+    }
+    
+    /**
      * PreUpdate callback
      * 
      * @return void
@@ -377,6 +378,19 @@ class Mod
         
         // Update the dateUpdated before every update
         $this->dateUpdated = $date;
+    }
+    
+    /**
+     * PostLoad callback
+     * 
+     * @return void
+     * @ORM\PrePersist
+     * @ORM\PostLoad
+     */
+    public function postLoad()
+    {
+        $this->initialTitle = $this->title;
+        $this->initialDescriptionRaw = $this->descriptionRaw;
     }
 }
 

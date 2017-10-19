@@ -26,7 +26,9 @@
         "zendframework/zend-mvc-plugin-flashmessenger": "^1.0",
         "zendframework/zend-permissions-acl": "^2.6",
         "ramsey/uuid-doctrine": "^1.4",
-        "behat/transliterator": "^1.2"
+        "behat/transliterator": "^1.2",
+        "erusev/parsedown": "^1.6",
+        "xemlock/htmlpurifier-html5": "^0.1.2"
     },
     "autoload": {
         "psr-4": {

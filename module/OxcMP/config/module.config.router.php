@@ -101,6 +101,17 @@ return [
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],
         ],
+        'save-mod' => [
+            'type'    => Segment::class,
+            'options' => [
+                'route'    => '/save-mod',
+                'defaults' => [
+                    'controller' => Controller\ModController::class,
+                    'action'     => 'save-mod',
+                ],
+                'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
+            ],
+        ],
         'preview-mod-slug' => [
             'type'    => Segment::class,
             'options' => [
@@ -108,6 +119,17 @@ return [
                 'defaults' => [
                     'controller' => Controller\ModController::class,
                     'action'     => 'preview-mod-slug',
+                ],
+                'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
+            ],
+        ],
+        'preview-mod-description' => [
+            'type'    => Segment::class,
+            'options' => [
+                'route'    => '/preview-mod-description',
+                'defaults' => [
+                    'controller' => Controller\ModController::class,
+                    'action'     => 'preview-mod-description',
                 ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],

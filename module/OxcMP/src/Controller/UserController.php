@@ -25,7 +25,6 @@ use Zend\Session\SessionManager;
 use Zend\Authentication\AuthenticationService;
 use Zend\Authentication\Result;
 use Zend\Config\Config;
-use OxcMP\Entity\User;
 use OxcMP\Service\User\UserRetrievalService;
 use OxcMP\Util\Log;
 
