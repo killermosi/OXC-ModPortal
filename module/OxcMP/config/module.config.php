@@ -22,7 +22,7 @@ return [
         'factories' => [
             Controller\IndexController::class => ModuleFactory::class,
             Controller\UserController::class  => ModuleFactory::class,
-            Controller\ModController::class   => ModuleFactory::class,
+            Controller\ModManagementController::class   => ModuleFactory::class,
         ],
     ],
     'controller_plugins' => [

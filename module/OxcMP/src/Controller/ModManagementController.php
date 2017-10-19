@@ -33,11 +33,11 @@ use OxcMP\Service\Mod\ModPersistenceService;
 use OxcMP\Util\Log;
 
 /**
- * Handle user mod-related actions
+ * Handle mod management actions
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class ModController extends AbstractController
+class ModManagementController extends AbstractController
 {
     /**
      * The authentication service

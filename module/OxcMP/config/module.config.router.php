@@ -73,7 +73,7 @@ return [
             'options' => [
                 'route'    => '/my-mods',
                 'defaults' => [
-                    'controller' => Controller\ModController::class,
+                    'controller' => Controller\ModManagementController::class,
                     'action'     => 'my-mods',
                 ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
@@ -84,7 +84,7 @@ return [
             'options' => [
                 'route'    => '/add-mod',
                 'defaults' => [
-                    'controller' => Controller\ModController::class,
+                    'controller' => Controller\ModManagementController::class,
                     'action'     => 'add-mod',
                 ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
@@ -95,7 +95,7 @@ return [
             'options' => [
                 'route'    => '/edit-mod/[:modUuid]',
                 'defaults' => [
-                    'controller' => Controller\ModController::class,
+                    'controller' => Controller\ModManagementController::class,
                     'action'     => 'edit-mod',
                 ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
@@ -106,7 +106,7 @@ return [
             'options' => [
                 'route'    => '/save-mod',
                 'defaults' => [
-                    'controller' => Controller\ModController::class,
+                    'controller' => Controller\ModManagementController::class,
                     'action'     => 'save-mod',
                 ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
@@ -117,7 +117,7 @@ return [
             'options' => [
                 'route'    => '/preview-mod-slug',
                 'defaults' => [
-                    'controller' => Controller\ModController::class,
+                    'controller' => Controller\ModManagementController::class,
                     'action'     => 'preview-mod-slug',
                 ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
@@ -128,7 +128,7 @@ return [
             'options' => [
                 'route'    => '/preview-mod-description',
                 'defaults' => [
-                    'controller' => Controller\ModController::class,
+                    'controller' => Controller\ModManagementController::class,
                     'action'     => 'preview-mod-description',
                 ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]

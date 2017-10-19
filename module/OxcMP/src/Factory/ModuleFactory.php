@@ -83,7 +83,7 @@ class ModuleFactory implements FactoryInterface
             
             case Controller\IndexController::class:
                 return new $requestedName();
-            case Controller\ModController::class:
+            case Controller\ModManagementController::class:
                 return new $requestedName(
                     $container->get(AuthenticationService::class),
                     $container->get(Service\Mod\ModRetrievalService::class),
