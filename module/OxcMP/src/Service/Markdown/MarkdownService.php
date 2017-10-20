@@ -93,12 +93,28 @@ class MarkdownService extends Parsedown
     {
         $table = parent::blockTable($line, $block);
         
-        if (!empty($table)) {
+        if (is_array($table) && !empty($table)) {
             $table['element']['attributes']['class'] = 'table table-bordered table-hover';
         }
         
         return $table;
     }
+    /**
+     * Decorate a quote with additional CSS
+     * 
+     * @param string $line The quote line
+     * @return string
+     */
+    protected function blockQuote($line) {
+        $quote = parent::blockQuote($line);
+        
+        if (is_array($quote) && !empty($quote)) {
+            $quote['element']['attributes']['class'] = 'blockquote';
+        }
+        
+        return $quote;
+    }
+
     
     /**
      * Create (and configure) a new HTMLPurifier instance

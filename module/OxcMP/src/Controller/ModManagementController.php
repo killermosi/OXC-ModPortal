@@ -543,7 +543,7 @@ class ModManagementController extends AbstractController
         
         return [
             'id' => $request->getPost('id', ''),
-            'title' => $filters['title']->filter($request->getPost('id', '')),
+            'title' => $filters['title']->filter($request->getPost('title', '')),
             'summary' => $filters['summary']->filter($request->getPost('summary', '')),
             'isPublished' => $request->getPost('isPublished', ''),
             'descriptionRaw' => $filters['descriptionRaw']->filter($request->getPost('descriptionRaw', ''))
