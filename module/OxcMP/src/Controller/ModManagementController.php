@@ -521,7 +521,7 @@ class ModManagementController extends AbstractController
         } else {
             $translation = $this->translate(
                 'page_mymods_description_published_and_unpublished_mods',
-                $published,
+                $published + $unpublished,
                 $unpublished
             );
         }

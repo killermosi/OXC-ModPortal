@@ -115,7 +115,6 @@ class MarkdownService extends Parsedown
         return $quote;
     }
 
-    
     /**
      * Create (and configure) a new HTMLPurifier instance
      * 
