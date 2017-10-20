@@ -71,7 +71,7 @@ return [
         'my-mods' => [
             'type'    => Segment::class,
             'options' => [
-                'route'    => '/my-mods',
+                'route'    => '/mod-management',
                 'defaults' => [
                     'controller' => Controller\ModManagementController::class,
                     'action'     => 'my-mods',
@@ -82,7 +82,7 @@ return [
         'add-mod' => [
             'type'    => Segment::class,
             'options' => [
-                'route'    => '/add-mod',
+                'route'    => '/mod-management/add-mod',
                 'defaults' => [
                     'controller' => Controller\ModManagementController::class,
                     'action'     => 'add-mod',
@@ -93,7 +93,7 @@ return [
         'edit-mod' => [
             'type'    => Segment::class,
             'options' => [
-                'route'    => '/edit-mod/[:modUuid]',
+                'route'    => '/mod-management/edit-mod/[:modUuid]',
                 'defaults' => [
                     'controller' => Controller\ModManagementController::class,
                     'action'     => 'edit-mod',
@@ -104,7 +104,7 @@ return [
         'save-mod' => [
             'type'    => Segment::class,
             'options' => [
-                'route'    => '/save-mod',
+                'route'    => '/mod-management/save-mod',
                 'defaults' => [
                     'controller' => Controller\ModManagementController::class,
                     'action'     => 'save-mod',
@@ -126,7 +126,7 @@ return [
         'preview-mod-description' => [
             'type'    => Segment::class,
             'options' => [
-                'route'    => '/preview-mod-description',
+                'route'    => '/mod-management/preview-mod-description',
                 'defaults' => [
                     'controller' => Controller\ModManagementController::class,
                     'action'     => 'preview-mod-description',
