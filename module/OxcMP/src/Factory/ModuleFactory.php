@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright © 2016-2017 OpenXcom Mod Portal Contributors
+ * Copyright © 2016-2017 OpenXcom Mod Portal Developers
  *
  * This file is part of OpenXcom Mod Portal.
  *
@@ -30,6 +30,7 @@ use Zend\ServiceManager\Exception\ServiceNotCreatedException;
 use Zend\ServiceManager\Exception\ServiceNotFoundException;
 use Zend\Config\Config;
 use OxcMP\Service;
+use OxcMP\Util;
 use OxcMP\Controller;
 use OxcMP\View;
 use OxcMP\Util\Log;
@@ -77,6 +78,7 @@ class ModuleFactory implements FactoryInterface
     private function createObject(ContainerInterface $container, $requestedName, array $options = null)
     {
         switch ($requestedName) {
+            
             /*******************/
             /**  CONTROLLERS  **/
             /*******************/
@@ -88,6 +90,7 @@ class ModuleFactory implements FactoryInterface
                     $container->get(AuthenticationService::class),
                     $container->get(Service\Mod\ModRetrievalService::class),
                     $container->get(Service\Mod\ModPersistenceService::class),
+                    $container->get(Service\Tag\TagRetrievalService::class),
                     $container->get(Service\Markdown\MarkdownService::class),
                     $container->get(Config::class)
                 );
@@ -128,6 +131,10 @@ class ModuleFactory implements FactoryInterface
                 );
             case Service\Module\ModuleService::class:
                 return new $requestedName();
+            case Service\Tag\TagRetrievalService::class:
+                return new $requestedName(
+                    $container->get('doctrine.entitymanager.orm_default')
+                );
             case Service\User\UserPersistenceService::class:
                 return new $requestedName(
                     $container->get('doctrine.entitymanager.orm_default'),
@@ -156,6 +163,7 @@ class ModuleFactory implements FactoryInterface
                     ),
                     $container->get(Service\Authentication\AuthenticationAdapter::class)
                 );
+                
             /********************/
             /**  VIEW HELPERS  **/
             /********************/
@@ -165,9 +173,19 @@ class ModuleFactory implements FactoryInterface
                     $container->get(Config::class)
                 );
                 
+            /*************************/
+            /**  UTILITY RESOURCES  **/
+            /*************************/
+                
+            case Util\Resource\DoctrineLog::class:
+                return new $requestedName(
+                    $container->get(Config::class)
+                );
+                
             /***************/
             /**  WHOOPS!  **/
             /***************/
+                
             default:
                 Log::notice('No service definition for "', $requestedName, '"');
                 throw new ServiceNotFoundException();

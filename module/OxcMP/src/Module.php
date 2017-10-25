@@ -22,7 +22,6 @@
 namespace OxcMP;
 
 use Zend\Mvc\Application;
-use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Mvc\MvcEvent;
 use Zend\Session\SessionManager;
 use Zend\Config\Config;
@@ -58,6 +57,7 @@ class Module
         'log.enabled' => 'log.enabled',
         'log.file'    => 'log.stream',
         'log.level'   => 'log.priority',
+        'log.sql'     => 'log.sql',
         // oAuth parameters
         'oauth.url' => 'layout.oAuthUrl'
     ];

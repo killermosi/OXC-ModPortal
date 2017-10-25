@@ -6,6 +6,8 @@
     
     $this->headScript()->appendFile($this->url('home', [], ['force_canonical' => true]) . 'js/edit-mod.js');
     $modDescriptionHelpText = sprintf($this->translate('page_editmod_form_description_help'), $gitHubFlavoredMarkdownGuideUrl);
+    
+
 
 ?>
 <form name="editMod" id="editMod" class="p-2" action="<?php echo $this->url('save-mod',[], ['force_canonical' => true]) ?>" method="post" autocomplete="off" enctype="text/plain" novalidate data-slug-preview-action="<?php echo $this->url('preview-mod-slug',[], ['force_canonical' => true]) ?>" data-description-preview-action="<?php echo $this->url('preview-mod-description',[], ['force_canonical' => true]) ?>">
@@ -63,6 +65,12 @@
                     <div id="description-preview-content" class="h-100 overflow-y-auto"><?php echo $mod->getDescription(); echo PHP_EOL; ?></div>
                 </div>
             </div>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-sm-12 col-md-6">
+        </div>
+        <div class="form-group col-sm-12 col-md-6">
         </div>
     </div>
     <div class="modal-footer">

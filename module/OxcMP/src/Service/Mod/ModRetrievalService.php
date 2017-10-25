@@ -53,12 +53,12 @@ class ModRetrievalService
     }
     
     /**
-     * Find a mod by its internal identifier
+     * Retrieve a mod by its internal identifier
      * 
      * @param Uuid $uuid The internal identifier
      * @return null|Mod
      */
-    public function findModById(Uuid $uuid)
+    public function getModById(Uuid $uuid)
     {
         Log::info('Trying to retrieve the mod having the ID: ', $uuid->toString());
         
@@ -79,7 +79,7 @@ class ModRetrievalService
      * @param string $slug The mod slug
      * @return Mod
      */
-    public function findModBySlug($slug)
+    public function getModBySlug($slug)
     {
         Log::info('Trying to retrieve the mod having the slug: ', $slug);
         

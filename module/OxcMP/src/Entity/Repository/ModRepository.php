@@ -69,7 +69,8 @@ class ModRepository extends EntityRepository
             ->setParameter('userId', $userId);
         
         if ($publishedModsOnly) {
-            $queryBuilder->andWhere('m.isPublished = 1');
+            $queryBuilder->andWhere('m.isPublished = :isPublished');
+            $queryBuilder->setParameter('isPublished', true);
         }
         
         return $queryBuilder->getQuery()->getResult();

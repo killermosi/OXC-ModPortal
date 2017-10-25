@@ -26,7 +26,7 @@ use Zend\Log\Logger;
 use Zend\Log\Writer\Stream;
 use Zend\Log\Filter\Priority;
 use Zend\Log\Formatter\Simple;
-use OxcMP\Util\SupportCode\LogProcessor;
+use OxcMP\Util\Resource\LogProcessor;
 
 /**
  * Module Logger

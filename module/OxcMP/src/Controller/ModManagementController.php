@@ -30,6 +30,7 @@ use OxcMP\Entity\Mod;
 use OxcMP\Service\Markdown\MarkdownService;
 use OxcMP\Service\Mod\ModRetrievalService;
 use OxcMP\Service\Mod\ModPersistenceService;
+use OxcMP\Service\Tag\TagRetrievalService;
 use OxcMP\Util\Log;
 
 /**
@@ -58,6 +59,12 @@ class ModManagementController extends AbstractController
     private $modPersistenceService;
     
     /**
+     * The tag retrieval service
+     * @var TagRetrievalService 
+     */
+    private $tagRetrievalService;
+    
+    /**
      * The Markdown service
      * @var MarkdownService 
      */
@@ -68,6 +75,7 @@ class ModManagementController extends AbstractController
      * @var Config 
      */
     private $config;
+    
     /**
      * Class initialization
      * 
@@ -81,6 +89,7 @@ class ModManagementController extends AbstractController
         AuthenticationService $authenticationService,
         ModRetrievalService $modRetrievalService,
         ModPersistenceService $modPersistenceService,
+        TagRetrievalService $tagRetrievalService,
         MarkdownService $markdownService,
         Config $config
     ) {
@@ -89,6 +98,7 @@ class ModManagementController extends AbstractController
         $this->authenticationService = $authenticationService;
         $this->modRetrievalService   = $modRetrievalService;
         $this->modPersistenceService = $modPersistenceService;
+        $this->tagRetrievalService   = $tagRetrievalService;
         $this->markdownService       = $markdownService;
         $this->config                = $config;
     }
@@ -196,7 +206,7 @@ class ModManagementController extends AbstractController
         }
         
         // Retrieve the mod from the database
-        $mod = $this->modRetrievalService->findModById(Uuid::fromString($modUuid));
+        $mod = $this->modRetrievalService->getModById(Uuid::fromString($modUuid));
         
         if (!$mod instanceof Mod) {
             Log::notice('The mod having the UUID "', $modUuid, '" could not be found, redirecting to "my-mods" page');
@@ -225,6 +235,7 @@ class ModManagementController extends AbstractController
         
         // Assign data to view
         $this->view->mod = $mod;
+        $this->view->tags = $this->tagRetrievalService->getAllTags();
         $this->view->gitHubFlavoredMarkdownGuideUrl = $this->config->layout->gitHubFlavoredMarkdownGuideUrl;
         
         return $this->view;
@@ -282,7 +293,7 @@ class ModManagementController extends AbstractController
         
         // Retrieve the mod
         $modId = $updateData['id'];
-        $mod = $this->modRetrievalService->findModById(Uuid::fromString($modId));
+        $mod = $this->modRetrievalService->getModById(Uuid::fromString($modId));
         
         if (!$mod instanceof Mod) {
             Log::notice('Could not find a mod having the UUID ', $modId);
@@ -393,7 +404,7 @@ class ModManagementController extends AbstractController
         }
         
         // Retrieve the mod
-        $mod = $this->modRetrievalService->findModById(Uuid::fromString($modId));
+        $mod = $this->modRetrievalService->getModById(Uuid::fromString($modId));
         
         if (!$mod instanceof Mod) {
             Log::notice('Could not find a mod having the UUID ', $modId);
@@ -460,7 +471,7 @@ class ModManagementController extends AbstractController
         }
         
         // Retrieve the mod
-        $mod = $this->modRetrievalService->findModById(Uuid::fromString($modId));
+        $mod = $this->modRetrievalService->getModById(Uuid::fromString($modId));
         
         if (!$mod instanceof Mod) {
             Log::notice('Could not find a mod having the UUID ', $modId);

@@ -41,26 +41,32 @@ return [
             
             /* Local-defined services */
             // ACL
-            Service\Acl\AclService::class => ModuleFactory::class,
+            Service\Acl\AclService::class                       => ModuleFactory::class,
             // Authentication
             Service\Authentication\AuthenticationAdapter::class => ModuleFactory::class,
             // Markdown
-            Service\Markdown\MarkdownService::class => ModuleFactory::class,
+            Service\Markdown\MarkdownService::class             => ModuleFactory::class,
             // Mod
-            Service\Mod\ModRetrievalService::class => ModuleFactory::class,
-            Service\Mod\ModPersistenceService::class => ModuleFactory::class,
+            Service\Mod\ModRetrievalService::class              => ModuleFactory::class,
+            Service\Mod\ModPersistenceService::class            => ModuleFactory::class,
             // Module
-            Service\Module\ModuleService::class => ModuleFactory::class,
+            Service\Module\ModuleService::class                 => ModuleFactory::class,
+            // Tag
+            Service\Tag\TagRetrievalService::class              => ModuleFactory::class,
             // User
-            Service\User\UserPersistenceService::class => ModuleFactory::class,
-            Service\User\UserRetrievalService::class   => ModuleFactory::class,
-            Service\User\UserRemoteService::class      => ModuleFactory::class,
+            Service\User\UserPersistenceService::class          => ModuleFactory::class,
+            Service\User\UserRetrievalService::class            => ModuleFactory::class,
+            Service\User\UserRemoteService::class               => ModuleFactory::class,
             
             /* Framework-defined services */
             // Config
-            Config::class => ModuleFactory::class,
+            Config::class                                       => ModuleFactory::class,
             // Authentication
-            AuthenticationService::class => ModuleFactory::class,
+            AuthenticationService::class                        => ModuleFactory::class,
+            
+            /* Utility resources */
+            // Doctrine log
+            Util\Resource\DoctrineLog::class                    => ModuleFactory::class
         ],
     ],
     'view_manager' => [
@@ -147,7 +153,8 @@ return [
             'orm_default' => [
                 'types' => [
                     UuidType::NAME => UuidType::class
-                ]
+                ],
+                'sql_logger' => Util\Resource\DoctrineLog::class
             ]
         ],
         'driver' => [
@@ -190,7 +197,8 @@ return [
     'log' => [
         'enabled' => false,
         'stream' => '/tmp/ocxmp.log',
-        'priority' => Logger::WARN
+        'priority' => Logger::WARN,
+        'sql' => false,
     ],
     'oxcForumApi' => [
         'url' => 'https://www.openxcom.org/OxcMpOauth.php',

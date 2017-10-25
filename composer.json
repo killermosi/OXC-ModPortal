@@ -2,7 +2,7 @@
     "name": "killermosi/oxc-mp",
     "description": "OpenXcom Mod Portal",
     "type": "project",
-    "license": "BSD-3-Clause",
+    "license": "GNU General Public License version 3",
     "keywords": [
         "openxcom",
         "xcom",

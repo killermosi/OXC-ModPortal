@@ -19,48 +19,49 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OxcMP\Entity;
+namespace OxcMP\Service\Tag;
 
-use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\EntityManager;
+use OxcMP\Entity\Tag;
+use OxcMP\Util\Log;
 
 /**
- * Tag Entity
+ * Tag retrieval service
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
- * 
- * @ORM\Entity
- * @ORM\Table(name="tag")
  */
-class Tag
-{
+class TagRetrievalService {
     /**
-     * Tag
-     * @var string
-     * 
-     * @ORM\Id
-     * @ORM\Column(name="tag", type="string", length=32, nullable=false)
+     * The Entity Manager
+     * @var EntityManager 
      */
-    private $tag;
+    private $entityManager;
     
     /**
-     * Get the tag
-     * @return type
-     */
-    public function getTag()
-    {
-        return $this->tag;
-    }
-
-    /**
-     * Set the tag
+     * Class initialization
      * 
-     * @param string $tag The tag
-     * @return void
+     * @param EntityManager $entityManager The entity manager
      */
-    public function setTag($tag)
+    public function __construct(EntityManager $entityManager)
     {
-        $this->tag = $tag;
+        Log::info('Initializing TagRetrievalService');
+        
+        $this->entityManager = $entityManager;
+    }
+    
+    /**
+     * Retrieve all available tags
+     * 
+     * @return array
+     */
+    public function getAllTags()
+    {
+        Log::info('Retrieving all available tags');
+        
+        $tags = $this->entityManager->getRepository(Tag::class)->findAll();
+        
+        Log::debug('Retrieved ', count($tags), ' tag(s)');
+        
+        return $tags;
     }
 }
-
-/* EOF */
