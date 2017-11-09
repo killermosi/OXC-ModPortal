@@ -29,7 +29,9 @@ use Ramsey\Uuid\DegradedUuid as Uuid;
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  * 
+ * @ORM\Entity
  * @ORM\Table(name="mod_tag")
+ * @ORM\Entity(repositoryClass="\OxcMP\Entity\Repository\ModTagRepository")
  */
 class ModTag
 {

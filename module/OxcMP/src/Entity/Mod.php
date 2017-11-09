@@ -29,9 +29,9 @@ use Ramsey\Uuid\DegradedUuid as Uuid;
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  * 
- * @ORM\Entity(repositoryClass="\OxcMP\Entity\Repository\ModRepository")
  * @ORM\Table(name="mod_data")
  * @ORM\HasLifecycleCallbacks
+ * @ORM\Entity(repositoryClass="\OxcMP\Entity\Repository\ModRepository")
  */
 class Mod
 {

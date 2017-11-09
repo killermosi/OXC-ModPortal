@@ -1,14 +1,22 @@
 <?php
-    use OxcMP\Entity\Mod;
-    
-    /* @var $mod Mod  */
+    /* @var $mod \OxcMP\Entity\Mod  */
+    /* @var $tag \OxcMP\Entity\Tag  */
+    /* @var $modTag \OxcMP\Entity\ModTag  */
     /* @var $gitHubFlavoredMarkdownGuideUrl string */
     
     $this->headScript()->appendFile($this->url('home', [], ['force_canonical' => true]) . 'js/edit-mod.js');
     $modDescriptionHelpText = sprintf($this->translate('page_editmod_form_description_help'), $gitHubFlavoredMarkdownGuideUrl);
     
-
-
+    $availableTagNames = [];
+    foreach ($tags as $tag) {
+        $availableTagNames[] = $tag->getTag();
+    }
+    
+    $selectedTagNames = [];
+    foreach ($modTags as $modTag) {
+        $selectedTagNames[] = $modTag->getTag();
+    }
+    
 ?>
 <form name="editMod" id="editMod" class="p-2" action="<?php echo $this->url('save-mod',[], ['force_canonical' => true]) ?>" method="post" autocomplete="off" enctype="text/plain" novalidate data-slug-preview-action="<?php echo $this->url('preview-mod-slug',[], ['force_canonical' => true]) ?>" data-description-preview-action="<?php echo $this->url('preview-mod-description',[], ['force_canonical' => true]) ?>">
     <input type="hidden" name="id" id="id" value="<?php echo $mod->getId()->toString(); ?>"/>
@@ -69,8 +77,24 @@
     </div>
     <div class="form-row">
         <div class="form-group col-sm-12 col-md-6">
+            <label><?php echo $this->translate('page_editmod_form_tags_selected_title')?></label>
+            <div id="tag-select-none" class="form-text text-muted pl-3 pt-1 pb-2 d-none">
+                <?php echo $this->translate('page_editmod_form_tags_selected_none'); ?>
+            </div>
+            <div id="tag-select" class="pb-1" data-selected="<?php echo implode(',', $selectedTagNames); ?>">
+                <a href="#" name="my-tag" class="badge badge-primary p-2 mb-2 mr-2">my-tag</a>
+            </div>
+            <small class="form-text text-muted"><?php echo $this->translate('page_editmod_form_tags_selected_help'); ?></small>
         </div>
         <div class="form-group col-sm-12 col-md-6">
+            <label for="tag-search"><?php echo $this->translate('page_editmod_form_tags_search_title'); ?></label>
+            <input class="form-control" type="text" id="tag-search" aria-described-by="tag-search-help" placeholder="<?php echo $this->translate('page_editmod_form_tags_search_placeholder'); ?>" data-available="<?php echo implode(',', $availableTagNames);?>" />
+            <div id="tag-search-result" class="d-none">
+                <div class="border rounded px-2 pt-2">
+                    <a href="#" name="my-tag" class="badge badge-primary p-2 mr-2 mb-2">my-tag</a>
+                </div>
+            </div>
+            <small id="tag-search-help" class="form-text text-muted"><?php echo $this->translate('page_editmod_form_tags_search_help'); ?></small>
         </div>
     </div>
     <div class="modal-footer">

@@ -21,9 +21,11 @@ class EditModManager {
     /**
      * Setup mod editing
      * 
+     * @param {TagManager} tagManager The tag manager
      * @returns {EditModManager}
      */
-    constructor() {
+    constructor(tagManager) {
+        this.tagManager = tagManager;
         /*
          * A list of newly uploaded mod files and their properties, indexed by their UUID
          * this.createdFiles = {
@@ -66,7 +68,7 @@ class EditModManager {
         // Set the slug preview timer on every keyup event
         $('input#title', this.$editModForm).keyup(this.setSlugPreviewTimer);
         
-        // Preview mod description on every preview tab focus
+        // Preview mod description on preview tab focus, if needed
         this.wasDescriptionChanged = false;
         this.wasDescriptionPreviewStarted = false;
         $('textarea#descriptionRaw', this.$editModForm).change(function(){editModManager.wasDescriptionChanged = true;});
@@ -206,7 +208,8 @@ class EditModManager {
                 title: $('input#title', editModManager.$editModForm).val(),
                 isPublished: $('input[name=isPublished]:checked', editModManager.$editModForm).val(),
                 summary:  $('textarea#summary', editModManager.$editModForm).val(),
-                descriptionRaw:  $('textarea#descriptionRaw', editModManager.$editModForm).val()
+                descriptionRaw:  $('textarea#descriptionRaw', editModManager.$editModForm).val(),
+                tags: editModManager.tagManager.selectedTags.join(',')
             },
             dataType: 'json'
         })
@@ -262,6 +265,164 @@ class EditModManager {
             $('div#progress', editModManager.$editModForm).addClass('d-none');
         }
     }
+    
+
 }
 
-var editModManager = new EditModManager();
+class TagManager {
+    /**
+     * Setup tag editing
+     * 
+     * @returns {TagManager}
+     */
+    constructor () {
+        // Form elements
+        this.$editModForm = $('form#editMod');
+        this.$tagSelect = $('div#tag-select', this.$editModForm);
+        this.$tagSelectNone = $('div#tag-select-none', this.$editModForm);
+        this.$tagSearch = $('input#tag-search', this.$editModForm);
+        this.$tagSearchResultContainer = $('div#tag-search-result', this.$editModForm)
+        this.$tagSearchResultPanel = $('div', this.$tagSearchResultContainer)
+        
+        this.selectedTags = this.$tagSelect.data('selected').length !== 0
+            ? this.$tagSelect.data('selected').split(',')
+            : [];
+        this.availableTags = this.$tagSearch.data('available').split(',');
+            
+        this.searchResult = [];
+        
+        // Don't submit the form on enter when searching for tags
+        this.$tagSearch.keypress(function(event){
+            if (event.which === 13) {
+                event.preventDefault();
+            }
+        });
+        
+        this.$tagSearch.keyup(this.searchTag);
+        
+        // Render inital tags
+        this.renderTagSelection(this);
+    }
+    
+    /**
+     * Search for tags matching the entered text
+     * 
+     * @param {event} event The event
+     * @returns {Boolean}
+     */
+    searchTag(event) {
+        // On Enter, add the first tag in the results list (if any) to the selected tags.
+        if (event.which === 13) {
+           console.log('auto add');
+           return;
+        }
+        
+        var searchTerm = tagManager.$tagSearch.val().trim();
+        tagManager.$tagSearch.val(searchTerm);
+        // Search for matching tags
+        var searchResult = [];
+
+        if (searchTerm.length !== 0) {
+            tagManager.availableTags.forEach(function(tag){
+                if (
+                    (tag.includes(searchTerm) === true || searchTerm === '*')
+                    && tagManager.selectedTags.indexOf(tag) === -1
+                ) {
+                    searchResult.push(tag);
+                }
+            });
+        }
+        
+        if (tagManager.searchResult.toString() === searchResult.toString()) {
+            return;
+        }
+
+        tagManager.searchResult = searchResult;
+        
+        tagManager.renderTagSearch();
+    }
+    
+    /**
+     * Render the searched tags on the form
+     * 
+     * @returns {undefined}
+     */
+    renderTagSearch () {
+        if (tagManager.searchResult.length === 0) {
+            tagManager.$tagSearchResultContainer.addClass('d-none');
+            return;
+        }
+        
+        tagManager.$tagSearchResultPanel.empty();
+        tagManager.$tagSearchResultContainer.removeClass('d-none');
+
+        tagManager.searchResult.forEach(function(tag){
+            var $tag = $('<a />', {href: '#', class: 'badge badge-primary p-2 mr-2 mb-2'});
+            $tag.text(tag);
+            $tag.click(tagManager.selectTag);
+            tagManager.$tagSearchResultPanel.append($tag);
+        });
+    }
+    
+    /**
+     * Render the selected tags on the form
+     * 
+     * @param {TagManager} tm The tag manager
+     * @returns {undefined}
+     */
+    renderTagSelection (tm) {
+        if (tm.selectedTags.length === 0) {
+            tm.$tagSelect.addClass('d-none');
+            tm.$tagSelectNone.removeClass('d-none');
+            return;
+        }
+        
+        tm.$tagSelect.removeClass('d-none').empty();
+        tm.$tagSelectNone.addClass('d-none');
+        
+        tm.selectedTags.forEach(function(tag){
+            var $tag = $('<a />', {href: '#', class: 'badge badge-primary p-2 mr-2 mb-2'});
+            $tag.text(tag);
+            $tag.click(tm.removeTag);
+            tm.$tagSelect.append($tag);
+        });
+    }
+    
+    /**
+     * Add a tag to the selected tags list
+     * 
+     * @param {event} event The event
+     * @returns {undefined}
+     */
+    selectTag(event) {
+        event.preventDefault();
+        var $tag = $(event.target);
+        
+        tagManager.selectedTags.push($tag.text());
+        tagManager.selectedTags.sort();
+        tagManager.$tagSearch.val('').keyup();
+        tagManager.renderTagSelection(tagManager);
+    }
+    
+    /**
+     * Remove the tag from the selected tags list
+     * 
+     * @param {type} event The event
+     * @returns {undefined}
+     */
+    removeTag (event) {
+        event.preventDefault();
+        var $tag = $(event.target);
+        
+        var index = tagManager.selectedTags.indexOf($tag.text());
+        tagManager.selectedTags.splice(index, 1);
+        
+        // Update the search panel, if open
+        tagManager.renderTagSelection(tagManager);
+        
+        tagManager.$tagSearch.keyup();
+    }
+}
+
+var tagManager = new TagManager();
+var editModManager = new EditModManager(tagManager);

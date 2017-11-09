@@ -27,9 +27,12 @@ use Zend\View\Model\ViewModel;
 use Zend\Authentication\AuthenticationService;
 use Zend\Config\Config;
 use OxcMP\Entity\Mod;
+use OxcMP\Entity\ModTag;
+use OxcMP\Entity\Tag;
 use OxcMP\Service\Markdown\MarkdownService;
 use OxcMP\Service\Mod\ModRetrievalService;
 use OxcMP\Service\Mod\ModPersistenceService;
+use OxcMP\Service\ModTag\ModTagRetrievalService;
 use OxcMP\Service\Tag\TagRetrievalService;
 use OxcMP\Util\Log;
 
@@ -59,6 +62,12 @@ class ModManagementController extends AbstractController
     private $modPersistenceService;
     
     /**
+     * The mod tag retrieval service
+     * @var ModTagRetrievalService
+     */
+    private $modTagRetrievalService;
+    
+    /**
      * The tag retrieval service
      * @var TagRetrievalService 
      */
@@ -79,28 +88,31 @@ class ModManagementController extends AbstractController
     /**
      * Class initialization
      * 
-     * @param AuthenticationService $authenticationService The authentication service
-     * @param ModRetrievalService   $modRetrievalService   The mod retrieval service
-     * @param ModPersistenceService $modPersistenceService The mod persistence service
-     * @param MarkdownService       $markdownService       The markdown service
-     * @param Config                $config                The configuration
+     * @param AuthenticationService  $authenticationService  The authentication service
+     * @param ModRetrievalService    $modRetrievalService    The mod retrieval service
+     * @param ModPersistenceService  $modPersistenceService  The mod persistence service
+     * @param ModTagRetrievalService $modTagRetrievalService The mod tag retrieval service
+     * @param MarkdownService        $markdownService        The markdown service
+     * @param Config                 $config                 The configuration
      */
     function __construct(
         AuthenticationService $authenticationService,
         ModRetrievalService $modRetrievalService,
         ModPersistenceService $modPersistenceService,
+        ModTagRetrievalService $modTagRetrievalService,
         TagRetrievalService $tagRetrievalService,
         MarkdownService $markdownService,
         Config $config
     ) {
         parent::__construct();
         
-        $this->authenticationService = $authenticationService;
-        $this->modRetrievalService   = $modRetrievalService;
-        $this->modPersistenceService = $modPersistenceService;
-        $this->tagRetrievalService   = $tagRetrievalService;
-        $this->markdownService       = $markdownService;
-        $this->config                = $config;
+        $this->authenticationService  = $authenticationService;
+        $this->modRetrievalService    = $modRetrievalService;
+        $this->modPersistenceService  = $modPersistenceService;
+        $this->modTagRetrievalService = $modTagRetrievalService;
+        $this->tagRetrievalService    = $tagRetrievalService;
+        $this->markdownService        = $markdownService;
+        $this->config                 = $config;
     }
 
     /**
@@ -236,6 +248,7 @@ class ModManagementController extends AbstractController
         // Assign data to view
         $this->view->mod = $mod;
         $this->view->tags = $this->tagRetrievalService->getAllTags();
+        $this->view->modTags = $this->modTagRetrievalService->getModTags($mod);
         $this->view->gitHubFlavoredMarkdownGuideUrl = $this->config->layout->gitHubFlavoredMarkdownGuideUrl;
         
         return $this->view;
@@ -263,11 +276,12 @@ class ModManagementController extends AbstractController
         // Collect and validate update data
         $updateData = $this->collectModUpdateData();
         $updateValidator = (new SupportCode\ModValidator())->buildModUpdateValidator();
-        
-        // These fields are not directly editable by the user and should not ever fail validation
+
+        // These fields are not directly editable by the user and should never fail validation
         $hardFail = [
             'id',
-            'isPublished'
+            'isPublished',
+            'tags'
         ];
         
         foreach ($updateData as $fieldName => $data) {
@@ -340,7 +354,14 @@ class ModManagementController extends AbstractController
         }
         
         try {
-            $this->modPersistenceService->updateMod($mod);
+            $modTags = $this->buildTagsArray($mod, $updateData['tags']);
+        } catch (\Exception $exc) {
+            $result->content = $this->translate('global_bad_request');
+            return $result;
+        }
+        
+        try {
+            $this->modPersistenceService->updateMod($mod, $modTags);
         } catch (\Exception $exc) {
             Log::notice('Unexpected error while updating the mod entity:', $exc->getMessage());
             $result->content = $this->translate('page_editmod_error_unknown');
@@ -557,8 +578,50 @@ class ModManagementController extends AbstractController
             'title' => $filters['title']->filter($request->getPost('title', '')),
             'summary' => $filters['summary']->filter($request->getPost('summary', '')),
             'isPublished' => $request->getPost('isPublished', ''),
-            'descriptionRaw' => $filters['descriptionRaw']->filter($request->getPost('descriptionRaw', ''))
+            'descriptionRaw' => $filters['descriptionRaw']->filter($request->getPost('descriptionRaw', '')),
+            'tags' => $request->getPost('tags', '')
         ];
+    }
+    
+    /**
+     * Build a ModTag array for the specified mod
+     * 
+     * @param Mod    $mod  The mod entity
+     * @param string $tagNames The tags list, comma separated
+     * @return array
+     * @throw \Exception
+     */
+    private function buildTagsArray(Mod $mod, $tagNames)
+    {
+        Log::info('Building ModTag list');
+        
+        if (empty($tagNames)) {
+            return [];
+        }
+        
+        // The ModTag list
+        $tagList = [];
+        
+        foreach (explode(',', $tagNames) as $tagName) {
+            $tag = $this->tagRetrievalService->getTag($tagName);
+            
+            if (!$tag instanceof Tag) {
+                Log::notice('The tag having the name "', $tagName, '" could not be found');
+                throw new \Exception('Tag not found');
+            }
+            
+            $modTag = new ModTag();
+            $modTag->setModId($mod->getId());
+            $modTag->setTag($tagName);
+            
+            $tagList[] = $modTag;
+            
+            unset($modTag);
+        }
+        
+        Log::info('Done building ModTag list: ', count($tagList), ' item(s)');
+        
+        return $tagList;
     }
 }
 

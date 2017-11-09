@@ -34,7 +34,7 @@ use Zend\Validator\Uuid;
 class ModValidator {
     /**
      * Regexp for "Latin letters, numbers and basic punctuation" validation
-     * @TODO: improve it
+     * @TODO: improve character range
      * @var string
      */
     const BASIC_LATIN_REGEXP = '/^[A-Za-z0-9 _:\-\.\/\*\(\)\&]*$/';
@@ -45,6 +45,13 @@ class ModValidator {
      * @var string
      */
     const MARKDOWN_REGEXP = '/^[A-Za-z0-9 _:\-\.\/\*\s]+$/';
+    
+    /**
+     * Regexp for tags list (letters, numbers, dashes, commas, must not start or end with a dash or comma
+     * or an empty string)
+     * @var string
+     */
+    const TAGS_REGEXP = '/^$|^[A-Za-z0-9]+$|^[A-Za-z0-9][A-Za-z0-9,\-]*[A-Za-z0-9]$/';
     
     /**
      * Build the mod title validator
@@ -134,12 +141,19 @@ class ModValidator {
         $descriptionRawLength->setMessage('page_editmod_error_description_length_long', StringLength::TOO_LONG);
         $descriptionRawValidator->attach($descriptionRawLength, true);
         
+        // Tags
+        $tagsValidator = new ValidatorChain();
+        
+        $tagsFormat = new Regex(self::TAGS_REGEXP);
+        $tagsValidator->attach($tagsFormat);
+        
         return [
             'id' => $idValidator,
             'isPublished' => $isPublishedValidator,
             'title' => $titleValidator,
             'summary' => $summaryValidator,
-            'descriptionRaw' => $descriptionRawValidator
+            'descriptionRaw' => $descriptionRawValidator,
+            'tags' => $tagsValidator
         ];
     }
     

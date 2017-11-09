@@ -19,18 +19,19 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OxcMP\Service\Tag;
+namespace OxcMP\Service\ModTag;
 
 use Doctrine\ORM\EntityManager;
-use OxcMP\Entity\Tag;
+use OxcMP\Entity\Mod;
+use OxcMP\Entity\ModTag;
 use OxcMP\Util\Log;
 
 /**
- * Tag retrieval service
+ * Handle ModTag retrieval
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class TagRetrievalService {
+class ModTagRetrievalService {
     /**
      * The Entity Manager
      * @var EntityManager 
@@ -44,45 +45,26 @@ class TagRetrievalService {
      */
     public function __construct(EntityManager $entityManager)
     {
-        Log::info('Initializing TagRetrievalService');
+        Log::info('Initializing ModTagRetrievalService');
         
         $this->entityManager = $entityManager;
     }
     
     /**
-     * Retrieve all available tags
+     * Retrieve all tags belonging to the specified mod
      * 
+     * @param Mod $mod The mod entity
      * @return array
      */
-    public function getAllTags()
+    public function getModTags(Mod $mod)
     {
-        Log::info('Retrieving all available tags');
+        Log::info('Retrieving all tags for mod ', $mod->getId()->toString());
         
-        $tags = $this->entityManager->getRepository(Tag::class)->findBy([], ['tag' => 'asc']);
+        $modTags = $this->entityManager->getRepository(ModTag::class)
+                                       ->findBy(['modId' => $mod->getId()], ['tag' => 'asc']);
         
-        Log::debug('Retrieved ', count($tags), ' tag(s)');
+        Log::debug('Retrieved ', count($modTags), ' mod tag(s)');
         
-        return $tags;
-    }
-    
-    /**
-     * Retrieve a tag by name
-     * 
-     * @param string $tagName The tag name
-     * @return Tag
-     */
-    public function getTag($tagName)
-    {
-        Log::info('Retrieving tag having the name ', $tagName);
-        
-        $tag = $this->entityManager->getRepository(Tag::class)->find($tagName);
-        
-        if ($tag instanceof Tag) {
-            Log::debug('Tag found');
-        } else {
-            Log::debug('Tag not found');
-        }
-        
-        return $tag;
+        return $modTags;
     }
 }

@@ -152,7 +152,7 @@ class DoctrineLog extends DebugStack
         }
         
         if ($parameter instanceof \DateTime) {
-            return $parameter->format('Y-m-d H:i:s');
+            return var_export($parameter->format('Y-m-d H:i:s'));
         }
         
         // Everything else (string, number, UFOs...)

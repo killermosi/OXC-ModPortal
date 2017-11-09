@@ -49,6 +49,8 @@ return [
             // Mod
             Service\Mod\ModRetrievalService::class              => ModuleFactory::class,
             Service\Mod\ModPersistenceService::class            => ModuleFactory::class,
+            // ModTag
+            Service\ModTag\ModTagRetrievalService::class        => ModuleFactory::class,
             // Module
             Service\Module\ModuleService::class                 => ModuleFactory::class,
             // Tag

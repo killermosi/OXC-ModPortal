@@ -95,28 +95,36 @@ div.card a.card-link span {
 .font-monospace {
     font-family: "Courier New", Courier, monospace
 }
+
 .overflow-y-auto{
     overflow-y: auto;
 }
-/*Extra small devices (portrait phones, less than 576px)*/
-@media (max-width: 575px) { 
-/*    div#header h1 {
-        font-size: 1.50rem;
-        padding-top: 0rem !important
-    }
-    div#header p {
-        display: none;
-        font-size: .90rem;
-        line-height: 1.15;
-    }*/
+
+/* Tags editor */
+div#tag-search-result {
+    position:relative;
+    height: 0;
 }
 
-/*Small devices (landscape phones, less than 768px)*/
+div#tag-search-result > div {
+    background: #ffffff
+}
+
+/*************************/
+/* Per-width adjustments */
+/*************************/
+
+/* Extra small devices (portrait phones, less than 576px) */
+@media (max-width: 575px) { 
+
+}
+
+/* Small devices (landscape phones, less than 768px) */
 @media (max-width: 767px) { 
 
 }
 
-/*Medium devices (tablets, less than 992px)*/
+/* Medium devices (tablets, less than 992px) */
 @media (max-width: 991px) { 
 
 }

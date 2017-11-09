@@ -24,7 +24,7 @@ namespace OxcMP\Service\Mod;
 use Behat\Transliterator\Transliterator;
 use Doctrine\ORM\EntityManager;
 use OxcMP\Entity\Mod;
-use OxcMP\Service\Markdown\MarkdownService;
+use OxcMP\Entity\ModTag;
 use OxcMP\Util\Log;
 
 /**
@@ -40,23 +40,15 @@ class ModPersistenceService {
     private $entityManager;
     
     /**
-     * The Markdown Service;
-     * @var MarkdownService 
-     */
-    private $markdownService;
-    
-    /**
      * Class initialization
      * 
-     * @param EntityManager   $entityManager   The entity manager
-     * @param MarkdownService $markdownService The markdown service
+     * @param EntityManager $entityManager The entity manager
      */
-    public function __construct(EntityManager $entityManager, MarkdownService $markdownService)
+    public function __construct(EntityManager $entityManager)
     {
         Log::info('Initializing ModPersistenceService');
         
         $this->entityManager   = $entityManager;
-        $this->markdownService = $markdownService;
     }
     
     /**
@@ -99,11 +91,12 @@ class ModPersistenceService {
     /**
      * Update an existing mod entity
      * 
-     * @param Mod $mod The mod entity
+     * @param Mod   $mod     The mod entity
+     * @param array $modTags The associated tags
      * @return void
      * @throws \Exception
      */
-    public function updateMod(Mod $mod)
+    public function updateMod(Mod $mod, array $modTags)
     {
         Log::info('Updating the mod having the ID ', $mod->getId()->toString());
         
@@ -112,9 +105,19 @@ class ModPersistenceService {
             $this->entityManager->getConnection()
                                 ->beginTransaction();
             
-            $this->entityManager->persist($mod);
-            $this->entityManager->flush();
+            // Cleanup old tags and add the new ones
+            $this->entityManager->getRepository(ModTag::class)
+                                ->deleteTagsForMod($mod);
             
+            foreach ($modTags as $modTag) {
+                $this->entityManager->persist($modTag);
+            }
+            
+            // Update the Mod
+            $this->entityManager->persist($mod);
+
+            // Persist changes
+            $this->entityManager->flush();
             $this->entityManager->getConnection()
                                 ->commit();
         } catch (\Exception $exc) {
