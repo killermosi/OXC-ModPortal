@@ -281,8 +281,8 @@ class TagManager {
         this.$tagSelect = $('div#tag-select', this.$editModForm);
         this.$tagSelectNone = $('div#tag-select-none', this.$editModForm);
         this.$tagSearch = $('input#tag-search', this.$editModForm);
-        this.$tagSearchResultContainer = $('div#tag-search-result', this.$editModForm)
-        this.$tagSearchResultPanel = $('div', this.$tagSearchResultContainer)
+        this.$tagSearchResultContainer = $('div#tag-search-result', this.$editModForm);
+        this.$tagSearchResultPanel = $('div', this.$tagSearchResultContainer);
         
         this.selectedTags = this.$tagSelect.data('selected').length !== 0
             ? this.$tagSelect.data('selected').split(',')
@@ -311,17 +311,25 @@ class TagManager {
      * @returns {Boolean}
      */
     searchTag(event) {
+        var searchResult = [];
+        
         // On Enter, add the first tag in the results list (if any) to the selected tags.
         if (event.which === 13) {
-           console.log('auto add');
-           return;
+            if (tagManager.searchResult.length === 0) {
+                return;
+            }
+
+            var tag = tagManager.searchResult.shift();
+            tagManager.selectTag(tag);
+            tagManager.renderTagSearch();
+            return;
         }
         
+        // Filter searched value
         var searchTerm = tagManager.$tagSearch.val().trim();
         tagManager.$tagSearch.val(searchTerm);
+        
         // Search for matching tags
-        var searchResult = [];
-
         if (searchTerm.length !== 0) {
             tagManager.availableTags.forEach(function(tag){
                 if (
@@ -338,7 +346,6 @@ class TagManager {
         }
 
         tagManager.searchResult = searchResult;
-        
         tagManager.renderTagSearch();
     }
     
@@ -359,7 +366,10 @@ class TagManager {
         tagManager.searchResult.forEach(function(tag){
             var $tag = $('<a />', {href: '#', class: 'badge badge-primary p-2 mr-2 mb-2'});
             $tag.text(tag);
-            $tag.click(tagManager.selectTag);
+            $tag.click(function(event){
+                event.preventDefault();
+                tagManager.selectTag(tag);
+            });
             tagManager.$tagSearchResultPanel.append($tag);
         });
     }
@@ -383,7 +393,10 @@ class TagManager {
         tm.selectedTags.forEach(function(tag){
             var $tag = $('<a />', {href: '#', class: 'badge badge-primary p-2 mr-2 mb-2'});
             $tag.text(tag);
-            $tag.click(tm.removeTag);
+            $tag.click(function(event){
+                event.preventDefault();
+                tm.removeTag(tag);
+            });
             tm.$tagSelect.append($tag);
         });
     }
@@ -391,30 +404,24 @@ class TagManager {
     /**
      * Add a tag to the selected tags list
      * 
-     * @param {event} event The event
+     * @param {string} tag The tag
      * @returns {undefined}
      */
-    selectTag(event) {
-        event.preventDefault();
-        var $tag = $(event.target);
-        
-        tagManager.selectedTags.push($tag.text());
+    selectTag(tag) {
+        tagManager.selectedTags.push(tag);
         tagManager.selectedTags.sort();
         tagManager.$tagSearch.val('').keyup();
         tagManager.renderTagSelection(tagManager);
     }
     
     /**
-     * Remove the tag from the selected tags list
+     * Remove a tag from the selected tags list
      * 
-     * @param {type} event The event
+     * @param {string} tag The tag
      * @returns {undefined}
      */
-    removeTag (event) {
-        event.preventDefault();
-        var $tag = $(event.target);
-        
-        var index = tagManager.selectedTags.indexOf($tag.text());
+    removeTag (tag) {
+        var index = tagManager.selectedTags.indexOf(tag);
         tagManager.selectedTags.splice(index, 1);
         
         // Update the search panel, if open
