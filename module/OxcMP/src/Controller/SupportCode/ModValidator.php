@@ -47,11 +47,18 @@ class ModValidator {
     const MARKDOWN_REGEXP = '/^[A-Za-z0-9 _:\-\.\/\*\s]+$/';
     
     /**
-     * Regexp for tags list (letters, numbers, dashes, commas, must not start or end with a dash or comma
-     * or an empty string)
+     * Regexp for tags list supported characters (letters, numbers, dashes, commas, must not start or end with
+     * a dash or comma, or be an empty string)
      * @var string
      */
-    const TAGS_REGEXP = '/^$|^[A-Za-z0-9]+$|^[A-Za-z0-9][A-Za-z0-9,\-]*[A-Za-z0-9]$/';
+    const TAGS_REGEXP_MUST_CONTAIN_ONLY = '/^$|^[a-z0-9]+$|^[a-z0-9][a-z0-9,\-]*[a-z0-9]$/';
+    
+    /**
+     * Regexp for tags list unsupported characters - no double-dashes or double-commas
+     * TODO: Can this be merged with TAGS_REGEXP_MUST_CONTAIN_ONLY 
+     * @var string
+     */
+    const TAGS_REGEXP_MUST_NOT_CONTAIN = '/^((?!--|,,).)*$/';
     
     /**
      * Build the mod title validator
@@ -144,8 +151,11 @@ class ModValidator {
         // Tags
         $tagsValidator = new ValidatorChain();
         
-        $tagsFormat = new Regex(self::TAGS_REGEXP);
-        $tagsValidator->attach($tagsFormat);
+        $tagsMustContain = new Regex(self::TAGS_REGEXP_MUST_CONTAIN_ONLY);
+        $tagsValidator->attach($tagsMustContain);
+        
+        $tagsMustNotContain = new Regex(self::TAGS_REGEXP_MUST_NOT_CONTAIN);
+        $tagsValidator->attach($tagsMustNotContain);
         
         return [
             'id' => $idValidator,
