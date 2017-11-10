@@ -105,12 +105,11 @@ class ModPersistenceService {
             $this->entityManager->getConnection()
                                 ->beginTransaction();
             
-            // Cleanup old tags and add the new ones
-            $this->entityManager->getRepository(ModTag::class)
-                                ->deleteTagsForMod($mod);
+            // Update tags
+            $tagsUpdated = $this->updateModTags($mod, $modTags);
             
-            foreach ($modTags as $modTag) {
-                $this->entityManager->persist($modTag);
+            if ($tagsUpdated) {
+                $mod->markUpdated();
             }
             
             // Update the Mod
@@ -188,4 +187,80 @@ class ModPersistenceService {
         Log::debug('Unique slug built: ', $slug);
         $mod->setSlug($slug);
     }
+    
+    /**
+     * Update the ModTags for a Mod
+     * 
+     * @param Mod   $mod            The Mod entity
+     * @param array $updatedModTags The updated ModTag list
+     * @return boolean If any changes were made to the mod tags
+     */
+    private function updateModTags(Mod $mod, array $updatedModTags)
+    {
+        Log::info('Updating Mod tags');
+        
+        $modTagRepository =  $this->entityManager->getRepository(ModTag::class);
+        
+        $currentModTags = $modTagRepository->findBy(['modId' => $mod->getId()]);
+        
+        $updatedModTagNames = $currentModTagNames = [];
+        $tagsToAdd = $tagsToRemove = [];
+        
+        // Build lists of tag names
+        
+        /* @var $updatedModTag ModTag */
+        foreach ($updatedModTags as $updatedModTag) {
+            $updatedModTagNames[] = $updatedModTag->getTag();
+        }
+        
+        /* @var $currentModTag ModTag */
+        foreach ($currentModTags as $currentModTag) {
+            $currentModTagNames[] = $currentModTag->getTag();
+        }
+        
+        // Build lists of added and removed tags
+        foreach ($updatedModTags as $updatedModTag) {
+            if (!in_array($updatedModTag->getTag(), $currentModTagNames)) {
+                $tagsToAdd[$updatedModTag->getTag()] = $updatedModTag;
+            }
+        }
+        
+        foreach ($currentModTags as $currentModTag) {
+            if (!in_array($currentModTag->getTag(), $updatedModTagNames)) {
+                $tagsToRemove[$currentModTag->getTag()] = $currentModTag;
+            }
+        }
+        
+        if (count($tagsToAdd) == 0 && count($tagsToRemove) == 0) {
+            Log::debug('No Mod tags added or removed');
+            return false;
+        }
+        
+        // Log tally
+        if (count($tagsToAdd) == 0) {
+            Log::debug('No Mod tags added');
+        } else {
+            Log::debug('Adding ', count($tagsToAdd), ' ModTag(s): ', implode(', ', array_keys($tagsToAdd)));
+        }
+        
+        if (count($tagsToRemove) == 0) {
+            Log::debug('No Mod tags removed');
+        } else {
+            Log::debug('Removing ', count($tagsToRemove), ' ModTag(s): ', implode(', ', array_keys($tagsToRemove)));
+        }
+        
+        // Persist changes
+        foreach ($tagsToAdd as $modTag) {
+            $this->entityManager->persist($modTag);
+        }
+        
+        foreach ($tagsToRemove as $modTag) {
+            $this->entityManager->remove($modTag);
+        }
+        
+        Log::debug('Done updating mod tags');
+        return true;
+    }
 }
+
+/* EOF */

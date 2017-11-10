@@ -19,35 +19,22 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OxcMP\Entity\Repository;
-
-use Doctrine\ORM\EntityRepository;
-use OxcMP\Entity\Mod;
-use OxcMP\Entity\ModTag;
+namespace OxcMP\Util;
 
 /**
- * ModTag repository
+ * Date and time utility functions
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class ModTagRepository extends EntityRepository
-{
+class DateTime {
+    
     /**
-     * Delete all tags for a mod
+     * Create a new DateTime object using the UTC TimeZone
      * 
-     * @param Mod $mod The Mod entity
-     * @return int The number of deleted entries
+     * @return \DateTime
      */
-    public function deleteTagsForMod(Mod $mod)
+    public static function newDateTimeUtc($dateTimeString = null)
     {
-        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
-        
-        return $queryBuilder->delete(ModTag::class, 'mt')
-            ->where('mt.modId = :modId')
-            ->setParameter('modId', $mod->getId())
-            ->getQuery()
-            ->execute();
+        return new \DateTime($dateTimeString, new \DateTimeZone('UTC'));
     }
 }
-
-/* EOF */

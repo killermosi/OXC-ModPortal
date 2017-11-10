@@ -217,3 +217,5 @@ return [
         'rememberMe' => 60 * 60 * 24 * 14 // 14 days
     ],
 ];
+
+/* EOF */

@@ -599,10 +599,18 @@ class ModManagementController extends AbstractController
             return [];
         }
         
+        $tagNamesList = explode(',', $tagNames);
+        
+        // Make sure there are no duplicates
+        if (count($tagNamesList) != count(array_unique($tagNamesList))) {
+            Log::notice('Duplicate tags found in the received tags list: ', $tagNamesList);
+            throw new \Exception('Duplicate tags received');
+        }
+        
         // The ModTag list
         $tagList = [];
         
-        foreach (explode(',', $tagNames) as $tagName) {
+        foreach ($tagNamesList as $tagName) {
             $tag = $this->tagRetrievalService->getTag($tagName);
             
             if (!$tag instanceof Tag) {

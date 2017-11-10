@@ -23,10 +23,11 @@ namespace OxcMP\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Zend\Config\Config;
+use OxcMP\Util\DateTime as  DateTimeUtil;
 
 /**
  * User entity
- *
+ * TODO: move detail update population and update time due to service
  * @author Silviu Ghita <killermosi@yahoo.com>
  * 
  * @ORM\Entity
@@ -116,16 +117,6 @@ class User
      * @ORM\Column(name="last_detail_update_date", type="datetime", nullable=false) 
      */
     private $lastDetailUpdateDate;
-    
-    /**
-     * Constructor
-     */
-    public function __construct()
-    {
-        // Init token and update dates in the past, for safe measure
-       $this->lastTokenCheckDate   = new \DateTime('1 Jan 1971');
-       $this->lastDetailUpdateDate = new \DateTime('1 Jan 1971');
-    }
     
     /**
      * Get the internal identifier
@@ -247,6 +238,10 @@ class User
      */
     public function getLastTokenCheckDate()
     {
+        if (is_null($this->lastTokenCheckDate)) {
+            $this->lastTokenCheckDate = DateTimeUtil::newDateTimeUtc('1 Jan 1971');
+        }
+        
         return $this->lastTokenCheckDate;
     }
 
@@ -257,7 +252,7 @@ class User
      */
     public function updateLastTokenCheckDate()
     {
-        $this->lastTokenCheckDate = new \DateTime();
+        $this->lastTokenCheckDate = DateTimeUtil::newDateTimeUtc();
     }
     
     /**
@@ -266,6 +261,10 @@ class User
      * @return \DateTime
      */
     public function getLastDetailUpdateDate() {
+        if (is_null($this->lastDetailUpdateDate)) {
+            $this->lastDetailUpdateDate = DateTimeUtil::newDateTimeUtc('1 Jan 1971');
+        }
+        
         return $this->lastDetailUpdateDate;
     }
 
@@ -283,7 +282,7 @@ class User
         $this->avatarUrl = $remoteData['AvatarUrl'];
         
         // Update the last update date
-        $this->lastDetailUpdateDate = new \DateTime();
+        $this->lastDetailUpdateDate = DateTimeUtil::newDateTimeUtc();
     }
     
     /**
@@ -294,7 +293,7 @@ class User
     {
         $timeInterval = 'PT' . $config->userRemote->tokenCheckDelay . 'S';
         
-        return ($this->lastTokenCheckDate <= (new \DateTime())->sub(new \DateInterval($timeInterval)));
+        return ($this->lastTokenCheckDate <= DateTimeUtil::newDateTimeUtc()->sub(new \DateInterval($timeInterval)));
     }
 
     /**
@@ -307,7 +306,27 @@ class User
     {
         $timeInterval = 'PT' . $config->userRemote->displayRefreshDelay . 'S';
         
-        return ($this->lastDetailUpdateDate <= (new \DateTime())->sub(new \DateInterval($timeInterval)));
+        return ($this->lastDetailUpdateDate <= DateTimeUtil::newDateTimeUtc()->sub(new \DateInterval($timeInterval)));
+    }
+    
+    /**
+     * PrePersist callback
+     * 
+     * @return void
+     * @ORM\PrePersist
+     */
+    public function prePersist()
+    {
+        // Set the default last detail and token check update date
+        $date = DateTimeUtil::newDateTimeUtc('1 Jan 1971');
+        
+        if (is_null($this->lastDetailUpdateDate)) {
+            $this->lastDetailUpdateDate = $date;
+        }
+        
+        if (is_null($this->lastTokenCheckDate)) {
+            $this->lastTokenCheckDate = $date;
+        }
     }
 }
 

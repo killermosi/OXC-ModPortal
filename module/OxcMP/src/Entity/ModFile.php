@@ -23,6 +23,7 @@ namespace OxcMP\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\DegradedUuid as Uuid;
+use OxcMP\Util\DateTime as DateTimeUtil;
 
 /**
  * ModFile Entity
@@ -279,7 +280,7 @@ class ModFile
      */
     public function prePersist()
     {
-        $this->dateAdded = new \DateTime();
+        $this->dateAdded = DateTimeUtil::newDateTimeUtc();
     }
 }
 

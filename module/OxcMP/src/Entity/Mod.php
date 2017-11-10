@@ -23,6 +23,7 @@ namespace OxcMP\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\DegradedUuid as Uuid;
+use OxcMP\Util\DateTime as DateTimeUtil;
 
 /**
  * Mod entity
@@ -360,31 +361,42 @@ class Mod
     }
     
     /**
-     * PreUpdate callback
+     * Update the dateUpdated value
+     * 
+     * @return void
+     */
+    public function markUpdated()
+    {
+        $this->dateUpdated = DateTimeUtil::newDateTimeUtc();
+    }
+    
+    /**
+     * PrePersist callback
      * 
      * @return void
      * @ORM\PrePersist
+     */
+    public function prePersist()
+    {
+        // Set the initial date and time for dateCreated and dateUpdated
+        $this->dateCreated = $this->dateUpdated = DateTimeUtil::newDateTimeUtc();
+    }
+    
+    /**
+     * PreUpdate callback
+     * 
+     * @return void
      * @ORM\PreUpdate
      */
     public function preUpdate()
     {
-        // Set the date and time for dateCreated and dateUpdated as needed
-        $date = new \DateTime();
-        
-        // Set the dateCreated if not yet set (new mod)
-        if (is_null($this->dateCreated)) {
-            $this->dateCreated = $date;
-        }
-        
-        // Update the dateUpdated before every update
-        $this->dateUpdated = $date;
+        $this->markUpdated();
     }
     
     /**
      * PostLoad callback
      * 
      * @return void
-     * @ORM\PrePersist
      * @ORM\PostLoad
      */
     public function postLoad()

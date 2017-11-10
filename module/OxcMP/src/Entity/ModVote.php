@@ -23,6 +23,7 @@ namespace OxcMP\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\DegradedUuid as Uuid;
+use OxcMP\Util\DateTime as  DateTimeUtil;
 
 /**
  * ModVote Entity
@@ -152,6 +153,6 @@ class ModVote
      */
     public function prePersist()
     {
-        $this->date = new \DateTime();
+        $this->date = DateTimeUtil::newDateTimeUtc();
     }
 }

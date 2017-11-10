@@ -64,16 +64,12 @@ class DoctrineLog extends DebugStack
      * @return void
      */
     public function startQuery($sql, array $params = null, array $types = null) {
-        if ($this->enabled == false) {
+        parent::startQuery($sql, $params, $types);
+        
+        if ($this->enabled == false || $this->logEnabled == false) {
             return;
         }
         
-        parent::startQuery($sql, $params, $types);
-
-        if ($this->logEnabled == false) {
-            return;
-        }
-
         $this->logQuery($sql, $params);
     }
 
@@ -83,13 +79,9 @@ class DoctrineLog extends DebugStack
      * @return void
      */
     public function stopQuery() {
-        if ($this->enabled == false) {
-            return;
-        }
-        
         parent::stopQuery();
         
-        if ($this->logEnabled == false) {
+        if ($this->enabled == false || $this->logEnabled == false) {
             return;
         }
         
@@ -124,7 +116,7 @@ class DoctrineLog extends DebugStack
     
     /**
      * Convert a parameter to its database representation
-     * TODO: This manual conversion should not be needed, as it can be handled by doctrine, as explained here:
+     * TODO: This manual conversion should not be needed, as it can be handled by Doctrine, as explained here:
      * https://stackoverflow.com/questions/2095394/doctrine-how-to-print-out-the-real-sql-not-just-the-prepared-statement/18641582#18641582
      * However, when that solution was implemented this happened:
      * https://stackoverflow.com/questions/46917767/doctrine-2-5-query-logging-unknown-column-type-2-requested
@@ -151,8 +143,9 @@ class DoctrineLog extends DebugStack
             return var_export($parameter->toString(), true);
         }
         
+        // DateTime
         if ($parameter instanceof \DateTime) {
-            return var_export($parameter->format('Y-m-d H:i:s'));
+            return var_export($parameter->format('Y-m-d H:i:s'), true);
         }
         
         // Everything else (string, number, UFOs...)
