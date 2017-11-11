@@ -325,8 +325,8 @@ class TagManager {
             return;
         }
         
-        // Filter searched value
-        var searchTerm = tagManager.$tagSearch.val().trim();
+        // Filter searched value: https://stackoverflow.com/a/38132788/1111983
+        var searchTerm = tagManager.$tagSearch.val().replace(/([a-z0-9\-])|[^]/g, '$1');
         tagManager.$tagSearch.val(searchTerm);
         
         // Search for matching tags
