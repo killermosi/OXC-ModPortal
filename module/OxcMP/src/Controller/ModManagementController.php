@@ -32,6 +32,7 @@ use OxcMP\Entity\Tag;
 use OxcMP\Service\Markdown\MarkdownService;
 use OxcMP\Service\Mod\ModRetrievalService;
 use OxcMP\Service\Mod\ModPersistenceService;
+use OxcMP\Service\ModFile\ModFileRetrievalService;
 use OxcMP\Service\ModTag\ModTagRetrievalService;
 use OxcMP\Service\Tag\TagRetrievalService;
 use OxcMP\Util\Log;
@@ -62,6 +63,12 @@ class ModManagementController extends AbstractController
     private $modPersistenceService;
     
     /**
+     * The mod file retrieval service
+     * @var ModFileRetrievalService
+     */
+    private $modFileRetrievalService;
+    
+    /**
      * The mod tag retrieval service
      * @var ModTagRetrievalService
      */
@@ -88,17 +95,19 @@ class ModManagementController extends AbstractController
     /**
      * Class initialization
      * 
-     * @param AuthenticationService  $authenticationService  The authentication service
-     * @param ModRetrievalService    $modRetrievalService    The mod retrieval service
-     * @param ModPersistenceService  $modPersistenceService  The mod persistence service
-     * @param ModTagRetrievalService $modTagRetrievalService The mod tag retrieval service
-     * @param MarkdownService        $markdownService        The markdown service
-     * @param Config                 $config                 The configuration
+     * @param AuthenticationService   $authenticationService   The authentication service
+     * @param ModRetrievalService     $modRetrievalService     The mod retrieval service
+     * @param ModPersistenceService   $modPersistenceService   The mod persistence service
+     * @param ModFileRetrievalService $modFileRetrievalService The mod tag retrieval service
+     * @param ModTagRetrievalService  $modTagRetrievalService  The mod tag retrieval service
+     * @param MarkdownService         $markdownService         The markdown service
+     * @param Config                  $config                  The configuration
      */
     function __construct(
         AuthenticationService $authenticationService,
         ModRetrievalService $modRetrievalService,
         ModPersistenceService $modPersistenceService,
+        ModFileRetrievalService $modFileRetrievalService,
         ModTagRetrievalService $modTagRetrievalService,
         TagRetrievalService $tagRetrievalService,
         MarkdownService $markdownService,
@@ -106,13 +115,14 @@ class ModManagementController extends AbstractController
     ) {
         parent::__construct();
         
-        $this->authenticationService  = $authenticationService;
-        $this->modRetrievalService    = $modRetrievalService;
-        $this->modPersistenceService  = $modPersistenceService;
-        $this->modTagRetrievalService = $modTagRetrievalService;
-        $this->tagRetrievalService    = $tagRetrievalService;
-        $this->markdownService        = $markdownService;
-        $this->config                 = $config;
+        $this->authenticationService   = $authenticationService;
+        $this->modRetrievalService     = $modRetrievalService;
+        $this->modPersistenceService   = $modPersistenceService;
+        $this->modFileRetrievalService = $modFileRetrievalService;
+        $this->modTagRetrievalService  = $modTagRetrievalService;
+        $this->tagRetrievalService     = $tagRetrievalService;
+        $this->markdownService         = $markdownService;
+        $this->config                  = $config;
     }
 
     /**
@@ -247,6 +257,7 @@ class ModManagementController extends AbstractController
         
         // Assign data to view
         $this->view->mod = $mod;
+        $this->view->modBackground = $this->modFileRetrievalService->getModBackground($mod);
         $this->view->tags = $this->tagRetrievalService->getAllTags();
         $this->view->modTags = $this->modTagRetrievalService->getModTags($mod);
         $this->view->gitHubFlavoredMarkdownGuideUrl = $this->config->layout->gitHubFlavoredMarkdownGuideUrl;

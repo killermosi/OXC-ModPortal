@@ -30,6 +30,7 @@ use OxcMP\Util\DateTime as DateTimeUtil;
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  * 
+ * @ORM\Entity
  * @ORM\Table(name="mod_file")
  * @ORM\HasLifecycleCallbacks
  */

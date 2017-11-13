@@ -31,7 +31,8 @@ use OxcMP\Util\Log;
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class ModTagRetrievalService {
+class ModTagRetrievalService
+{
     /**
      * The Entity Manager
      * @var EntityManager 

@@ -90,6 +90,7 @@ class ModuleFactory implements FactoryInterface
                     $container->get(AuthenticationService::class),
                     $container->get(Service\Mod\ModRetrievalService::class),
                     $container->get(Service\Mod\ModPersistenceService::class),
+                    $container->get(Service\ModFile\ModFileRetrievalService::class),
                     $container->get(Service\ModTag\ModTagRetrievalService::class),
                     $container->get(Service\Tag\TagRetrievalService::class),
                     $container->get(Service\Markdown\MarkdownService::class),
@@ -126,6 +127,10 @@ class ModuleFactory implements FactoryInterface
                     $container->get('doctrine.entitymanager.orm_default')
                 );
             case Service\Mod\ModPersistenceService::class:
+                return new $requestedName(
+                    $container->get('doctrine.entitymanager.orm_default')
+                );
+            case Service\ModFile\ModFileRetrievalService::class:
                 return new $requestedName(
                     $container->get('doctrine.entitymanager.orm_default')
                 );
