@@ -216,6 +216,11 @@ return [
         'displayRefreshDelay' => 60  * 60 * 2, // 2 hours
         'rememberMe' => 60 * 60 * 24 * 14 // 14 days
     ],
+    // Where to store the mod data
+    'storage' => [
+        'data' => '/tmp/oxcmp/data',
+        'temp' => '/tmp/oxcmp/tmp'
+    ]
 ];
 
 /* EOF */

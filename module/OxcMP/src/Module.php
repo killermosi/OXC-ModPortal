@@ -49,6 +49,9 @@ class Module
         'db.user' => 'doctrine.connection.orm_default.params.user',
         'db.pass' => 'doctrine.connection.orm_default.params.password',
         'db.name' => 'doctrine.connection.orm_default.params.dbname',
+        // Storage
+        'storage.data' => 'storage.data',
+        'storage.temp' => 'storage.temp',
         // Session
         'session.cookie.path' => 'session_config.cookie_path',
         // Static storage
