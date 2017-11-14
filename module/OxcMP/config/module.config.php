@@ -218,10 +218,24 @@ return [
         'displayRefreshDelay' => 60  * 60 * 2, // 2 hours
         'rememberMe' => 60 * 60 * 24 * 14 // 14 days
     ],
-    // Where to store the mod data
+    // Storage configuration (all limits are in MB)
     'storage' => [
-        'data' => '/tmp/oxcmp/data',
-        'temp' => '/tmp/oxcmp/tmp'
+        // Where to store the mod files, and what tempdir to use
+        'mod' => [
+            'data' => '/tmp/oxcmp/data',
+            'temp' => '/tmp/oxcmp/tmp'
+        ],
+        // Max total storage allowed per user/mod
+        'quota' => [
+            'freeSpace' => 1024 * 25, // 25 GB
+            'user' => 1024 * 5, // 5GB
+            'mod' => 1024 // 1 GB
+        ],
+        // Max upload file size
+        'maxFileSize' => [
+            'image' => 10,
+            'resource' => 512
+        ]
     ]
 ];
 

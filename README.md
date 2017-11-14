@@ -28,10 +28,18 @@ This portal is a repository for OpenXcom modifications.
 ### Requirements
 
 * PHP
-* MySQL
+* MySQL/MariaDB
 * Apache
 * Git
 * Composer
+
+#### Apache modules
+
+* mod_rewrite
+
+#### PHP extensions
+
+* ImageMagick
 
 ### Getting the source
 

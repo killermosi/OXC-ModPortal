@@ -50,8 +50,13 @@ class Module
         'db.pass' => 'doctrine.connection.orm_default.params.password',
         'db.name' => 'doctrine.connection.orm_default.params.dbname',
         // Storage
-        'storage.data' => 'storage.data',
-        'storage.temp' => 'storage.temp',
+        'storage.data'                 => 'storage.mod.data',
+        'storage.temp'                 => 'storage.mod.temp',
+        'storage.quota.freeSpace'      => 'storage.quota.freeSpace',
+        'storage.quota.user'           => 'storage.quota.user',
+        'storage.quota.mod'            => 'storage.quota.mod',
+        'storage.maxFileSize.image'    => 'storage.maxFileSize.image',
+        'storage.maxFileSize.resource' => 'storage.maxFileSize.resource',
         // Session
         'session.cookie.path' => 'session_config.cookie_path',
         // Static storage
