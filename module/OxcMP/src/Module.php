@@ -50,8 +50,9 @@ class Module
         'db.pass' => 'doctrine.connection.orm_default.params.password',
         'db.name' => 'doctrine.connection.orm_default.params.dbname',
         // Storage
-        'storage.data'                 => 'storage.mod.data',
-        'storage.temp'                 => 'storage.mod.temp',
+        'storage.mod'                  => 'storage.mod',
+        'storage.cache'                => 'storage.temp',
+        'storage.temp'                 => 'storage.cache',
         'storage.quota.freeSpace'      => 'storage.quota.freeSpace',
         'storage.quota.user'           => 'storage.quota.user',
         'storage.quota.mod'            => 'storage.quota.mod',

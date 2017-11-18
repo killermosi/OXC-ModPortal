@@ -55,6 +55,10 @@ return [
             Service\ModTag\ModTagRetrievalService::class        => ModuleFactory::class,
             // Module
             Service\Module\ModuleService::class                 => ModuleFactory::class,
+            // Quota
+            Service\Quota\QuotaService::class                   => ModuleFactory::class,
+            // Storage
+            Service\Storage\StorageOptions::class               => ModuleFactory::class,
             // Tag
             Service\Tag\TagRetrievalService::class              => ModuleFactory::class,
             // User
@@ -220,11 +224,14 @@ return [
     ],
     // Storage configuration (all limits are in MB)
     'storage' => [
-        // Where to store the mod files, and what tempdir to use
-        'mod' => [
-            'data' => '/tmp/oxcmp/data',
-            'temp' => '/tmp/oxcmp/tmp'
-        ],
+        // Mode to use for newly created directories
+        'mode' => 0775,
+        // Where to store the mod files
+        'mod' => '/tmp/oxcmp/data',
+        // Where to cache the mod images, can be null to disable the cache
+        'cache' => null,
+        // Where to store temporary files during uploads
+        'temp' => '/tmp/oxcmp/tmp',
         // Max total storage allowed per user/mod
         'quota' => [
             'freeSpace' => 1024 * 25, // 25 GB

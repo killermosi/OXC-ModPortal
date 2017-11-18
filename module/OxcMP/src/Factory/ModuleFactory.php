@@ -140,6 +140,16 @@ class ModuleFactory implements FactoryInterface
                 );
             case Service\Module\ModuleService::class:
                 return new $requestedName();
+            case Service\Quota\QuotaService::class:
+                return new $requestedName(
+                    $container->get('doctrine.entitymanager.orm_default'),
+                    $container->get(Service\Storage\StorageOptions::class),
+                    $container->get(Config::class)
+                );
+            case Service\Storage\StorageOptions::class:
+                return new $requestedName(
+                    $container->get(Config::class)
+                );
             case Service\Tag\TagRetrievalService::class:
                 return new $requestedName(
                     $container->get('doctrine.entitymanager.orm_default')

@@ -122,7 +122,7 @@ class ModRetrievalService
     {
         Log::info('Retrieving all mods belonging to user ID ', $user->getId()->toString());
         
-        $mods = $this->entityManager->getRepository(Mod::class)->getModsByUserId($user->getId(), $publishedModsOnly);
+        $mods = $this->entityManager->getRepository(Mod::class)->getModsByUser($user, $publishedModsOnly);
         
         Log::debug('Retrieved ', count($mods), ' mod(s)');
         

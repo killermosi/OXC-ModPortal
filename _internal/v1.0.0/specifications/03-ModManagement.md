@@ -156,7 +156,7 @@ disk using the default storage pattern.
 
 The following URL format will be used to request a mod's background image:
 
-`portal.url/mod-background/<mod_slug>/background.png`
+`portal.url/mod-image/<mod_slug>/background.png`
 
 **Notes**:
 
@@ -179,7 +179,7 @@ using the pattern:
 
 The following URL format will be used to request a mod's gallery image:
 
-`portal.url/mod-gallery/<mod_slug>/<width>/<height>/<image_name>.png`
+`portal.url/mod-image/<mod_slug>/<image_name>_<width>_<height>.png`
 
 **Notes**:
 

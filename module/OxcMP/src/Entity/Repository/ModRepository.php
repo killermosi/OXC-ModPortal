@@ -22,8 +22,8 @@
 namespace OxcMP\Entity\Repository;
 
 use Doctrine\ORM\EntityRepository;
-use Ramsey\Uuid\DegradedUuid as Uuid;
 use OxcMP\Entity\Mod;
+use OxcMP\Entity\User;
 
 /**
  * Mod repository
@@ -54,11 +54,11 @@ class ModRepository extends EntityRepository
     /**
      * Retrieve all mods owned by the specified user ID
      * 
-     * @param Uuid    $userId            The user identifier
+     * @param User    $user              The user entity
      * @param boolean $publishedModsOnly If to retrieve only published mods
      * @return array
      */
-    public function getModsByUserId(Uuid $userId, $publishedModsOnly = true)
+    public function getModsByUser(User $user, $publishedModsOnly = true)
     {
         $queryBuilder = $this->getEntityManager()->createQueryBuilder();
         
@@ -66,7 +66,7 @@ class ModRepository extends EntityRepository
             ->from(Mod::class, 'm')
             ->where('m.userId = :userId')
             ->orderBy('m.dateCreated', 'desc')
-            ->setParameter('userId', $userId);
+            ->setParameter('userId', $user->getId());
         
         if ($publishedModsOnly) {
             $queryBuilder->andWhere('m.isPublished = :isPublished');

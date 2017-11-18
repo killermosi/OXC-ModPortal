@@ -50,6 +50,7 @@ create table mod_data (
 
 create table mod_file (
     file_id char(36) not null comment 'The internal identifier',
+    user_id char(36) not null comment 'The user identifier',
     mod_id char(36) not null comment 'The mod identifier',
     type tinyint(1) not null comment 'The file purpose: 0 - downloadable resource, 1 - gallery image, 2 - background image',
     file_order tinyint(2) default 0 comment 'File order, for gallery images and resources',
@@ -61,6 +62,7 @@ create table mod_file (
     size int(10) not null default 0 comment 'File size, in bytes',
     primary key (file_id),
     index idx_mod_id (mod_id),
+    index idx_user_id (user_id),
     unique unique_mod_id_type_name(mod_id, type, name)
 ) engine=InnoDB default charset=utf8 comment 'Mod associated files';
 

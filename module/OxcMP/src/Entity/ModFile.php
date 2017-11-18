@@ -55,6 +55,14 @@ class ModFile
     private $id;
     
     /**
+     * The user identifier
+     * @var Uuid 
+     * 
+     * @ORM\Column(name="user_id", type="uuid", nullable=false)
+     */
+    private $userId;
+    
+    /**
      * The mod identifier
      * @var Uuid 
      * 
@@ -126,6 +134,27 @@ class ModFile
     public function getId()
     {
         return $this->id;
+    }
+
+    /**
+     * Get the user identifier
+     * 
+     * @return Uuid
+     */
+    public function getUserId()
+    {
+        return $this->userId;
+    }
+
+    /**
+     * Set the user identifier
+     * 
+     * @param Uuid $userId The used identifier
+     * @return void
+     */
+    public function setUserId(Uuid $userId)
+    {
+        $this->userId = $userId;
     }
 
     /**
