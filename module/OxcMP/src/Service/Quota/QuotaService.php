@@ -119,6 +119,14 @@ class QuotaService
             throw new Exception\InsufficientStorageSpace();
         }
         
+        $userQuota = $this->config->storage->quota->user * 1024 * 1024;
+        $modQuota = $this->config->storage->quota->mod * 1024 * 1024;
+        
+        if ($userQuota == 0 && $modQuota == 0) {
+            Log::debug('Both user quota and mod quota are disabled, the file can be uploaded');
+            return;
+        }
+        
         // Retrieve all files for user, and count the used space
         $modUsedSpace = $totalUsedSpace = 0;
         $files = $this->entityManager->getRepository(ModFile::class)->findBy(['userId' => $user->getId()]);
@@ -133,23 +141,31 @@ class QuotaService
         }
         
         // Check user quota
-        if ($totalUsedSpace + $fileSize > $this->config->storage->quota->user) {
-            Log::notice(
-                'File size over user quota: ',
-                File::formatByteSize($fileSize)
-            );
-            
-            throw new Exception\UserQuotaReached();
+        if ($userQuota > 0) {
+            if ($totalUsedSpace + $fileSize > $this->config->storage->quota->user) {
+                Log::notice(
+                    'File size over user quota: ',
+                    File::formatByteSize($fileSize)
+                );
+
+                throw new Exception\UserQuotaReached();
+            }
+        } else {
+            Log::debug('User quota is disabled, skipping user quota check');
         }
         
         // Check mod quota
-        if ($modUsedSpace + $fileSize > $this->config->storage->quota->mod) {
-            Log::notice(
-                'File size over user quota: ',
-                File::formatByteSize($fileSize)
-            );
-            
-            throw new Exception\UserQuotaReached();
+        if ($modQuota > 0) {
+            if ($modUsedSpace + $fileSize > $this->config->storage->quota->mod) {
+                Log::notice(
+                    'File size over user quota: ',
+                    File::formatByteSize($fileSize)
+                );
+
+                throw new Exception\UserQuotaReached();
+            }
+        } else {
+            Log::debug('Mod quota is disabled, skipping mod quota check');
         }
         
         Log::debug('The file can be uploaded');
