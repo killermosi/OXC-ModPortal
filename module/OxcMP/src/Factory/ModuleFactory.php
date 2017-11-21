@@ -186,7 +186,17 @@ class ModuleFactory implements FactoryInterface
             /********************/
             /**  VIEW HELPERS  **/
             /********************/
-            
+
+            case View\Helper\DefaultBackgroundUrl::class:
+                return new $requestedName(
+                    $container->get(Config::class)
+                );
+                
+            case View\Helper\ModBackgroundUrl::class:
+                return new $requestedName(
+                    $container->get(Config::class)
+                );
+                
             case View\Helper\StaticUrl::class:
                 return new $requestedName(
                     $container->get(Config::class)

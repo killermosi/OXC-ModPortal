@@ -20,7 +20,7 @@
     
     $homeUrl =  $this->url('home', [], ['force_canonical' => true]);
     
-    $backgroundImageUrl = $homeUrl . 'img/bg-default.png';
+    $backgroundImageDefaultUrl = $homeUrl . 'img/bg-default.png';
     $backgroundImageInstructionsUrl = $homeUrl . 'img/bg-instructions.png';
     $backgroundSupportArchiveUrl = $homeUrl . 'resources/background-support.zip';
     
@@ -107,7 +107,7 @@
     <div class="form-row">
         <div class="form-group col-sm-12 col-md-6">
             <label><?php echo $this->translate('page_editmod_form_background_current_title'); ?></label>
-            <img class="img-fluid" src="<?php echo $backgroundImageUrl?>" alt="<?php echo $this->translate('page_editmod_image_background_alt')?>">
+            <img class="img-fluid" src="<?php echo $backgroundImageDefaultUrl?>" alt="<?php echo $this->translate('page_editmod_image_background_alt')?>">
         </div>
         <div class="form-group col-sm-12 col-md-6">
             <label><?php echo $this->translate('page_editmod_form_background_manage_title'); ?></label>

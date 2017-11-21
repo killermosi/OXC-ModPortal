@@ -22,21 +22,20 @@
 namespace OxcMP\View\Helper;
 
 /**
- * Handle generation of static resource URLs
+ * Handle generation of default background image URL
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class StaticUrl extends AbstractUrlHelper
+class DefaultBackgroundUrl extends AbstractUrlHelper
 {
     /**
-     * Build a URL for a resource
+     * Build the default background image URL
      * 
-     * @param string $resourcePath Path to the resource
-     * @return void
+     * @return string
      */
-    public function __invoke($resourcePath = null)
+    public function __invoke()
     {
-        return $this->buildStaticUrl($this->buildHomeUrl() . ltrim($resourcePath, '/'));
+        return $this->buildStaticUrl($this->buildHomeUrl() . $this->config->layout->defaultBackground);
     }
 }
 

@@ -19,25 +19,16 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OxcMP\View\Helper;
+namespace OxcMP\Controller;
 
 /**
- * Handle generation of static resource URLs
+ * Mod file retrieval
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class StaticUrl extends AbstractUrlHelper
+class ModFileController extends AbstractController
 {
-    /**
-     * Build a URL for a resource
-     * 
-     * @param string $resourcePath Path to the resource
-     * @return void
-     */
-    public function __invoke($resourcePath = null)
-    {
-        return $this->buildStaticUrl($this->buildHomeUrl() . ltrim($resourcePath, '/'));
-    }
+    //put your code here
 }
 
 /* EOF */

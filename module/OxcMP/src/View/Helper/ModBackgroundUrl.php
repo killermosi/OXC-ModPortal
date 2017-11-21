@@ -21,22 +21,26 @@
 
 namespace OxcMP\View\Helper;
 
+use OxcMP\Entity\Mod;
+
 /**
- * Handle generation of static resource URLs
+ * Handle generation of a mod background image URL
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class StaticUrl extends AbstractUrlHelper
+class ModBackgroundUrl extends AbstractUrlHelper
 {
     /**
-     * Build a URL for a resource
+     * Build the URL for a mod background image
      * 
-     * @param string $resourcePath Path to the resource
-     * @return void
+     * @param Mod $mod The Mod entity
+     * @return string
      */
-    public function __invoke($resourcePath = null)
+    public function __invoke(Mod $mod)
     {
-        return $this->buildStaticUrl($this->buildHomeUrl() . ltrim($resourcePath, '/'));
+        return $this->buildStaticUrl(
+            $this->view->url('mod-background', ['mod-slug' => $mod->getSlug()], ['force_canonical' => true])
+        );
     }
 }
 

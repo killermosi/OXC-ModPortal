@@ -98,10 +98,14 @@ return [
     ],
     'view_helpers' => [
         'factories' => [
-            View\Helper\StaticUrl::class => ModuleFactory::class,                    
+            View\Helper\DefaultBackgroundUrl::class => ModuleFactory::class,                    
+            View\Helper\ModBackgroundUrl::class     => ModuleFactory::class,                    
+            View\Helper\StaticUrl::class            => ModuleFactory::class,                    
         ],
        'aliases' => [
-            'staticUrl' => View\Helper\StaticUrl::class
+            'defaultBackgroundUrl' => View\Helper\DefaultBackgroundUrl::class,
+            'modBackgroundUrl'     => View\Helper\ModBackgroundUrl::class,
+            'staticUrl'            => View\Helper\StaticUrl::class,
        ]
     ], 
     'translator' => [

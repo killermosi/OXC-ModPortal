@@ -172,10 +172,10 @@ The gallery images will be recoded using the `png` format, regardless of the ori
 default storage pattern.
 
 However, since gallery images must be presented at different resolutions, the original image will be re-sampled (and
-cropped if needed) to the requested sizes. These additional images will be stored alongside the original image,
-using the pattern:
+cropped if needed) to the requested sizes. These additional images will be stored in a separate `cache` directory
+defined in the configuration:
 
-`/path/to/storage/<mod_uuid>/image_<file_uuid>_<width>x<height>`
+`/path/to/cache/<mod_slug>/<image_name>_<width>_<height>.png`
 
 The following URL format will be used to request a mod's gallery image:
 
@@ -183,6 +183,9 @@ The following URL format will be used to request a mod's gallery image:
 
 **Notes**:
 
+* The storage directory mirrors the retrieval URL, so that the cache directory can be set to a directory named
+  `mod-image` and placed in the application's `public` directory. That way, the web server can directly serve the cached
+  images without having to boot up the portal application for existing images.
 * For a non-existent mod slug, unsupported width/height, or unknown image name, the response will be empty and will have
   a `404` response code.
 * The additional images will created when first requested, and then served from storage when requested again.

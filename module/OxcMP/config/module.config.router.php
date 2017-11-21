@@ -134,6 +134,17 @@ return [
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],
         ],
+        'mod-background' => [
+            'type'    => Segment::class,
+            'options' => [
+                'route'    => '/mod-image/[:mod-slug]/background.png',
+                'defaults' => [
+                    'controller' => Controller\ModFileController::class,
+                    'action'     => 'mod-background',
+                ],
+                'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
+            ],
+        ],
         'about' => [
             'type' => Literal::class,
             'options' => [
