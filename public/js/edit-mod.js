@@ -431,5 +431,84 @@ class TagManager {
     }
 }
 
+class ModBackgroundManager {
+    /**
+     * Setup background editing
+     * 
+     * @returns {undefined}
+     */
+    constructor() {
+        // Form elements
+        this.$editModForm = $('form#editMod');
+        this.$backgroundImage = $('img#background-image', this.$editModForm);
+        this.$backgroundImageUpload = $('input#background-image-upload', this.$editModForm);
+        this.$uploadMod = $('button#upload-mod', this.$editModForm);
+        this.$deleteMod = $('button#delete-mod', this.$editModForm);
+        
+        // Enable delete button if a background image is available
+        if (this.$backgroundImage.attr('src') !== this.$backgroundImage.data('default-background-url')) {
+            this.$deleteMod.removeAttr('disabled');
+        }
+        
+        // Handle events
+        this.$uploadMod.click(function(){modBackgroundManager.$backgroundImageUpload.click();});
+        this.$backgroundImageUpload.change(this.handleUpload);
+        
+        // File data
+        this.file = null;
+        this.start = 0;
+    }
+    
+    /**
+     * Delete the current mod background
+     * 
+     * @returns {undefined}
+     */
+    handleDelete() {
+        console.log('delete');
+    }
+    
+    /**
+     * Upload the selected background file
+     * 
+     * @returns {undefined}
+     */
+    handleUpload() {
+        var files = modBackgroundManager.$backgroundImageUpload.prop('files');
+        
+        // Nothing to do if no files were selected
+        if (files.length === 0) {
+            return;
+        }
+
+        modBackgroundManager.file = files[0];
+        
+        // Create upload slot
+        $.ajax(modBackgroundManager.$editModForm.data('create-upload-slot'), {
+            method: 'post',
+            data: {
+                type: 'background',
+                size: modBackgroundManager.file.size
+            },
+            dataType: 'json'
+        })
+        .done(modBackgroundManager.uploadNextPiece)
+        .fail(modBackgroundManager.handleUploadFail);
+    }
+    
+    /**
+     * Upload the next piece of the background
+     * @returns {undefined}
+     */
+    uploadNextPiece() {
+        console.log('upload next piece');
+    }
+    
+    handleUploadFail() {
+        
+    }
+}
+
 var tagManager = new TagManager();
+var modBackgroundManager = new ModBackgroundManager();
 var editModManager = new EditModManager(tagManager);

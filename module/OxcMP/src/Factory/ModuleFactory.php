@@ -85,6 +85,14 @@ class ModuleFactory implements FactoryInterface
             
             case Controller\IndexController::class:
                 return new $requestedName();
+            case Controller\ModFileManagementController::class:
+                return new $requestedName(
+                    $container->get(AuthenticationService::class),
+                    $container->get(Service\Mod\ModRetrievalService::class),
+                    $container->get(Service\Quota\QuotaService::class),
+                    $container->get(Service\Storage\StorageService::class),
+                    $container->get(Config::class)
+                );
             case Controller\ModManagementController::class:
                 return new $requestedName(
                     $container->get(AuthenticationService::class),
@@ -143,6 +151,11 @@ class ModuleFactory implements FactoryInterface
             case Service\Quota\QuotaService::class:
                 return new $requestedName(
                     $container->get('doctrine.entitymanager.orm_default'),
+                    $container->get(Service\Storage\StorageOptions::class),
+                    $container->get(Config::class)
+                );
+            case Service\Storage\StorageService::class:
+                return new $requestedName(
                     $container->get(Service\Storage\StorageOptions::class),
                     $container->get(Config::class)
                 );

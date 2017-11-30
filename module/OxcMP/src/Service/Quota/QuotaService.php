@@ -75,6 +75,9 @@ class QuotaService
      * @param Mod     $mod The mod
      * @param integer $fileSize The file size
      * @return void
+     * @throws Exception\InsufficientStorageSpace
+     * @throws Exception\UserQuotaReached
+     * @throws Exception\ModQuotaReached
      */
     public function checkQuota(User $user, Mod $mod, $fileSize)
     {
@@ -88,7 +91,13 @@ class QuotaService
         );
         
         // Check free storage space
-        $modStorageDir = $this->storageOptions->getModRootStorageDirectory();
+        try {
+            $modStorageDir = $this->storageOptions->getModRootStorageDirectory(true);
+        } catch (\Exception $exc) {
+            Log::error('Failed to retrieve mod storage directory: ', $exc->getMessage());
+            throw $exc;
+        }
+        
         $minFreeSpace = $this->config->storage->quota->freeSpace * 1024 * 1024;
         $diskFreeSpace = disk_free_space($modStorageDir);
         
@@ -142,7 +151,7 @@ class QuotaService
         
         // Check user quota
         if ($userQuota > 0) {
-            if ($totalUsedSpace + $fileSize > $this->config->storage->quota->user) {
+            if ($totalUsedSpace + $fileSize > $userQuota) {
                 Log::notice(
                     'File size over user quota: ',
                     File::formatByteSize($fileSize)
@@ -156,13 +165,13 @@ class QuotaService
         
         // Check mod quota
         if ($modQuota > 0) {
-            if ($modUsedSpace + $fileSize > $this->config->storage->quota->mod) {
+            if ($modUsedSpace + $fileSize > $modQuota) {
                 Log::notice(
-                    'File size over user quota: ',
+                    'File size over mod quota: ',
                     File::formatByteSize($fileSize)
                 );
 
-                throw new Exception\UserQuotaReached();
+                throw new Exception\ModQuotaReached();
             }
         } else {
             Log::debug('Mod quota is disabled, skipping mod quota check');

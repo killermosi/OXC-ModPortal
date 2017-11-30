@@ -22,6 +22,7 @@
 namespace OxcMP\View\Helper;
 
 use OxcMP\Entity\Mod;
+use OxcMP\Entity\ModFile;
 
 /**
  * Handle generation of a mod background image URL
@@ -33,11 +34,17 @@ class ModBackgroundUrl extends AbstractUrlHelper
     /**
      * Build the URL for a mod background image
      * 
-     * @param Mod $mod The Mod entity
-     * @return string
+     * @param Mod     $mod           The Mod entity
+     * @param ModFile $modBackground The mod background image
+     * @return string URL to the mod image, or to the default background if no valid background image was specified
      */
-    public function __invoke(Mod $mod)
+    public function __invoke(Mod $mod, ModFile $modBackground = null)
     {
+        // No custom URL
+        if (!$modBackground instanceof ModFile) {
+            return $this->view->defaultBackgroundUrl();
+        }
+        
         return $this->buildStaticUrl(
             $this->view->url('mod-background', ['mod-slug' => $mod->getSlug()], ['force_canonical' => true])
         );

@@ -25,7 +25,7 @@
     $backgroundSupportArchiveUrl = $homeUrl . 'resources/background-support.zip';
     
 ?>
-<form name="editMod" id="editMod" class="p-2" action="<?php echo $this->url('save-mod',[], ['force_canonical' => true]) ?>" method="post" autocomplete="off" enctype="text/plain" novalidate data-slug-preview-action="<?php echo $this->url('preview-mod-slug',[], ['force_canonical' => true]) ?>" data-description-preview-action="<?php echo $this->url('preview-mod-description',[], ['force_canonical' => true]) ?>">
+<form name="editMod" id="editMod" class="p-2" action="<?php echo $this->url('save-mod',[], ['force_canonical' => true]); ?>" method="post" autocomplete="off" enctype="text/plain" novalidate data-slug-preview-action="<?php echo $this->url('preview-mod-slug',[], ['force_canonical' => true]); ?>" data-description-preview-action="<?php echo $this->url('preview-mod-description',[], ['force_canonical' => true]); ?>" data-create-upload-slot="<?php echo $this->url('create-upload-slot', ['modUuid' => $mod->getId()->toString()], ['force_canonical' => true]); ?>" data-chunk-size="<?php echo $chunkSize; ?>">
     <input type="hidden" name="id" id="id" value="<?php echo $mod->getId()->toString(); ?>"/>
     <div class="form-row">
         <div class="form-group col-sm-12 col-md-4">
@@ -107,12 +107,13 @@
     <div class="form-row">
         <div class="form-group col-sm-12 col-md-6">
             <label><?php echo $this->translate('page_editmod_form_background_current_title'); ?></label>
-            <img class="img-fluid" src="<?php echo $backgroundImageDefaultUrl?>" alt="<?php echo $this->translate('page_editmod_image_background_alt')?>">
+            <img id="background-image" class="img-fluid" src="<?php echo $this->modBackgroundUrl($mod, $modBackground)?>" data-default-background-url="<?php echo $this->defaultBackgroundUrl(); ?>"  alt="<?php echo $this->translate('page_editmod_image_background_alt')?>">
+            <input id="background-image-upload" accept="image/*" class="d-none" type="file" />
         </div>
         <div class="form-group col-sm-12 col-md-6">
             <label><?php echo $this->translate('page_editmod_form_background_manage_title'); ?></label>
             <small class="form-text text-muted"><?php echo $this->translate('page_editmod_form_background_manage_help_intro'); ?></small>
-            <div class="">
+            <div>
                 <img class="img-fluid" src="<?php echo $backgroundImageInstructionsUrl?>" alt="<?php echo $this->translate('page_editmod_image_background_process_alt')?>">
             </div>
             <div class="container p-0">
@@ -142,13 +143,13 @@
             </div>
             <div class="modal-footer border-top-0 p-0">
                 <div id="background-progress" class="progress w-100 d-none">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated w-100" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
-                <div id="background-error-message" class="alert alert-warning m-0 mr-2 p-1 w-100 text-center">Some error text</div>
-                <button type="button" class="btn btn-primary"><?php echo $this->translate('page_editmod_form_background_manage_btn_upload'); ?></button>
-                <button type="button" class="btn btn-danger" disabled><?php echo $this->translate('page_editmod_form_background_manage_btn_delete'); ?></button>
+                <div id="background-error-message" class="alert alert-warning m-0 mr-2 p-1 w-100 text-center d-none">Some error text</div>
+                <button type="button" id="upload-mod" class="btn btn-primary"><?php echo $this->translate('page_editmod_form_background_manage_btn_upload'); ?></button>
+                <button type="button" id="delete-mod" class="btn btn-danger" disabled><?php echo $this->translate('page_editmod_form_background_manage_btn_delete'); ?></button>
             </div>
-            <small class="form-text text-muted"><?php echo sprintf($this->translate('page_editmod_form_background_manage_help_technical'), 50, 50, $backgroundSupportArchiveUrl); ?></small>
+            <small class="form-text text-muted"><?php echo sprintf($this->translate('page_editmod_form_background_manage_help_technical'), $backgroundWidth, $backgroundHeight, $backgroundSupportArchiveUrl); ?></small>
         </div>
     </div>
     <div class="modal-footer">

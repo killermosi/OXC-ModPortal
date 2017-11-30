@@ -134,6 +134,17 @@ return [
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],
         ],
+        'create-upload-slot' => [
+            'type'    => Segment::class,
+            'options' => [
+                'route'    => '/mod-file-management/create-upload-slot/[:modUuid]',
+                'defaults' => [
+                    'controller' => Controller\ModFileManagementController::class,
+                    'action'     => 'create-upload-slot',
+                ],
+                'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
+            ],
+        ],
         'mod-background' => [
             'type'    => Segment::class,
             'options' => [

@@ -22,9 +22,13 @@
 namespace OxcMP\Controller\SupportCode;
 
 use Zend\Validator\ValidatorChain;
-use Zend\Validator\StringLength;
+use Zend\Validator\Digits;
+use Zend\Validator\InArray;
+use Zend\Validator\NotEmpty;
 use Zend\Validator\Regex;
+use Zend\Validator\StringLength;
 use Zend\Validator\Uuid;
+use OxcMP\Controller\ModFileManagementController;
 
 /**
  * Validator for mod data
@@ -186,5 +190,29 @@ class ModValidator {
 //        $validator->attach($descriptionRawChars, true);
         
         return $validator;
+    }
+    
+    /**
+     * Build the upload file slot validator
+     * 
+     * @return array
+     */
+    public function buildUploadFileSlotValidator()
+    {
+        $uuidValidator = new Uuid();
+        
+        $typeValidator = new InArray();
+        $typeValidator->setHaystack(array_keys(ModFileManagementController::TYPE_MAP));
+        
+        $sizeValidator = new Digits();
+  
+        $nameValidator = new NotEmpty();
+        
+        return [
+            'uuid' => $uuidValidator,
+            'type' => $typeValidator,
+            'size' => $sizeValidator,
+            'name' => $nameValidator,
+        ];
     }
 }

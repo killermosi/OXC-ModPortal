@@ -218,4 +218,6 @@ files will be saved to a temporary location, and moved to the final storage when
 
 ### Files upload
 
-Since the mod files are potentially very large, they will be uploaded in chunks.
+Since the mod files are potentially very large, they will be uploaded in chunks. The upload process flow is:
+
+![authentication flow](res/03-FileUploadFlow.png "File Upload flow")

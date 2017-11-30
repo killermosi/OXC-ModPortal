@@ -132,7 +132,7 @@ class ModManagementController extends AbstractController
      */
     public function myModsAction()
     {
-        Log::info('Processing mod/my-mods action');
+        Log::info('Processing mod-management/my-mods action');
         
         $mods = $this->modRetrievalService->getModsByUser($this->authenticationService->getIdentity(), false);
         
@@ -152,7 +152,7 @@ class ModManagementController extends AbstractController
      */
     public function addModAction()
     {
-        Log::info('Processing mod/add-mod action');
+        Log::info('Processing mod-management/add-mod action');
         
         // Go to MyMods if the request is not AJAX
         if (!$this->getRequest()->isXmlHttpRequest()) {
@@ -211,7 +211,7 @@ class ModManagementController extends AbstractController
      */
     public function editModAction()
     {
-        Log::info('Processing mod/edit-mod action');
+        Log::info('Processing mod-management/edit-mod action');
         
         // Validate the mod UUID
         $modUuid = $this->params()->fromRoute('modUuid', null);
@@ -261,6 +261,9 @@ class ModManagementController extends AbstractController
         $this->view->tags = $this->tagRetrievalService->getAllTags();
         $this->view->modTags = $this->modTagRetrievalService->getModTags($mod);
         $this->view->gitHubFlavoredMarkdownGuideUrl = $this->config->layout->gitHubFlavoredMarkdownGuideUrl;
+        $this->view->backgroundWidth = $this->config->storage->background->width;
+        $this->view->backgroundHeight = $this->config->storage->background->height;
+        $this->view->chunkSize = $this->config->storage->chunkSize;
         
         return $this->view;
     }
@@ -272,7 +275,7 @@ class ModManagementController extends AbstractController
      */
     public function saveModAction()
     {
-        Log::info('Processing mod/save-mod action');
+        Log::info('Processing mod-management/save-mod action');
         
         // Go to MyMods if the request is not AJAX
         if (!$this->getRequest()->isXmlHttpRequest()) {
@@ -396,7 +399,7 @@ class ModManagementController extends AbstractController
      */
     public function previewModDescriptionAction()
     {
-        Log::info('Processing mod/preview-mod-description action');
+        Log::info('Processing mod-management/preview-mod-description action');
         
         // Go to MyMods if the request is not AJAX
         if (!$this->getRequest()->isXmlHttpRequest()) {
@@ -472,7 +475,7 @@ class ModManagementController extends AbstractController
      */
     public function previewModSlugAction()
     {
-        Log::info('Processing mod/preview-mod-slug action');
+        Log::info('Processing mod-management/preview-mod-slug action');
         
         // Since this is a utility method, we don't really care if the received data is invalid
         // (we do validate it, to avoid unnecessary operations), so we return an empty response
@@ -588,7 +591,7 @@ class ModManagementController extends AbstractController
             'id' => $request->getPost('id', ''),
             'title' => $filters['title']->filter($request->getPost('title', '')),
             'summary' => $filters['summary']->filter($request->getPost('summary', '')),
-            'isPublished' => $request->getPost('isPublished', ''),
+            'isPublished' => (int) $request->getPost('isPublished', 0),
             'descriptionRaw' => $filters['descriptionRaw']->filter($request->getPost('descriptionRaw', '')),
             'tags' => $request->getPost('tags', '')
         ];

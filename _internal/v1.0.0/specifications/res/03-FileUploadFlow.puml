@@ -1,0 +1,32 @@
+@startuml
+scale 884 width
+title File upload flow
+actor User
+participant Browser
+participant "OpenXcom\nMod Portal" as Portal
+User --> Browser: User selects\nfiles in the browser
+loop File is uploaded
+    Browser -> Portal: The browser requests a new\nupload slot from the portal
+    Portal -> Portal: Quota limits\nare checked
+    alt Quota check succeeds
+        Portal -> Browser: The portal creates a new upload slot\nand responds with the slot ID
+    else Quota check fails
+        Portal -> Browser: The portal sends an "Over quota" or\n"Not enough space" response
+    end
+    loop File is sent in chunks
+        Browser -> Portal: The browser sends a chunk,\nand the slot ID
+        Portal -> Portal: Chunk is processed
+    end
+    Portal -> Portal: The received file\nis validated
+    alt The received file is valid
+        Portal -> Browser: Ok response
+    else File is invalid
+        Portal -> Browser: Error response
+    end
+end
+Browser -> Browser: The form is updated with the\nnew data or error message
+User --> Browser: User submits the form
+Browser -> Portal: Form data is sent
+Portal -> Portal: Mod data is updated
+Portal -> Browser: Succes message shown
+@enduml

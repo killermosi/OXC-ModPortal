@@ -31,6 +31,7 @@ class DateTime {
     /**
      * Create a new DateTime object using the UTC TimeZone
      * 
+     * @param string $dateTimeString The date to set
      * @return \DateTime
      */
     public static function newDateTimeUtc($dateTimeString = null)

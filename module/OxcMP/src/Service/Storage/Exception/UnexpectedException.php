@@ -19,14 +19,14 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OxcMP\Service\Quota\Exception;
+namespace OxcMP\Service\Storage\Exception;
 
 /**
- * Quota exception
+ * Storage UnexpectedException
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class UserQuotaReached extends \RuntimeException implements ExceptionInterface
+class UnexpectedException extends \RuntimeException implements ExceptionInterface
 {
     // Empty
 }

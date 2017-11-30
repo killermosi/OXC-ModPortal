@@ -43,6 +43,10 @@ class ModFile
     const TYPE_IMAGE      = 1;
     const TYPE_BACKGROUND = 2;
     
+    const IMAGE_EXTENSION     = 'png';
+    const BACKGROUND_NAME     = 'background.' . self::IMAGE_EXTENSION;
+    const RESOURCE_EXTENSTION = 'zip';
+    
     /**
      * Internal identifier
      * @var Uuid

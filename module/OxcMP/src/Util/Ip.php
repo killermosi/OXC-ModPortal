@@ -30,31 +30,32 @@ class Ip
 {
     /**
      * Find the client IP address
-     * Copied from: https://stackoverflow.com/a/43703510/1111983
+     * Adapted from: https://stackoverflow.com/a/43703510/1111983
      * 
      * @return string
      */
     public static function getRemoteIp()
     {
-        $ipaddress = '';
+        // Where to look for the IP address, and in which order
+        $envVars = [
+            'HTTP_CLIENT_IP',
+            'HTTP_X_FORWARDED_FOR',
+            'HTTP_X_FORWARDED',
+            'HTTP_FORWARDED_FOR',
+            'HTTP_FORWARDED',
+            'REMOTE_ADDR',
+        ];
         
-        if (getenv('HTTP_CLIENT_IP')) {
-            $ipaddress = getenv('HTTP_CLIENT_IP');
-        } else if(getenv('HTTP_X_FORWARDED_FOR')) {
-            $ipaddress = getenv('HTTP_X_FORWARDED_FOR');
-        } else if(getenv('HTTP_X_FORWARDED')) {
-            $ipaddress = getenv('HTTP_X_FORWARDED');
-        } else if(getenv('HTTP_FORWARDED_FOR')) {
-            $ipaddress = getenv('HTTP_FORWARDED_FOR');
-        } else if(getenv('HTTP_FORWARDED')) {
-           $ipaddress = getenv('HTTP_FORWARDED');
-        } else if(getenv('REMOTE_ADDR')) {
-            $ipaddress = getenv('REMOTE_ADDR');
-        } else {
-            $ipaddress = 'UNKNOWN';
+        foreach ($envVars as $envVar) {
+            $ipAddress = getenv($envVar);
+            
+            if (!empty($ipAddress)) {
+                return $ipAddress;
+            }
         }
         
-        return $ipaddress;
+        // IP address not retrieved
+        return 'UNKNOWN';
     }
 }
 

@@ -22,6 +22,7 @@
 namespace OxcMP\Service\Storage;
 
 use Zend\Config\Config;
+use OxcMP\Entity\Mod;
 use OxcMP\Util\Log;
 
 /**
@@ -32,7 +33,7 @@ use OxcMP\Util\Log;
 class StorageOptions
 {
     /**
-     * Mod to use when creating new directories in storage
+     * Mode to use when creating new directories in storage
      * @var type 
      */
     private $mode;
@@ -57,34 +58,52 @@ class StorageOptions
     /**
      * Retrieve the mod storage directory
      * 
-     * @param boolean $checkDirectory Create it if needed, perform additional checks
+     * @param boolean $createIfNotExists Create it if needed
      * @return string
      * @throws \Exception
      */
-    public function getModRootStorageDirectory($checkDirectory = false)
+    public function getModRootStorageDirectory($createIfNotExists = false)
     {
-        $modRootDir = '/' . trim($this->config->storage->mod->data, '/') . '/';
-        
-        if (is_dir($modRootDir) == false && $checkDirectory == false) {
-            Log::critical('The mod root storage directory does not exists: ', $modRootDir);
-            throw new \Exception('Mod root storage directory does not exists');
-        }
-        
+        $modRootDir = '/' . trim($this->config->storage->mod, '/') . '/';
+       
         if (
             is_dir($modRootDir) == false
-            && $checkDirectory == true
+            && $createIfNotExists == true
             && @mkdir($modRootDir, $this->mode, true) == false
         ) {
             Log::critical('The mod root storage directory does not exists and could not be created: ', $modRootDir);
             throw new \Exception('Mod root storage directory does not exists and could not be created');
         }
         
-        if ($checkDirectory == true && is_writable($modRootDir) == false) {
-            Log::critical('The mod root storage directory is not writable: ', $modRootDir);
-            throw new \Exception('The mod root storage directory is not writable');
+        return $modRootDir;
+    }
+    
+    /**
+     * Retrieve the temporary storage directory for a Mod file upload
+     *
+     * @param Mod     $mod              The Mod entity
+     * @param boolean $createIfNotExists Create if needed
+     * @return string
+     * @throws \Exception
+     */
+    public function getTemporaryUploadStorageDirectory(Mod $mod, $createIfNotExists = false)
+    {
+        $tempDir = trim($this->config->storage->temp, '/');
+        $userDir = $mod->getUserId()->toString();
+        $modDir  = $mod->getId()->toString();
+        
+        $dir = '/' . $tempDir . '/' . $userDir . '/' . $modDir . '/';
+        
+        if (
+            is_dir($dir) == false
+            && $createIfNotExists == true
+            && @mkdir($dir, $this->mode, true) == false
+        ) {
+            Log::critical('The temporary user storage directory does not exists and could not be created: ', $dir);
+            throw new \Exception('Mod temporary user storage directory does not exists and could not be created');
         }
         
-        return $modRootDir;
+        return $dir;
     }
 }
 

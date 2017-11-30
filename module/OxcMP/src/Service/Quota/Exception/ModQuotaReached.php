@@ -22,7 +22,7 @@
 namespace OxcMP\Service\Quota\Exception;
 
 /**
- * Description of ModQuotaReached
+ * Quota Exception
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */

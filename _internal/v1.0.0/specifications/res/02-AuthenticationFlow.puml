@@ -1,4 +1,5 @@
 @startuml
+scale 884 width
 title Authentication process flow
 actor User
 participant "OpenXcom\nMod Portal" as Portal

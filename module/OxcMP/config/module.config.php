@@ -14,15 +14,17 @@ use Doctrine\DBAL\Driver\PDOMySql\Driver as PDOMySqlDriver;
 use Ramsey\Uuid\Doctrine\UuidType;
 use OxcMP\Controller\AbstractController;
 use OxcMP\Factory\ModuleFactory;
+use OxcMP\Util\Resource\DoctrineUtcDateTimeType;
 
 /** !!! PRIVATE CONFIGURATION - DO NOT MODIFY !!! **/
 return [
     'router' => require('module.config.router.php'),
     'controllers' => [
         'factories' => [
-            Controller\IndexController::class => ModuleFactory::class,
-            Controller\UserController::class  => ModuleFactory::class,
-            Controller\ModManagementController::class   => ModuleFactory::class,
+            Controller\IndexController::class             => ModuleFactory::class,
+            Controller\UserController::class              => ModuleFactory::class,
+            Controller\ModFileManagementController::class => ModuleFactory::class,
+            Controller\ModManagementController::class     => ModuleFactory::class,
         ],
     ],
     'controller_plugins' => [
@@ -59,6 +61,7 @@ return [
             Service\Quota\QuotaService::class                   => ModuleFactory::class,
             // Storage
             Service\Storage\StorageOptions::class               => ModuleFactory::class,
+            Service\Storage\StorageService::class               => ModuleFactory::class,
             // Tag
             Service\Tag\TagRetrievalService::class              => ModuleFactory::class,
             // User
@@ -98,9 +101,9 @@ return [
     ],
     'view_helpers' => [
         'factories' => [
-            View\Helper\DefaultBackgroundUrl::class => ModuleFactory::class,                    
-            View\Helper\ModBackgroundUrl::class     => ModuleFactory::class,                    
-            View\Helper\StaticUrl::class            => ModuleFactory::class,                    
+            View\Helper\DefaultBackgroundUrl::class => ModuleFactory::class,
+            View\Helper\ModBackgroundUrl::class     => ModuleFactory::class,
+            View\Helper\StaticUrl::class            => ModuleFactory::class,
         ],
        'aliases' => [
             'defaultBackgroundUrl' => View\Helper\DefaultBackgroundUrl::class,
@@ -117,6 +120,44 @@ return [
                 'pattern'  => '%s.php',
             ],
         ],
+    ],
+    'doctrine' => [
+        'connection' => [
+            'orm_default' => [
+                // Driver type
+                'driverClass' => PDOMySqlDriver::class,
+                // Connection parameters
+                'params' => [
+                    'host'     => 'localhost',
+                    'port'     => '3306',
+                    'user'     => null,
+                    'password' => null,
+                    'dbname'   => null,
+                ]
+            ]
+        ],
+        'configuration' => [
+            'orm_default' => [
+                'types' => [
+                    UuidType::NAME => UuidType::class,
+                    'datetime'     => DoctrineUtcDateTimeType::class,
+                    'datetimez'    => DoctrineUtcDateTimeType::class
+                ],
+                'sql_logger' => Util\Resource\DoctrineLog::class
+            ]
+        ],
+        'driver' => [
+            __NAMESPACE__ . '_driver' => [
+                'class' => AnnotationDriver::class,
+                'cache' => 'array',
+                'paths' => [__DIR__ . '/../src/Entity']
+            ],
+            'orm_default' => [
+                'drivers' => [
+                    __NAMESPACE__ . '\Entity' => __NAMESPACE__ . '_driver'
+                ]
+            ]
+        ]
     ],
     // TODO: Add local fallback for CSS and JS
     'layout' => [
@@ -145,42 +186,6 @@ return [
         'githubProjectUrl' => 'https://github.com/killermosi/OXC-ModPortal',
         'staticStorageUrl' => null,
         'gitHubFlavoredMarkdownGuideUrl' => 'https://guides.github.com/features/mastering-markdown/'
-    ],
-    'doctrine' => [
-        'connection' => [
-            'orm_default' => [
-                // Driver type
-                'driverClass' => PDOMySqlDriver::class,
-                // Connection parameters
-                'params' => [
-                    'host'     => 'localhost',
-                    'port'     => '3306',
-                    'user'     => null,
-                    'password' => null,
-                    'dbname'   => null,
-                ]
-            ]
-        ],
-        'configuration' => [
-            'orm_default' => [
-                'types' => [
-                    UuidType::NAME => UuidType::class
-                ],
-                'sql_logger' => Util\Resource\DoctrineLog::class
-            ]
-        ],
-        'driver' => [
-            __NAMESPACE__ . '_driver' => [
-                'class' => AnnotationDriver::class,
-                'cache' => 'array',
-                'paths' => [__DIR__ . '/../src/Entity']
-            ],
-            'orm_default' => [
-                'drivers' => [
-                    __NAMESPACE__ . '\Entity' => __NAMESPACE__ . '_driver'
-                ]
-            ]
-        ]
     ],
     // Session configuration.
     'session_config' => [
@@ -234,8 +239,8 @@ return [
         'mod' => '/tmp/oxcmp/data',
         // Where to cache the mod images, can be null to disable the cache
         'cache' => null,
-        // Where to store temporary files during uploads
-        'temp' => '/tmp/oxcmp/tmp',
+        // Where to store temporary files
+        'temp' => '/tmp/oxcmp/',
         // Max total storage allowed per user/mod
         'quota' => [
             'freeSpace' => 1024 * 25, // 25 GB
@@ -246,8 +251,15 @@ return [
         'maxFileSize' => [
             'image' => 10,
             'resource' => 512
+        ],
+        // Upload chunk size
+        'chunkSize' => 2,
+        // Background image size, in pixels
+        'background' => [
+            'width' => 1700,
+            'height' => 700
         ]
-    ]
+    ],
 ];
 
 /* EOF */
