@@ -22,6 +22,7 @@
 namespace OxcMP\Controller\SupportCode;
 
 use Zend\Validator\ValidatorChain;
+use Zend\Validator\Callback;
 use Zend\Validator\Digits;
 use Zend\Validator\InArray;
 use Zend\Validator\NotEmpty;
@@ -213,6 +214,23 @@ class ModValidator {
             'type' => $typeValidator,
             'size' => $sizeValidator,
             'name' => $nameValidator,
+        ];
+    }
+    
+    /**
+     * Build the upload file chunk validator
+     * 
+     * @return array
+     */
+    public function buildUploadFileChunkValidator()
+    {
+        $modUuidValidator = new Uuid();
+        
+        $slotUuidValidator = new Uuid();
+        
+        return [
+            'modUuid' => $modUuidValidator,
+            'slotUuid' => $slotUuidValidator,
         ];
     }
 }

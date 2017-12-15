@@ -37,14 +37,17 @@ use OxcMP\Util\DateTime as DateTimeUtil;
 class ModFile
 {
     /*
-     * File type
+     * File types
      */
     const TYPE_RESOURCE   = 0;
     const TYPE_IMAGE      = 1;
     const TYPE_BACKGROUND = 2;
     
+    /*
+     * Names and extensions
+     */
     const IMAGE_EXTENSION     = 'png';
-    const BACKGROUND_NAME     = 'background.' . self::IMAGE_EXTENSION;
+    const BACKGROUND_NAME     = 'background.' .self::IMAGE_EXTENSION;
     const RESOURCE_EXTENSTION = 'zip';
     
     /**

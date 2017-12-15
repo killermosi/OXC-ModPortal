@@ -31,6 +31,7 @@ use OxcMP\Service\Mod\ModRetrievalService;
 use OxcMP\Service\Quota\QuotaService;
 use OxcMP\Service\Quota\Exception as QuotaException;
 use OxcMP\Service\Storage\StorageService;
+use OxcMP\Service\Storage\Exception as StorageException;
 use OxcMP\Util\Log;
 
 /**
@@ -153,7 +154,27 @@ class ModFileManagementController extends AbstractController
             }
         }
         
-        // Validate the mod
+        // Check that the file is not too large
+        switch (self::TYPE_MAP[$parameters['type']]) {
+            case ModFile::TYPE_IMAGE:
+            case ModFile::TYPE_BACKGROUND:
+                $maxFileSize = $this->config->storage->maxFileSize->image;
+                break;
+            case ModFile::TYPE_RESOURCE:
+                $maxFileSize = $this->config->storage->maxFileSize->resource;
+                break;
+            default:
+                Log::error('Unsupported file type for size check: ', self::TYPE_MAP[$parameters['type']]);
+                $result->message = $this->translate('global_unexpected_error');
+                return $result;                
+        }
+        
+        if ($parameters['size'] > ($maxFileSize * 1024 * 1024)) {
+            $result->message = $this->translate('page_editmod_error_upload_too_big');
+            return $result;
+        }
+        
+        // Retrieve and validate the mod
         $mod = $this->modRetrievalService->getModById(Uuid::fromString($parameters['uuid']));
 
         if (!$mod instanceof Mod) {
@@ -206,6 +227,109 @@ class ModFileManagementController extends AbstractController
         $result->success = true;
         $result->message = $slotUuid;
         
+        return $result;
+    }
+    
+    /**
+     * Upload a file chunk
+     * 
+     * @return JsonModel
+     */
+    public function uploadfileChunkAction()
+    {
+        Log::info('Processing mod-file-management/upload-file-chunk action');
+        
+        // Go to MyMods if the request is not AJAX
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            Log::notice('Request is not AJAX, ignoring');
+            return $this->redirect()->toRoute('my-mods');
+        }
+        
+        // The "message" key will contain error message on failure, null on success and the URL to the 
+        // temporary resource URL when the last chunk was successfully uploaded and the
+        // file was successfully combined from the chunks and validated.
+        
+        $result = new JsonModel();
+        $result->success = false;
+        $result->message = $this->translate('global_bad_request');
+        
+        // Collect file upload data
+        $request = $this->getRequest();
+        
+        $parameters = [
+            'modUuid' => $this->params()->fromRoute('modUuid', ''),
+            'slotUuid' => $request->getPost('slotUuid', ''),
+        ];
+        
+        // Validate the received data
+        $validators = (new SupportCode\ModValidator())->buildUploadFileChunkValidator();
+        
+        foreach ($parameters as $parameterName => $parameterValue) {
+            $validator = $validators[$parameterName];
+            
+            if (!$validator->isValid($parameterValue)) {
+                Log::notice('Unexpected validation failure: ', $validator->getMessages());
+                return $result;
+            }
+        }
+        
+        // Chunk data is a separate value
+        $chunkData = $this->params()->fromFiles('chunkData', []);
+        
+        if (empty($chunkData)) {
+            Log::notice('Chunk data missing from request');
+            return $result;
+        }
+        
+        // Retrieve and check the mod
+        $mod = $this->modRetrievalService->getModById(Uuid::fromString($parameters['modUuid']));
+
+        if (!$mod instanceof Mod) {
+            Log::notice('Could not find the mod having the UUID ', $parameters['modUuid']);
+            return $result;
+        }
+        
+        if ($mod->getUserId() != $this->authenticationService->getIdentity()->getId()) {
+            Log::notice(
+                'The mod having the UUID ',
+                $mod->getId()->toString(),
+                ' does not belong to the user having the UUID ',
+                $this->authenticationService->getIdentity()->getId()->toString()
+            );
+            
+            return $result;
+        }
+        
+        try {
+            $uploadStatus = $this->storageService->uploadChunk($mod, $parameters['slotUuid'], $chunkData);
+        } catch (StorageException\InvalidResource $exc) {
+            Log::notice('Not a valid zip file');
+            $result->message = $this->translate('page_editmod_error_file_not_resource');
+            return $result;
+        } catch (StorageException\InvalidImage $exc) {
+            Log::notice('Not a valid image file');
+            $result->message = $this->translate('page_editmod_error_file_not_image');
+            return $result;
+        } catch (StorageException\InvalidBackground $exc) {
+            Log::notice('Not a valid background file');
+            $result->message = $this->translate('page_editmod_error_file_not_background');
+            return $result;
+        } catch (\Exception $exc) {
+            Log::notice('Unexpected exception uploading a file chunk: ', $exc->getMessage());
+            $result->message = $this->translate('global_unexpected_error');
+            return $result;
+        }
+        
+        sleep(1);
+        
+        // Null the message
+        $result->message = null;
+        
+        if ($uploadStatus) {
+            // Create temporary URL
+        }
+        
+        $result->success = true;
         return $result;
     }
 }

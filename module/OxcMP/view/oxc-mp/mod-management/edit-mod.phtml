@@ -24,8 +24,19 @@
     $backgroundImageInstructionsUrl = $homeUrl . 'img/bg-instructions.png';
     $backgroundSupportArchiveUrl = $homeUrl . 'resources/background-support.zip';
     
+    // Some translations that are needed by JS
+    $jsLangKeys = [
+        'global_unexpected_error',
+        'global_chunk_upload_unsupported'
+    ];
+    
+    $jsLang = [];
+    foreach ($jsLangKeys as $jsLangKey) {
+        $jsLang[$jsLangKey] = $this->translate($jsLangKey);
+    }
 ?>
-<form name="editMod" id="editMod" class="p-2" action="<?php echo $this->url('save-mod',[], ['force_canonical' => true]); ?>" method="post" autocomplete="off" enctype="text/plain" novalidate data-slug-preview-action="<?php echo $this->url('preview-mod-slug',[], ['force_canonical' => true]); ?>" data-description-preview-action="<?php echo $this->url('preview-mod-description',[], ['force_canonical' => true]); ?>" data-create-upload-slot="<?php echo $this->url('create-upload-slot', ['modUuid' => $mod->getId()->toString()], ['force_canonical' => true]); ?>" data-chunk-size="<?php echo $chunkSize; ?>">
+<form name="editMod" id="editMod" class="p-2" action="<?php echo $this->url('save-mod',[], ['force_canonical' => true]); ?>" method="post" autocomplete="off" enctype="text/plain" novalidate data-slug-preview-action="<?php echo $this->url('preview-mod-slug',[], ['force_canonical' => true]); ?>" data-description-preview-action="<?php echo $this->url('preview-mod-description',[], ['force_canonical' => true]); ?>" data-create-upload-slot="<?php echo $this->url('create-upload-slot', ['modUuid' => $mod->getId()->toString()], ['force_canonical' => true]); ?>" data-upload-file-chunk="<?php echo $this->url('upload-file-chunk', ['modUuid' => $mod->getId()->toString()], ['force_canonical' => true]); ?>" data-chunk-size="<?php echo $chunkSize; ?>">
+    <script>var Lang = <?php echo json_encode($jsLang); ?> ;</script>
     <input type="hidden" name="id" id="id" value="<?php echo $mod->getId()->toString(); ?>"/>
     <div class="form-row">
         <div class="form-group col-sm-12 col-md-4">
@@ -149,7 +160,7 @@
                 <button type="button" id="upload-mod" class="btn btn-primary"><?php echo $this->translate('page_editmod_form_background_manage_btn_upload'); ?></button>
                 <button type="button" id="delete-mod" class="btn btn-danger" disabled><?php echo $this->translate('page_editmod_form_background_manage_btn_delete'); ?></button>
             </div>
-            <small class="form-text text-muted"><?php echo sprintf($this->translate('page_editmod_form_background_manage_help_technical'), $backgroundWidth, $backgroundHeight, $backgroundSupportArchiveUrl); ?></small>
+            <small class="form-text text-muted"><?php echo sprintf($this->translate('page_editmod_form_background_manage_help_technical'), $backgroundWidth, $backgroundHeight, $maxImageSize, $backgroundSupportArchiveUrl); ?></small>
         </div>
     </div>
     <div class="modal-footer">

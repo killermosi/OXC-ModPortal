@@ -21,6 +21,9 @@
 
 namespace OxcMP\Util;
 
+use SplFileInfo;
+use Behat\Transliterator\Transliterator;
+
 /**
  * File utilities
  *
@@ -46,10 +49,41 @@ class File
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
         $pow = min($pow, count($units) - 1);
 
-        // $bytes /= pow(1024, $pow);
         $bytes /= (1 << (10 * $pow));
 
         return sprintf($units[$pow], round($bytes, $precision));
+    }
+    
+    /**
+     * Sanitize a file name
+     * 
+     * @param string $filename The filename to sanitize
+     * @param string $ext The extension to use (optional)
+     * @return string|null The sanitized file name or NULL if the filename could not be sanitized
+     */
+    public static function sanitizeFilename($filename, $ext = null)
+    {
+        $fileInfo = new SplFileInfo($filename);
+        
+        // Use the file extension if not explicitly specified
+        if (is_null($ext)) {
+            $ext = $fileInfo->getExtension();
+        }
+        
+        $basename = $fileInfo->getBasename('.' . $fileInfo->getExtension());
+        
+        $name = trim(preg_replace('/[^ \w]+/', '', $basename));
+        
+        // If a name could not be extracted, return null
+        if (strlen($name) == 0) {
+            return null;
+        }
+        
+        // Transliteration does strtolower automatically
+        $returnName = trim(Transliterator::transliterate($name), '-');
+        $returnExt = (strlen($ext) == 0) ? '' : strtolower('.' . $ext);
+        
+        return $returnName . $returnExt;
     }
 }
 

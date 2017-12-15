@@ -22,11 +22,11 @@
 namespace OxcMP\Service\Storage\Exception;
 
 /**
- * Storage UnexpectedException
+ * Invalid mod resource
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
  */
-class UnexpectedException extends \RuntimeException implements ExceptionInterface
+class InvalidResource extends \RuntimeException implements ExceptionInterface
 {
     // Empty
 }

@@ -456,7 +456,10 @@ class ModBackgroundManager {
         
         // File data
         this.file = null;
-        this.start = 0;
+        this.currentChunk = 0;
+        this.totalChunks = null;
+        
+        this.chunkSize = parseInt(this.$editModForm.data('chunk-size'), 10);
     }
     
     /**
@@ -480,32 +483,194 @@ class ModBackgroundManager {
         if (files.length === 0) {
             return;
         }
-
-        modBackgroundManager.file = files[0];
         
-        // Create upload slot
-        $.ajax(modBackgroundManager.$editModForm.data('create-upload-slot'), {
-            method: 'post',
-            data: {
-                type: 'background',
-                size: modBackgroundManager.file.size
-            },
-            dataType: 'json'
-        })
-        .done(modBackgroundManager.uploadNextPiece)
-        .fail(modBackgroundManager.handleUploadFail);
+        try {
+            new FileUpload(
+                files[0],
+                'background',
+                modBackgroundManager.$editModForm.data('create-upload-slot'),
+                modBackgroundManager.$editModForm.data('upload-file-chunk'),
+                modBackgroundManager.$editModForm.data('chunk-size'),
+                function(response){console.log('Done callback', response);},
+                function(progress){console.log('Progress callback', progress, '%');},
+                function(){console.log('Retry attempts exceeded');}
+            );
+        } catch (e) {
+            console.log(e);
+        }
+    }
+}
+
+/**
+ * Upload a file in chunks
+ */
+class FileUpload {
+    /**
+     * Class initialization
+     * 
+     * @param {File}   file                  File data to upload
+     * @param {string} type                  The file type
+     * @param {string} slotUrl               The URL to call in order to create an upload slot
+     * @param {string} chunkUrl              The URL to call in order to upload a file chunk
+     * @param {string} chunkSize             Chunk size, in bytes
+     * @param {object} doneCallback          Callback to be executed when the upload finishes for either success or
+     *                                       failure - the server response is passed as a parameter
+     * @param {object} progressCallback      Callback to be executed before a chunk is uploaded
+     *                                       The progress percentage (including the current chunk) is passed as a
+     *                                       parameter
+     * @param {object} retryExceededCallback Callback to be executed before a chunk is uploaded
+     * @returns {FileUpload}
+     * @throws {404} Missing technical support from browser
+     */
+    constructor(file, type, slotUrl, chunkUrl, chunkSize, doneCallback, progressCallback, retryExceededCallback) {
+        // Check for browser support
+        if (typeof FormData === 'undefined') {
+            console.log('FormData is not supported by the browser');
+            throw 404;
+        }
+        
+        this.file                  = file;
+        this.type                  = type;
+        this.slotUrl               = slotUrl;
+        this.chunkUrl              = chunkUrl;
+        this.chunkSize             = chunkSize;
+        this.doneCallback          = doneCallback;
+        this.progressCallback      = progressCallback;
+        this.retryExceededCallback = retryExceededCallback;
+        
+        // Chunk details
+        this.curentChunk = 0;
+        this.totalChunks = Math.ceil(this.file.size / this.chunkSize);
+        
+        // Upload retry
+        this.retryCount = 0;
+        this.maxRetry = 3;
+        
+        // The upload slot UUID
+        this.slotUuid = null;
+        
+        // Set file slice function
+        this.sliceFunction = 
+                this.file.slice       ? this.file.slice :       // Standard API
+                this.file.webkitSlice ? this.file.webkitSlice : // Chrome family
+                this.file.mozSlice    ? this.file.mozSlice :    // Firefox family
+                // Feature not supported
+                function(){
+                    throw 404;
+                };
+        
+        this.uploadFile(this);
     }
     
     /**
-     * Upload the next piece of the background
+     * Upload the file
+     * 
+     * @param {FileUpload} self The FileUpload instance
      * @returns {undefined}
      */
-    uploadNextPiece() {
-        console.log('upload next piece');
+    uploadFile(self) {
+        // Create an upload slot
+        $.ajax(self.slotUrl, {
+            method: 'post',
+            data: {
+                type: self.type,
+                size: self.file.size,
+                name: self.file.name
+            },
+            dataType: 'json'
+        })
+        .done(function(response){
+            // On failure pass response
+            if (response.success === false) {
+                self.doneCallback(response);
+                return;
+            }
+            
+            // On success store the slot UUID and start uploading chunks
+            self.slotUuid = response.message;
+            self.processNextChunk(self);
+        })
+        .fail(self.doneCallback);
     }
     
-    handleUploadFail() {
+    /**
+     * Prepare the next chunk for upload
+     * 
+     * @param {FileUpload} self The FileUpload instance
+     * @returns {undefined}
+     */
+    processNextChunk(self) {
+        // Prepare chunk
+        self.curentChunk++;
+        self.retryCount = 0;
+
+        // Send progress update
+        var progressPercentage = Math.ceil((self.curentChunk * 100) / self.totalChunks);
+        self.progressCallback(progressPercentage);
         
+        self.uploadChunk(self);
+    }
+    
+    /**
+     * Upload the current chunk
+     * 
+     * @param {FileUpload} self The FileUpload instance
+     * @returns {undefined}
+     */
+    uploadChunk(self) {
+        // Stop on too many upload attempts
+        if (self.retryCount > self.maxRetry) {
+            self.retryExceededCallback();
+            return;
+        }
+        
+        self.retryCount++;
+        
+        var data = new FormData();
+        data.append('slotUuid', self.slotUuid);
+        data.append('chunkData', self.getFileChunk(self));
+        
+        $.ajax(self.chunkUrl, {
+            method: 'post',
+            data: data,
+            processData: false,
+            contentType: false,
+            dataType: 'json'
+        })
+        .done(function(response){
+            // On failure pass response
+            if (response.success === false) {
+                self.doneCallback(response);
+                return;
+            }
+            
+            // On success, upload the next chunk if there is any
+            if (self.curentChunk !== self.totalChunks) {
+                self.processNextChunk(self);
+                return;
+            }
+            
+            // Otherwise, this means that all chunks have been uploaded
+            self.doneCallback(response);
+        })
+        .fail(self.doneCallback);
+    }
+    
+    /**
+     * Get the next chunk from the file
+     * 
+     * @param {FileUpload} self The FileUpload instance
+     * @returns {object}
+     */
+    getFileChunk(self) {
+        var start = (self.curentChunk - 1) * self.chunkSize;
+        var end = start + self.chunkSize;
+        
+        if (end > self.file.size) {
+            end = self.file.size;
+        }
+
+        return self.sliceFunction.bind(self.file)(start, end);
     }
 }
 
