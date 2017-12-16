@@ -132,7 +132,7 @@ sanitization, a new filename will be generated using the pattern:
 
 #### Downloadable resources
 
-Resources must zip files. They will be stored on disk using the default storage pattern.
+Resources must be zip files. They will be stored on disk using the default storage pattern.
 
 The following URL format will be used to request a mod's downloadable resource:
 
@@ -179,7 +179,7 @@ defined in the configuration:
 
 The following URL format will be used to request a mod's gallery image:
 
-`portal.url/mod-image/<mod_slug>/<image_name>_<width>_<height>.png`
+`portal.url/mod-image/<mod_slug>/<image_name>-<width>-<height>.png`
 
 **Notes**:
 
@@ -216,8 +216,17 @@ mod data on the server is actually modified. This way, if the user changes its m
 To achieve this, the mod edit form will send the "diff" between the server mod data and the edited form data. Uploaded
 files will be saved to a temporary location, and moved to the final storage when the form is submitted.
 
-### Files upload
+#### File uploads
 
 Since the mod files are potentially very large, they will be uploaded in chunks. The upload process flow is:
 
 ![authentication flow](res/03-FileUploadFlow.png "File Upload flow")
+
+#### Accessing temporary files
+
+Since the temporary files are moved to a the storage only when the changes to a mod are submitted, they are accessed
+using a special URLs during an edit session:
+
+`portal.url/mod-management/<resource_type>/<upload_slot_uuid>.zip`
+
+The `resouce_type` can be one of `resource`, `background` or `image`;
