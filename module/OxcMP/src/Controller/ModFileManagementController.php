@@ -42,15 +42,6 @@ use OxcMP\Util\Log;
 class ModFileManagementController extends AbstractController
 {
     /**
-     * Type map
-     */
-    const TYPE_MAP = [
-        'resource'   => ModFile::TYPE_RESOURCE,
-        'image'      => ModFile::TYPE_IMAGE,
-        'background' => ModFile::TYPE_BACKGROUND,
-    ];
-    
-    /**
      * The authentication service
      * @var AuthenticationService
      */
@@ -136,8 +127,8 @@ class ModFileManagementController extends AbstractController
         
         // Backgrounds names have a specific value
         if (
-            in_array($parameters['type'], array_keys(self::TYPE_MAP))
-            && ModFile::TYPE_BACKGROUND == self::TYPE_MAP[$parameters['type']]
+            in_array($parameters['type'], array_keys(StorageService::TYPE_MAP))
+            && ModFile::TYPE_BACKGROUND == StorageService::TYPE_MAP[$parameters['type']]
         ) {
             $parameters['name'] = ModFile::BACKGROUND_NAME;
         }
@@ -155,7 +146,7 @@ class ModFileManagementController extends AbstractController
         }
         
         // Check that the file is not too large
-        switch (self::TYPE_MAP[$parameters['type']]) {
+        switch (StorageService::TYPE_MAP[$parameters['type']]) {
             case ModFile::TYPE_IMAGE:
             case ModFile::TYPE_BACKGROUND:
                 $maxFileSize = $this->config->storage->maxFileSize->image;
@@ -164,7 +155,7 @@ class ModFileManagementController extends AbstractController
                 $maxFileSize = $this->config->storage->maxFileSize->resource;
                 break;
             default:
-                Log::error('Unsupported file type for size check: ', self::TYPE_MAP[$parameters['type']]);
+                Log::error('Unsupported file type for size check: ', StorageService::TYPE_MAP[$parameters['type']]);
                 $result->message = $this->translate('global_unexpected_error');
                 return $result;                
         }

@@ -26,7 +26,6 @@ use Ramsey\Uuid\Uuid;
 use Imagick;
 use ImagickException;
 use ZipArchive;
-use OxcMP\Controller\ModFileManagementController;
 use OxcMP\Entity\Mod;
 use OxcMP\Entity\ModFile;
 use OxcMP\Service\Storage\StorageOptions;
@@ -40,6 +39,15 @@ use OxcMP\Util\File as FileUtil;
  */
 class StorageService
 {
+    /**
+     * Type map for mod files
+     */
+    const TYPE_MAP = [
+        'resource'   => ModFile::TYPE_RESOURCE,
+        'image'      => ModFile::TYPE_IMAGE,
+        'background' => ModFile::TYPE_BACKGROUND,
+    ];
+    
     /**
      * Extension to use for uploaded file
      * @var string
@@ -104,7 +112,7 @@ class StorageService
         $chunkSize = $this->config->storage->chunkSize * 1024 * 1024;
         $fileChunks = ceil($size/$chunkSize);
         
-        $fileType = ModFileManagementController::TYPE_MAP[$type];
+        $fileType = self::TYPE_MAP[$type];
         
         // Sanitize the file name
         switch ($fileType) {
@@ -282,7 +290,7 @@ class StorageService
         
         // Validate the uploaded file content
         if ($currentChunkNo == $totalChunks) {
-            $type = ModFileManagementController::TYPE_MAP[$slotData['type']];
+            $type = self::TYPE_MAP[$slotData['type']];
             
             switch ($type) {
                 case ModFile::TYPE_RESOURCE:

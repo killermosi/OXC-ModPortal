@@ -22,14 +22,13 @@
 namespace OxcMP\Controller\SupportCode;
 
 use Zend\Validator\ValidatorChain;
-use Zend\Validator\Callback;
 use Zend\Validator\Digits;
 use Zend\Validator\InArray;
 use Zend\Validator\NotEmpty;
 use Zend\Validator\Regex;
 use Zend\Validator\StringLength;
 use Zend\Validator\Uuid;
-use OxcMP\Controller\ModFileManagementController;
+use OxcMP\Service\Storage\StorageService;
 
 /**
  * Validator for mod data
@@ -203,7 +202,7 @@ class ModValidator {
         $uuidValidator = new Uuid();
         
         $typeValidator = new InArray();
-        $typeValidator->setHaystack(array_keys(ModFileManagementController::TYPE_MAP));
+        $typeValidator->setHaystack(array_keys(StorageService::TYPE_MAP));
         
         $sizeValidator = new Digits();
   
