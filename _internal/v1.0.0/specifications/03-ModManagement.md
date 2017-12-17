@@ -227,6 +227,11 @@ Since the mod files are potentially very large, they will be uploaded in chunks.
 Since the temporary files are moved to a the storage only when the changes to a mod are submitted, they are accessed
 using a special URLs during an edit session:
 
-`portal.url/mod-management/<resource_type>/<upload_slot_uuid>.zip`
+`portal.url/mod-file-management/temporary-file/<mod_uuid>/<slot_uuid>/<file_type>/`
 
-The `resouce_type` can be one of `resource`, `background` or `image`;
+**Notes**:
+
+* `<file_type>` is one of `resource`, `image` or `background`.
+* The proper MimeType must be set.
+* Additionally, for mod resources, the following header must be set:
+`Content-Disposition: attachment; filename="<slot_uuid>.zip"`

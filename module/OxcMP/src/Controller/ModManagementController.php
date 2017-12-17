@@ -218,15 +218,6 @@ class ModManagementController extends AbstractController
         
         Log::debug('Received mod UUID: "', $modUuid, '"');
         
-        $validator = (new SupportCode\ModValidator())->buildModUuidValidator();
-        
-        if (!$validator->isValid($modUuid)) {
-            Log::notice('The mod UUID "', $modUuid, '" is invalid, redirecting to "my-mods" page');
-            // Simply show the "not found" message, no need for additional details
-            $this->flashMessenger()->addErrorMessage($this->translate('page_editmod_mod_not_found'));
-            return $this->redirect()->toRoute('my-mods');
-        }
-        
         // Retrieve the mod from the database
         $mod = $this->modRetrievalService->getModById(Uuid::fromString($modUuid));
         
@@ -417,18 +408,10 @@ class ModManagementController extends AbstractController
         $validator = new SupportCode\ModValidator();
         
         // Collect data
-        $modId = $this->getRequest()->getPost('id', '');
+        $modId = $this->params()->fromRoute('modUuid', null);
         $modDescriptionRaw = (new SupportCode\ModFilter())->buildModDescriptionRawFilter()->filter(
             $this->getRequest()->getPost('descriptionRaw', '')
         );
-        
-        // Validate mod UUID
-        if (!$validator->buildModUuidValidator()->isValid($modId)) {
-            Log::notice('Received invalid mod UUID: "', $modId, '"');
-            
-            // No specific error message in this case
-            return $result;
-        }
         
         // Validate mod description
         $modDescriptionValidator = $validator->buildModDescriptionRawValidator();
@@ -491,16 +474,10 @@ class ModManagementController extends AbstractController
         $validator = new SupportCode\ModValidator();
         
         // Collect data
-        $modId = $this->getRequest()->getPost('id', '');
+        $modId = $this->params()->fromRoute('modUuid', null);;
         $modTitle = $filter->buildModTitleFilter()->filter(
             $this->getRequest()->getPost('title', '')
         );
-        
-        // Validate
-        if (!$validator->buildModUuidValidator()->isValid($modId)) {
-            Log::notice('Received invalid mod UUID: "', $modId, '"');
-            return $result;
-        }
         
         if (!$validator->buildModTitleValidator()->isValid($modTitle)) {
             Log::notice('Received invalid mod title: "', $modTitle, '"');
@@ -590,7 +567,7 @@ class ModManagementController extends AbstractController
         $request = $this->getRequest();
         
         return [
-            'id' => $request->getPost('id', ''),
+            'id' => $this->params()->fromRoute('modUuid', null),
             'title' => $filters['title']->filter($request->getPost('title', '')),
             'summary' => $filters['summary']->filter($request->getPost('summary', '')),
             'isPublished' => (int) $request->getPost('isPublished', 0),

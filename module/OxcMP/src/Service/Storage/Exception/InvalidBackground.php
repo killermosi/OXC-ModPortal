@@ -28,7 +28,7 @@ namespace OxcMP\Service\Storage\Exception;
  */
 class InvalidBackground extends \RuntimeException implements ExceptionInterface
 {
-    //put your code here
+    // Empty
 }
 
 /* EOF */

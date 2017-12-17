@@ -23,6 +23,7 @@ namespace OxcMP;
 
 use Zend\Router\Http\Literal;
 use Zend\Router\Http\Segment;
+use Ramsey\Uuid\DegradedUuid as Uuid;
 use OxcMP\Service\Acl\Role;
 
 /** !!! PRIVATE CONFIGURATION - DO NOT MODIFY !!! **/
@@ -93,10 +94,13 @@ return [
         'edit-mod' => [
             'type'    => Segment::class,
             'options' => [
-                'route'    => '/mod-management/edit-mod/[:modUuid]',
+                'route'    => '/mod-management/edit-mod/[:modUuid]/',
                 'defaults' => [
                     'controller' => Controller\ModManagementController::class,
                     'action'     => 'edit-mod',
+                ],
+                'constraints' => [
+                    'modUuid' => trim(Uuid::VALID_PATTERN, '^$')
                 ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],
@@ -104,10 +108,13 @@ return [
         'save-mod' => [
             'type'    => Segment::class,
             'options' => [
-                'route'    => '/mod-management/save-mod',
+                'route'    => '/mod-management/save-mod/:modUuid/',
                 'defaults' => [
                     'controller' => Controller\ModManagementController::class,
                     'action'     => 'save-mod',
+                ],
+                'constraints' => [
+                    'modUuid' => trim(Uuid::VALID_PATTERN, '^$')
                 ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],
@@ -115,10 +122,13 @@ return [
         'preview-mod-slug' => [
             'type'    => Segment::class,
             'options' => [
-                'route'    => '/preview-mod-slug',
+                'route'    => '/mod-management/preview-mod-slug/:modUuid/',
                 'defaults' => [
                     'controller' => Controller\ModManagementController::class,
                     'action'     => 'preview-mod-slug',
+                ],
+                'constraints' => [
+                    'modUuid' => trim(Uuid::VALID_PATTERN, '^$')
                 ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],
@@ -126,10 +136,13 @@ return [
         'preview-mod-description' => [
             'type'    => Segment::class,
             'options' => [
-                'route'    => '/mod-management/preview-mod-description',
+                'route'    => '/mod-management/preview-mod-description/:modUuid/',
                 'defaults' => [
                     'controller' => Controller\ModManagementController::class,
                     'action'     => 'preview-mod-description',
+                ],
+                'constraints' => [
+                    'modUuid' => trim(Uuid::VALID_PATTERN, '^$')
                 ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],
@@ -142,6 +155,9 @@ return [
                     'controller' => Controller\ModFileManagementController::class,
                     'action'     => 'create-upload-slot',
                 ],
+                'constraints' => [
+                    'modUuid' => trim(Uuid::VALID_PATTERN, '^$')
+                ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],
         ],
@@ -153,16 +169,24 @@ return [
                     'controller' => Controller\ModFileManagementController::class,
                     'action'     => 'upload-file-chunk',
                 ],
+                'constraints' => [
+                    'modUuid' => trim(Uuid::VALID_PATTERN, '^$')
+                ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],
         ],
-        'mod-background' => [
+        'temporary-file' => [
             'type'    => Segment::class,
             'options' => [
-                'route'    => '/mod-image/[:mod-slug]/background.png',
+                'route'    => '/mod-file-management/temporary-file/:modUuid/:slotUuid/:fileType/',
                 'defaults' => [
-                    'controller' => Controller\ModFileController::class,
-                    'action'     => 'mod-background',
+                    'controller' => Controller\ModFileManagementController::class,
+                    'action'     => 'temporary-file',
+                ],
+                'constraints' => [
+                    'modUuid' => trim(Uuid::VALID_PATTERN, '^$'),
+                    'fileType' => 'resource|image|background',
+                    'slotUuid' => trim(Uuid::VALID_PATTERN, '^$')
                 ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],

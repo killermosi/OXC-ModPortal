@@ -99,7 +99,6 @@ class EditModManager {
         $.ajax(editModManager.$editModForm.data('slug-preview-action'), {
             method: 'post',
             data: {
-                id: $('input#id', editModManager.$editModForm).val(),
                 title: $(event.target).val()
             },
             dataType: 'json'
@@ -168,7 +167,6 @@ class EditModManager {
         $.ajax(editModManager.$editModForm.data('description-preview-action'), {
             method: 'post',
             data: {
-                id: $('input#id', editModManager.$editModForm).val(),
                 descriptionRaw: $('textarea#descriptionRaw', editModManager.$editModForm).val()
             },
             dataType: 'json'
@@ -204,7 +202,6 @@ class EditModManager {
         $.ajax(editModManager.$editModForm.attr('action'), {
             method: 'post',
             data: {
-                id: $('input#id', editModManager.$editModForm).val(),
                 title: $('input#title', editModManager.$editModForm).val(),
                 isPublished: $('input[name=isPublished]:checked', editModManager.$editModForm).val(),
                 summary:  $('textarea#summary', editModManager.$editModForm).val(),
@@ -488,8 +485,8 @@ class ModBackgroundManager {
             new FileUpload(
                 files[0],
                 'background',
-                modBackgroundManager.$editModForm.data('create-upload-slot'),
-                modBackgroundManager.$editModForm.data('upload-file-chunk'),
+                modBackgroundManager.$editModForm.data('create-upload-slot-action'),
+                modBackgroundManager.$editModForm.data('upload-file-chunk-action'),
                 modBackgroundManager.$editModForm.data('chunk-size'),
                 function(response){console.log('Done callback', response);},
                 function(progress){console.log('Progress callback', progress, '%');},
