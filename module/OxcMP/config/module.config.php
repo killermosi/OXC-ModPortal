@@ -60,6 +60,7 @@ return [
             // Quota
             Service\Quota\QuotaService::class                   => ModuleFactory::class,
             // Storage
+            Service\Storage\ImageService::class                 => ModuleFactory::class,
             Service\Storage\StorageOptions::class               => ModuleFactory::class,
             Service\Storage\StorageService::class               => ModuleFactory::class,
             // Tag
@@ -258,7 +259,8 @@ return [
         'background' => [
             'width' => 1700,
             'height' => 700
-        ]
+        ],
+        'backgroundGradient' => dirname(__DIR__) . '/resource/background/gradient.png'
     ],
 ];
 

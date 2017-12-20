@@ -21,6 +21,7 @@
 
 namespace OxcMP\Service\Storage;
 
+use InvalidArgumentException;
 use Zend\Config\Config;
 use Ramsey\Uuid\Uuid;
 use Imagick;
@@ -29,6 +30,7 @@ use ZipArchive;
 use OxcMP\Entity\Mod;
 use OxcMP\Entity\ModFile;
 use OxcMP\Service\Storage\StorageOptions;
+use OxcMP\Service\Storage\SupportCode\UploadSlotData;
 use OxcMP\Util\Log;
 use OxcMP\Util\File as FileUtil;
 
@@ -36,6 +38,7 @@ use OxcMP\Util\File as FileUtil;
  * Handle file storage
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
+ * TODO: Lock the slot files while processing (REDIS? flock()?) 
  */
 class StorageService
 {
@@ -47,6 +50,12 @@ class StorageService
         'image'      => ModFile::TYPE_IMAGE,
         'background' => ModFile::TYPE_BACKGROUND,
     ];
+    
+    /**
+     * Extension to use for the slot metadata
+     * @var string
+     */
+    const SLOT_EXT = 'slot';
     
     /**
      * Extension to use for uploaded file
@@ -118,7 +127,7 @@ class StorageService
         switch ($fileType) {
             case ModFile::TYPE_RESOURCE:
             case ModFile::TYPE_IMAGE;
-                $ext = ($fileType == ModFile::TYPE_IMAGE) ? ModFile::IMAGE_EXTENSION : ModFile::RESOURCE_EXTENSTION;
+                $ext = ($fileType == ModFile::TYPE_IMAGE) ? ModFile::EXTENSION_IMAGE : ModFile::EXTENSION_RESOURCE;
                 
                 $sanitizedName = FileUtil::sanitizeFilename($name, $ext);
                 
@@ -135,21 +144,13 @@ class StorageService
         }
         
         Log::debug('Built sanitized file name: ', $sanitizedName);
-        
-        /*
-         * The upload slot consists of a single file named "<uuid>.json". The UUID is automatically generated. The file
-         * contains in a JSON string the details about the uploaded file.
-         */
-        
-        $uploadSlot = [
-            'type' => $type,
-            'size' => $size,
-            'name' => $sanitizedName,
-            'chunks' => [
-                'total' => $fileChunks,
-                'uploaded' => 0
-            ]
-        ];
+
+        try {
+            $uploadSlotData = new UploadSlotData($fileType, $size, $sanitizedName, $fileChunks);
+        } catch (InvalidArgumentException $exc) {
+            Log::error('Error creating upload slot data object: ', $exc->getMessage());
+            throw new Exception\UnexpectedError('Failed to create upload slot data object');
+        }
         
         try {
             $uploadDir = $this->storageOptions->getTemporaryUploadStorageDirectory($mod, true);
@@ -160,18 +161,17 @@ class StorageService
         
         Log::debug('Using upload directory: ', $uploadDir);
         
-        $uuid = Uuid::uuid4()->toString();
         
-        $uploadSlotFile = $uploadDir . $uuid . '.json';
+        $uploadSlotFile = $uploadDir . $uploadSlotData->getUuid() . '.' . self::SLOT_EXT;
         
-        if (false === file_put_contents($uploadSlotFile, json_encode($uploadSlot))) {
+        if (false === file_put_contents($uploadSlotFile, serialize($uploadSlotData))) {
             Log::notice('Failed to create the upload slot file: ', $uploadSlotFile);
             throw new Exception\UnexpectedError('Failed to create upload slot file');
         }
         
-        Log::debug('Created upload slot having the UUID ', $uuid);
+        Log::debug('Created upload slot having the UUID ', $uploadSlotData->getUuid());
         
-        return $uuid;
+        return $uploadSlotData->getUuid();
     }
     
     /**
@@ -180,7 +180,7 @@ class StorageService
      * @param Mod    $mod       The Mod entity
      * @param string $slotUuid  The upload slot UUID
      * @param array  $chunkData The chunk data
-     * @return boolean True if the uploaded chunk si the last one for the specified slot
+     * @return UploadSlotData The upload slot data
      * @throws Exception\UnexpectedError
      * @throws Exception\InvalidResource
      * @throws Exception\InvalidImage
@@ -198,7 +198,7 @@ class StorageService
             throw new Exception\UnexpectedError('Failed to create upload slot directory');
         }
         
-        $uploadSlotFile = $uploadDir . $slotUuid . '.json';
+        $uploadSlotFile = $uploadDir . $slotUuid . '.' . self::SLOT_EXT;
         
         if (!file_exists($uploadSlotFile)) {
             Log::notice('Upload slot file not found: ', $uploadSlotFile);
@@ -213,26 +213,29 @@ class StorageService
             throw new Exception\UnexpectedError('Upload slot file is not readable');
         }
         
-        $slotData = json_decode($uploadSlotFileContents, true);
+        $uploadSlotData = unserialize($uploadSlotFileContents);
         
-        if ($slotData === null) {
-            Log::notice('Upload slot data is not in a valid JSON format');
-            throw new Exception\UnexpectedError('Upload slot data is not in a valid JSON format');
+        if (!$uploadSlotData instanceof UploadSlotData) {
+            Log::notice('Upload slot data is not in a valid serialized object');
+            throw new Exception\UnexpectedError('Upload slot data is not in a valid serialized object');
+        }
+        
+        if ($uploadSlotData->isFileUploadCompleted()) {
+            Log::notice('The file was already uploaded');
+            throw new Exception\UnexpectedError('The file was already uploaded');
         }
         
         $configChunkSize = $this->config->storage->chunkSize * 1024 * 1024;
-        $currentChunkNo = $slotData['chunks']['uploaded'] + 1;
-        $totalChunks = $slotData['chunks']['total'];
         $uploadedChunkSize = filesize($chunkData['tmp_name']);
         
         // Check the chunk size
-        if ($currentChunkNo == $totalChunks) {
+        if ($uploadSlotData->getChunksUploaded() + 1 == $uploadSlotData->getChunksTotal()) {
             // Last chunk
-            $uploadedFileSize = $slotData['chunks']['uploaded'] * $configChunkSize + $uploadedChunkSize;
+            $uploadedFileSize = $uploadSlotData->getChunksUploaded() * $configChunkSize + $uploadedChunkSize;
             
-            if ($uploadedFileSize != $slotData['size']) {
-                Log::notice('Last chunk adds over the declared file size');
-                throw new Exception\UnexpectedError('Last chunk adds over the declared file size');
+            if ($uploadedFileSize != $uploadSlotData->getSize()) {
+                Log::notice('Last chunk size mismatched');
+                throw new Exception\UnexpectedError('Last chunk size mismatched');
             }
         } else {
             // Other chunks
@@ -279,20 +282,23 @@ class StorageService
         }
         
         // Update the slot data
-        $slotData['chunks']['uploaded'] = $currentChunkNo;
+        $uploadSlotData->incrementChunksUploaded();
         
-        if (!file_put_contents($uploadSlotFile, json_encode($slotData))) {
+        if (!file_put_contents($uploadSlotFile, serialize($uploadSlotData))) {
             Log::notice('Failed to rewrite the upload slot file: ', $uploadSlotFile);
             throw new Exception\UnexpectedError('Failed to rewrite the upload slot file');
         }
         
         Log::debug('Successfully uploaded chunk for file: ', $filePath);
         
+        // This is not the last chunk, no validation needed
+        if ($uploadSlotData->isFileUploadCompleted() == false) {
+            return $uploadSlotData;
+        }
+        
         // Validate the uploaded file content
-        if ($currentChunkNo == $totalChunks) {
-            $type = self::TYPE_MAP[$slotData['type']];
-            
-            switch ($type) {
+        try {
+            switch ($uploadSlotData->getType()) {
                 case ModFile::TYPE_RESOURCE:
                     $this->validateResource($filePath);
                     break;
@@ -302,9 +308,21 @@ class StorageService
                 case ModFile::TYPE_BACKGROUND:
                     $this->validateBackground($filePath);
             }
+        } catch (\Exception $exc) {
+            Log::debug('File validation failed, removing temporary uploaded file');
+            
+            if (!@unlink($uploadSlotFile)) {
+                Log::notice('Failed to delete temporary upload slot file ', $uploadSlotFile);
+            }
+            if (!@unlink($filePath)) {
+                Log::notice('Failed to delete temporary uploaded file ', $filePath);
+            }
+            
+            // Throw the error further
+            throw $exc;
         }
-        
-        return ($currentChunkNo == $totalChunks);
+
+        return $uploadSlotData;
     }
     
     /**
@@ -420,10 +438,84 @@ class StorageService
                 break;
 
             default:
-                Log::notice('Encountered ZupArchive error "', $result, '" while opening file', $resourcePath);
+                Log::notice('Encountered ZipArchive error "', $result, '" while opening file', $resourcePath);
         }
         
         throw new Exception\InvalidResource('The resource file is invalid');
+    }
+    
+    /**
+     * Retrieve the content of a temporary file
+     * 
+     * @param Mod     $mod      The Mod entity
+     * @param string  $slotUuid The slot UUID
+     * @param integer $type     The file type
+     * @return string Path to the temporary uploaded file
+     * @throws Exception\UnexpectedError
+     */
+    public function getTemporaryFilePath(Mod $mod, $slotUuid, $type)
+    {
+        Log::info(
+            'Retrieving temporary file ',
+            $slotUuid,
+            ' of type "',
+            $type,
+            '", belonging to the MOD ',
+            $mod->getId()->toString()
+        );
+        
+        // Get upload location
+        try {
+            $uploadDir = $this->storageOptions->getTemporaryUploadStorageDirectory($mod, true);
+        } catch (\Exception $exc) {
+            Log::notice('Failed to determine upload slot directory: ', $exc->getMessage());
+            throw new Exception\UnexpectedError('Failed to create upload slot directory');
+        }
+        
+        $uploadSlotFile = $uploadDir . $slotUuid . '.' . self::SLOT_EXT;
+        
+        if (!file_exists($uploadSlotFile)) {
+            Log::notice('Upload slot file not found: ', $uploadSlotFile);
+            throw new Exception\UnexpectedError('Upload slot file not found');
+        }
+        
+        // Get slot content
+        $uploadSlotFileContents = file_get_contents($uploadSlotFile);
+        
+        if ($uploadSlotFileContents === false) {
+            Log::notice('Upload slot file is not readable: ', $uploadSlotFile);
+            throw new Exception\UnexpectedError('Upload slot file is not readable');
+        }
+        
+        $uploadSlotData = unserialize($uploadSlotFileContents);
+        
+        if (!$uploadSlotData instanceof UploadSlotData) {
+            Log::notice('Upload slot data is not valid serialized object');
+            throw new Exception\UnexpectedError('Upload slot data is not valid serialized object');
+        }
+        
+        // Check that all the file chunks were uploaded
+        if ($uploadSlotData->isFileUploadCompleted() == false) {
+            Log::notice('File is only partailly uploaded');
+            throw new Exception\UnexpectedError('File is only partailly uploaded');
+        }
+        
+        // Make sure the type matches
+        if ($uploadSlotData->getType() !== $type) {
+            Log::notice('Wrong file type, expected ', $type, ' got ', $uploadSlotData->getType());
+            throw new Exception\UnexpectedError('Wrong file type');
+        }
+        
+        $temporaryFilePath = $uploadDir . $slotUuid . '.' . self::FILE_EXT;
+        
+        if (false == file_exists($temporaryFilePath) || false == is_readable($temporaryFilePath)) {
+            Log::notice('Temporary uploaded file is missing or it could not be read: ', $temporaryFilePath);
+            throw new Exception\UnexpectedError('Missing/inaccessible uploaded file');
+        }
+        
+        Log::debug('Temporary uploaded file location: ', $temporaryFilePath);
+        
+        return $temporaryFilePath;
     }
 }
 

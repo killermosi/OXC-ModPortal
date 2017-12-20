@@ -24,6 +24,7 @@ namespace OxcMP\Controller;
 use Zend\Config\Config;
 use Zend\View\Model\JsonModel;
 use Zend\Authentication\AuthenticationService;
+use Zend\Stdlib\ResponseInterface as Response;
 use Ramsey\Uuid\DegradedUuid as Uuid;
 use OxcMP\Entity\Mod;
 use OxcMP\Entity\ModFile;
@@ -31,6 +32,7 @@ use OxcMP\Service\Mod\ModRetrievalService;
 use OxcMP\Service\Quota\QuotaService;
 use OxcMP\Service\Quota\Exception as QuotaException;
 use OxcMP\Service\Storage\StorageService;
+use OxcMP\Service\Storage\ImageService;
 use OxcMP\Service\Storage\Exception as StorageException;
 use OxcMP\Util\Log;
 
@@ -65,6 +67,12 @@ class ModFileManagementController extends AbstractController
     private $storageService;
     
     /**
+     * The image service
+     * @var ImageService 
+     */
+    private $imageService;
+    
+    /**
      * Application configuration
      * @var Config
      */
@@ -77,6 +85,7 @@ class ModFileManagementController extends AbstractController
      * @param ModRetrievalService   $modRetrievalService   The mod retrieval service
      * @param QuotaService          $quotaService          The quota service
      * @param StorageService        $storageService        The storage service
+     * @param ImageService          $imageService          The image service
      * @param Config                $config                The application configuration
      */
     public function __construct(
@@ -84,6 +93,7 @@ class ModFileManagementController extends AbstractController
         ModRetrievalService $modRetrievalService,
         QuotaService $quotaService,
         StorageService $storageService,
+        ImageService $imageService,
         Config $config
     ) {
         parent::__construct();
@@ -93,6 +103,7 @@ class ModFileManagementController extends AbstractController
         $this->modRetrievalService   = $modRetrievalService;
         $this->quotaService          = $quotaService;
         $this->storageService        = $storageService;
+        $this->imageService          = $imageService;
         $this->config                = $config;
     }
     
@@ -103,7 +114,7 @@ class ModFileManagementController extends AbstractController
      */
     public function createUploadSlotAction()
     {
-        Log::info('Processing mod-file-management/my-mods action');
+        Log::info('Processing mod-file-management/create-upload-slot action');
         
         // Go to MyMods if the request is not AJAX
         if (!$this->getRequest()->isXmlHttpRequest()) {
@@ -291,8 +302,9 @@ class ModFileManagementController extends AbstractController
             return $result;
         }
         
+        // Upload the chunk
         try {
-            $uploadStatus = $this->storageService->uploadChunk($mod, $parameters['slotUuid'], $chunkData);
+            $uploadSlotData = $this->storageService->uploadChunk($mod, $parameters['slotUuid'], $chunkData);
         } catch (StorageException\InvalidResource $exc) {
             Log::notice('Not a valid zip file');
             $result->message = $this->translate('page_editmod_error_file_not_resource');
@@ -311,17 +323,133 @@ class ModFileManagementController extends AbstractController
             return $result;
         }
         
+        // TODO: Make this configurable
         sleep(1);
         
-        // Null the message
+        // Prepare the success message
+        $result->success = true;
         $result->message = null;
         
-        if ($uploadStatus) {
-            // Create temporary URL
+        if ($uploadSlotData->isFileUploadCompleted()) {
+            Log::debug('This is the last chunk for the file, building temporary URL');
+            
+            $routeParams = [
+                'modUuid' => $parameters['modUuid'],
+                'slotUuid' => $parameters['slotUuid'],
+                'fileType' => array_search($uploadSlotData->getType(), StorageService::TYPE_MAP)
+            ];
+            
+            $url = $this->url()->fromRoute('temporary-file', $routeParams, ['force_canonical' => true]);
+            
+            Log::debug('File can be accessed via temporary URL ', $url);
+            $result->message = $url;
         }
         
-        $result->success = true;
         return $result;
+    }
+    
+    /**
+     * Retrieve a file from temporary storage
+     * 
+     * @return Response
+     */
+    public function temporaryFileAction()
+    {
+        Log::info('Processing mod-file-management/temporary-file action');
+        
+        $parameters = [
+            'modUuid' => $this->params()->fromRoute('modUuid', ''),
+            'slotUuid' => $this->params()->fromRoute('slotUuid', ''),
+            'fileType' => $this->params()->fromRoute('fileType', ''),
+        ];
+        
+        // Retrieve and check the mod
+        $mod = $this->modRetrievalService->getModById(Uuid::fromString($parameters['modUuid']));
+
+        if (!$mod instanceof Mod) {
+            Log::notice('Could not find the mod having the UUID ', $parameters['modUuid']);
+            return $this->errorResponse();
+        }
+        
+        if ($mod->getUserId() != $this->authenticationService->getIdentity()->getId()) {
+            Log::notice(
+                'The mod having the UUID ',
+                $mod->getId()->toString(),
+                ' does not belong to the user having the UUID ',
+                $this->authenticationService->getIdentity()->getId()->toString()
+            );
+            
+            return $this->errorResponse();
+        }
+        
+        // Get the path to the temporary file
+        $fileType = StorageService::TYPE_MAP[$parameters['fileType']];
+        
+        try {
+            $temporaryFilePath = $this->storageService->getTemporaryFilePath(
+                $mod,
+                $parameters['slotUuid'],
+                $fileType
+            );
+        } catch (\Exception $exc) {
+            Log::notice('Unexpected error: ', $exc->getMessage());
+            return $this->errorResponse();
+        }
+        
+        // Serve the file
+        // TODO: This seems hackish...
+        switch ($fileType) {
+            case ModFile::TYPE_RESOURCE:
+                // Disable output buffering
+                while (ob_get_level()) {
+                    ob_end_clean();
+                }
+                
+                header(sprintf('Content-Type: %s', ModFile::MIME_RESOURCE));
+                header(
+                    sprintf(
+                        'Content-Disposition: attachment; filename="%s.%s"',
+                        $parameters['slotUuid'],
+                        ModFile::EXTENSION_RESOURCE
+                    )
+                );
+                
+                readfile($temporaryFilePath);
+                
+                break;
+            case ModFile::TYPE_BACKGROUND:
+                $this->getResponse()->getHeaders()->addHeaderLine(sprintf('Content-Type: %s', ModFile::MIME_IMAGE));
+                $this->getResponse()->getHeaders()->addHeaderLine(
+                    sprintf('Content-Disposition: inline; filename="%s"', ModFile::BACKGROUND_NAME)
+                );
+                $this->getResponse()->setContent(
+                    $this->imageService->processBackgroundImage(file_get_contents($temporaryFilePath))
+                );
+                break;
+            case ModFile::TYPE_IMAGE:
+                $this->getResponse()->getHeaders()->addHeaderLine(sprintf('Content-Type: %s', ModFile::MIME_IMAGE));
+                $this->getResponse()->getHeaders()->addHeaderLine(
+                    sprintf('Content-Disposition: inline; filename="%s.%s"', $parameters,['slotUuid'], ModFile::EXTENSION_IMAGE)
+                );
+                $this->getResponse()->setContent(file_get_contents($temporaryFilePath));
+                break;
+            default:
+                Log::notice('Unsupported file type: ', $parameters['fileType']);
+        }
+        
+        Log::debug('Done serving temporary file');
+        
+        return $this->getResponse();
+    }
+    
+    /**
+     * Build an error response
+     * 
+     * @return Response;
+     */
+    private function errorResponse()
+    {
+        return $this->getResponse()->setStatusCode(404);
     }
 }
 

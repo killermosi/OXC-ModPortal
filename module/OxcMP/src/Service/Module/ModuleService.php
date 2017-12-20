@@ -51,6 +51,13 @@ class ModuleService
      * @var boolean
      */
     private $isUserLoggedIn = false;
+    
+    /**
+     * If the current request was handled by the dispatcher
+     * @var boolean
+     */
+    private $wasDispatcherExecuted = false;
+    
     /**
      * Actions to execute on dispatch
      * 
@@ -60,6 +67,8 @@ class ModuleService
     public function onDispatch(MvcEvent $event)
     {
         Log::info('Handling EVENT_DISPATCH actions');
+        
+        $this->wasDispatcherExecuted = true;
         
         // Services
         $serviceManager = $event->getApplication()->getServiceManager();
@@ -280,8 +289,16 @@ class ModuleService
     {
         Log::info('Checking if the current session needs to be destroyed');
         
+        if (!$this->wasDispatcherExecuted) {
+            Log::debug(
+                'The request was not handled by the dispatcher (probably an error occured),',
+                ' the session must not be destroyed'
+            );
+            return false;
+        }
+        
         if ($this->isStaticDomainRequest) {
-            Log::debug('The current request was done to the static domain, session need to be destroyed');
+            Log::debug('The current request was done to the static domain, session needs to be destroyed');
             return true;
         }
         

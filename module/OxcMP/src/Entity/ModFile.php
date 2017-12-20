@@ -44,11 +44,26 @@ class ModFile
     const TYPE_BACKGROUND = 2;
     
     /*
-     * Names and extensions
+     * Extensions
      */
-    const IMAGE_EXTENSION     = 'png';
-    const BACKGROUND_NAME     = 'background.' .self::IMAGE_EXTENSION;
-    const RESOURCE_EXTENSTION = 'zip';
+    const EXTENSION_IMAGE    = 'png';
+    const EXTENSION_RESOURCE = 'zip';
+    
+    /*
+     * Background image name
+     */
+    const BACKGROUND_NAME = 'background.' .self::EXTENSION_IMAGE;
+    
+    /*
+     * Mime types
+     */
+    const MIME_RESOURCE = 'application/zip';
+    const MIME_IMAGE    = 'image/png';
+    
+    /*
+     * The image format to use
+     */
+    const IMAGE_FORMAT = 'png';
     
     /**
      * Internal identifier

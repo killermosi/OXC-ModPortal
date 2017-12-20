@@ -25,6 +25,7 @@ use Zend\Router\Http\Literal;
 use Zend\Router\Http\Segment;
 use Ramsey\Uuid\DegradedUuid as Uuid;
 use OxcMP\Service\Acl\Role;
+use OxcMP\Service\Storage\StorageService;
 
 /** !!! PRIVATE CONFIGURATION - DO NOT MODIFY !!! **/
 
@@ -184,9 +185,9 @@ return [
                     'action'     => 'temporary-file',
                 ],
                 'constraints' => [
-                    'modUuid' => trim(Uuid::VALID_PATTERN, '^$'),
-                    'fileType' => 'resource|image|background',
-                    'slotUuid' => trim(Uuid::VALID_PATTERN, '^$')
+                    'modUuid'  => trim(Uuid::VALID_PATTERN, '^$'),
+                    'slotUuid' => trim(Uuid::VALID_PATTERN, '^$'),
+                    'fileType' => implode('|', array_keys(StorageService::TYPE_MAP)) // resource|image|background
                 ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],

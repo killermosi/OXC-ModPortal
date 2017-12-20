@@ -8,7 +8,7 @@ This portal is a repository for OpenXcom modifications.
 
 ### Application
 
-* An open source, community-powered repository that anyone can improve.
+* An open source, community-powered repository that anyone can contribute to.
 * Built on the standard LAMP stack.
 * Uses proven technologies, like Zend Framework and Bootstrap.
 
@@ -18,7 +18,7 @@ This portal is a repository for OpenXcom modifications.
 * Comments and rating system.
 * Responsive theme for mobile users.
 * Large file uploads.
-* Deep search in archives content.
+* Deep search in archive contents.
 * Markdown for comments and descriptions.
 * Moderate comments for own mods.
 * Advanced features for administrators.
@@ -27,7 +27,8 @@ This portal is a repository for OpenXcom modifications.
 
 ### Requirements
 
-* PHP
+* PHP, version 5.6 or greater
+    * Imagick extension
 * MySQL/MariaDB
 * Apache
 * Git

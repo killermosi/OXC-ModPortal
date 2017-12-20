@@ -21,82 +21,66 @@ class EditModManager {
     /**
      * Setup mod editing
      * 
-     * @param {TagManager} tagManager The tag manager
      * @returns {EditModManager}
      */
-    constructor(tagManager) {
-        this.tagManager = tagManager;
-        /*
-         * A list of newly uploaded mod files and their properties, indexed by their UUID
-         * this.createdFiles = {
-         *      '4078c7b2-fdc2-46eb-92c6-2fce2ebffcdd': {
-         *          type: 'image',
-         *          name: 'galleryPhoto1',
-         *          description: 'Some description'
-         *      }
-         * }
-         */
-        this.createdFiles = {};
+    constructor() {
+        // All the processing is done here
+        this.$editModForm = $('form#editMod');
         
-        /*
-         * A list of updated mod mod files and their properties, indexed by their UUID
-         * this.createdFiles = {
-         *      '4078c7b2-fdc2-46eb-92c6-2fce2ebffcdd': {
-         *          name: 'galleryPhoto1',
-         *          description: 'Some description'
-         *      }
-         * }
-         */
-        this.updatedFiles = {};
+        this.tagManager = new TagManager(this.$editModForm);
+        this.backgroundManager = new BackgroundManager(this.$editModForm);
         
-        /*
-         * A list of deleted files UUIDs (newly uploaded and deleted files are listed too,
-         * as this means less processing on the frontend)
-         */
-        this.deletedFiles = [];
-
         // Delay before making the slug preview request, in milliseconds
         this.modSlugPreviewDelay = 500;
         
-        this.$editModForm = $('form#editMod');
+        
         this.modSlugPreviewTimer = null;
         
         // Customizations
         this.beautifyBtnGroup();
-        this.$editModForm.submit(this.handleSubmit);
+        this.$editModForm.submit(function(event){this.handleSubmit(this, event)}.bind(this));
         
         // Set the slug preview timer on every keyup event
-        $('input#title', this.$editModForm).keyup(this.setSlugPreviewTimer);
+        $('input#title', this.$editModForm).keyup(
+                function(event){this.setSlugPreviewTimer(this, event);}.bind(this)
+        );
         
         // Preview mod description on preview tab focus, if needed
         this.wasDescriptionChanged = false;
         this.wasDescriptionPreviewStarted = false;
-        $('textarea#descriptionRaw', this.$editModForm).change(function(){editModManager.wasDescriptionChanged = true;});
-        $('a[data-toggle="tab"]', this.$editModForm).on('shown.bs.tab', this.previewModDescription);
+        $('textarea#descriptionRaw', this.$editModForm).change(
+            function(){this.wasDescriptionChanged = true;}.bind(this)
+        );
+        $('a[data-toggle="tab"]', this.$editModForm).on(
+            'shown.bs.tab',
+            function(event){this.previewModDescription(this, event);}.bind(this)
+        );
     }
     
     /**
      * Set the slug preview timer
      * 
-     * @param {event] event The event
+     * @param {EditModManager] self  The edit mod manager
+     * @param {event}          event The event
      * @returns {undefined}
      */
-    setSlugPreviewTimer(event) {
-        clearTimeout(editModManager.modSlugPreviewTimer);
-        editModManager.modSlugPreviewTimer = setTimeout(
-            editModManager.previewModSlug.bind(null, event),
-            editModManager.modSlugPreviewDelay
+    setSlugPreviewTimer(self, event) {
+        clearTimeout(self.modSlugPreviewTimer);
+        self.modSlugPreviewTimer = setTimeout(
+            function(){self.previewModSlug(self, event);},
+            self.modSlugPreviewDelay
         );
     }
     
     /**
      * Preview the mod slug based on the title
      * 
-     * @param {event] event The event
+     * @param {EditModManager] self  The edit mod manager
+     * @param {event]          event The event
      * @returns {undefined}
      */
-    previewModSlug(event) {
-        $.ajax(editModManager.$editModForm.data('slug-preview-action'), {
+    previewModSlug(self, event) {
+        $.ajax(self.$editModForm.data('slug-preview-action'), {
             method: 'post',
             data: {
                 title: $(event.target).val()
@@ -104,7 +88,7 @@ class EditModManager {
             dataType: 'json'
         })
         .done(function(data){
-            $('input#slug', editModManager.$editModForm).val(data.slug);
+            $('input#slug', self.$editModForm).val(data.slug);
         });
     }
     
@@ -131,10 +115,11 @@ class EditModManager {
     /**
      * Preview the mod description, if something was changed
      * 
-     * @param {event} event The event
+     * @param {EditModManager] self  The edit mod manager
+     * @param {event}          event The event
      * @returns {undefined}
      */
-    previewModDescription(event) {
+    previewModDescription(self, event) {
         var target = $(event.target);
         
         // This is not the tab we're looking for, move along
@@ -144,122 +129,122 @@ class EditModManager {
         
         // Sync div height when switching to preview
         // TODO: Use another option, like a resizable tab container and CSS flex, this is hackish
-        $('div#description-preview', editModManager.$editModForm).height(
-            $('div#description-edit', editModManager.$editModForm).height()
+        $('div#description-preview', self.$editModForm).height(
+            $('div#description-edit', self.$editModForm).height()
         );
         
         // Don't make a request if nothing was changed by the user
         // or if there is a request already in progress
         if (
-            editModManager.wasDescriptionChanged === false
-            || editModManager.wasDescriptionPreviewStarted === true
+            self.wasDescriptionChanged === false
+            || self.wasDescriptionPreviewStarted === true
         ) {
             return;
         }
         
         // Prevent other requests until this one is done
-        editModManager.wasDescriptionPreviewStarted = true;
+        self.wasDescriptionPreviewStarted = true;
         
         // Show the loading hint, hide the description
-        $('div#description-preview-progress', editModManager.$editModForm).removeClass('d-none');
-        $('div#description-preview-content', editModManager.$editModForm).addClass('d-none');
+        $('div#description-preview-progress', self.$editModForm).removeClass('d-none');
+        $('div#description-preview-content', self.$editModForm).addClass('d-none');
         
-        $.ajax(editModManager.$editModForm.data('description-preview-action'), {
+        $.ajax(self.$editModForm.data('description-preview-action'), {
             method: 'post',
             data: {
-                descriptionRaw: $('textarea#descriptionRaw', editModManager.$editModForm).val()
+                descriptionRaw: $('textarea#descriptionRaw', self.$editModForm).val()
             },
             dataType: 'json'
         })
         .done(function(data){
             // The result goes into the preview regardless of the success status
-            $('div#description-preview-content', editModManager.$editModForm).html(data.content);
-            editModManager.wasDescriptionChanged = false;
+            $('div#description-preview-content', self.$editModForm).html(data.content);
+            self.wasDescriptionChanged = false;
         })
         .fail(function(){
-            $('div#description-preview-content', editModManager.$editModForm).html('There was an error fetrching the preview, please try again later...');
+            $('div#description-preview-content', self.$editModForm).html(
+                Lang.global_unexpected_error
+            );
         })
         .always(function(){
-            $('div#description-preview-progress', editModManager.$editModForm).addClass('d-none');
-            $('div#description-preview-content', editModManager.$editModForm).removeClass('d-none');
+            $('div#description-preview-progress', self.$editModForm).addClass('d-none');
+            $('div#description-preview-content', self.$editModForm).removeClass('d-none');
             
-            editModManager.wasDescriptionPreviewStarted = false;
+            self.wasDescriptionPreviewStarted = false;
         });
     }
     
     /**
      * Handle form submission
      * 
-     * @param {event} event The event
+     * @param {EditModManager] self  The edit mod manager
+     * @param {event}          event The event
      * @returns {undefined}
      */
-    handleSubmit(event) {
+    handleSubmit(self, event) {
         event.preventDefault();
-        editModManager.setLoadingState(true);
+        self.setLoadingState(self, true);
         
         // Collect
         
-        $.ajax(editModManager.$editModForm.attr('action'), {
+        $.ajax(self.$editModForm.attr('action'), {
             method: 'post',
             data: {
-                title: $('input#title', editModManager.$editModForm).val(),
-                isPublished: $('input[name=isPublished]:checked', editModManager.$editModForm).val(),
-                summary:  $('textarea#summary', editModManager.$editModForm).val(),
-                descriptionRaw:  $('textarea#descriptionRaw', editModManager.$editModForm).val(),
-                tags: editModManager.tagManager.selectedTags.join(',')
+                title: $('input#title', self.$editModForm).val(),
+                isPublished: $('input[name=isPublished]:checked', self.$editModForm).val(),
+                summary:  $('textarea#summary', self.$editModForm).val(),
+                descriptionRaw:  $('textarea#descriptionRaw', self.$editModForm).val(),
+                tags: self.tagManager.selectedTags.join(',')
             },
             dataType: 'json'
         })
-        .done(editModManager.handleSubmitDone)
-        .fail(editModManager.handleSubmitFail);
+        .done(function(data){self.handleSubmitDone(self, data);})
+        .fail(function(){self.handleSubmitFail(self);});
     }
     
     /**
      * Handle form success submission result
-     * 
-     * @param {jqXHR}  data       The received response
-     * @param {string} textStatus Textual status message
-     * @param {jqXHR}  jqXHR      The jqXHR object
+     * @param {EditModManager] self  The edit mod manager
+     * @param {jqXHR}          data  The received response
      * @returns {undefined}
      */
-    handleSubmitDone(data, textStatus, jqXHR) {
+    handleSubmitDone(self, data) {
         if (data.success) {
             window.location.href = data.content;
             return;
         }
         
-        editModManager.setLoadingState(false);
-        $('div#error-message', editModManager.$editModForm).removeClass('d-none').text(data.content);
+        self.setLoadingState(self, false);
+        $('div#error-message', self.$editModForm).removeClass('d-none').text(data.content);
     }
     
     /**
      * Handle form failed submission
      * 
-     * @param {jqXHR}   jqXHR       The jqXHR object
-     * @param {string}  textStatus  Textual status message
-     * @param {integer} errorThrown Error thrown
+     * @param {EditModManager] self The edit mod manager
      * @returns {undefined}
      */
-    handleSubmitFail(jqXHR, textStatus, errorThrown) {
-        editModManager.setLoadingState(false);
-        alert('Unexpected error, please try again');
+    handleSubmitFail(self) {
+        self.setLoadingState(self, false);
+        $('div#error-message', self.$editModForm).removeClass('d-none').text(Lang.global_unexpected_error);        
     }
     
     /**
      * Set the loading state for the edit mod form
      * 
-     * @param {boolean} state The state
+     * @param {EditModManager] self  The edit mod manager
+     * @param {boolean}        state The state
      * @returns {undefined}
      */
-    setLoadingState(state) {
+    setLoadingState(self, state) {
         // TODO: Disable form controls according to the state
         if (state) {
-            $('div#error-message', editModManager.$editModForm).addClass('d-none');
-            $('button', editModManager.$editModForm).attr('disabled','');
-            $('div#progress', editModManager.$editModForm).removeClass('d-none');
+            $('div#error-message', self.$editModForm).addClass('d-none');
+            $('button', self.$editModForm).attr('disabled','');
+            $('div#progress', self.$editModForm).removeClass('d-none');
         } else {
-            $('button', editModManager.$editModForm).removeAttr('disabled');
-            $('div#progress', editModManager.$editModForm).addClass('d-none');
+            $('button', self.$editModForm).removeAttr('disabled');
+            $('div#progress', self.$editModForm).addClass('d-none');
         }
     }
     
@@ -270,11 +255,13 @@ class TagManager {
     /**
      * Setup tag editing
      * 
+     * @param {object} $editModForm The edit mod form
      * @returns {TagManager}
      */
-    constructor () {
+    constructor ($editModForm) {
+        this.$editModForm = $editModForm;
+        
         // Form elements
-        this.$editModForm = $('form#editMod');
         this.$tagSelect = $('div#tag-select', this.$editModForm);
         this.$tagSelectNone = $('div#tag-select-none', this.$editModForm);
         this.$tagSearch = $('input#tag-search', this.$editModForm);
@@ -295,7 +282,7 @@ class TagManager {
             }
         });
         
-        this.$tagSearch.keyup(this.searchTag);
+        this.$tagSearch.keyup(function(event){this.searchTag(this, event);}.bind(this));
         
         // Render inital tags
         this.renderTagSelection(this);
@@ -304,139 +291,144 @@ class TagManager {
     /**
      * Search for tags matching the entered text
      * 
-     * @param {event} event The event
+     * @param {TagManager} self  The tag manager
+     * @param {event}      event The event
      * @returns {Boolean}
      */
-    searchTag(event) {
+    searchTag(self, event) {
         var searchResult = [];
         
         // On Enter, add the first tag in the results list (if any) to the selected tags.
         if (event.which === 13) {
-            if (tagManager.searchResult.length === 0) {
+            if (self.searchResult.length === 0) {
                 return;
             }
 
-            var tag = tagManager.searchResult.shift();
-            tagManager.selectTag(tag);
-            tagManager.renderTagSearch();
+            var tag = self.searchResult.shift();
+            self.selectTag(tag);
+            self.renderTagSearch(self);
             return;
         }
         
         // Filter searched value: https://stackoverflow.com/a/38132788/1111983
-        var searchTerm = tagManager.$tagSearch.val().replace(/([a-z0-9\-])|[^]/g, '$1');
-        tagManager.$tagSearch.val(searchTerm);
+        var searchTerm = self.$tagSearch.val().replace(/([a-z0-9\-])|[^]/g, '$1');
+        self.$tagSearch.val(searchTerm);
         
         // Search for matching tags
         if (searchTerm.length !== 0) {
-            tagManager.availableTags.forEach(function(tag){
+            self.availableTags.forEach(function(tag){
                 if (
                     (tag.includes(searchTerm) === true || searchTerm === '*')
-                    && tagManager.selectedTags.indexOf(tag) === -1
+                    && self.selectedTags.indexOf(tag) === -1
                 ) {
                     searchResult.push(tag);
                 }
             });
         }
         
-        if (tagManager.searchResult.toString() === searchResult.toString()) {
+        if (self.searchResult.toString() === searchResult.toString()) {
             return;
         }
 
-        tagManager.searchResult = searchResult;
-        tagManager.renderTagSearch();
+        self.searchResult = searchResult;
+        self.renderTagSearch(self);
     }
     
     /**
      * Render the searched tags on the form
      * 
+     * @param {TagManager} self The tag manager
      * @returns {undefined}
      */
-    renderTagSearch () {
-        if (tagManager.searchResult.length === 0) {
-            tagManager.$tagSearchResultContainer.addClass('d-none');
+    renderTagSearch (self) {
+        if (self.searchResult.length === 0) {
+            self.$tagSearchResultContainer.addClass('d-none');
             return;
         }
         
-        tagManager.$tagSearchResultPanel.empty();
-        tagManager.$tagSearchResultContainer.removeClass('d-none');
+        self.$tagSearchResultPanel.empty();
+        self.$tagSearchResultContainer.removeClass('d-none');
 
-        tagManager.searchResult.forEach(function(tag){
+        self.searchResult.forEach(function(tag){
             var $tag = $('<a />', {href: '#', class: 'badge badge-primary p-2 mr-2 mb-2'});
             $tag.text(tag);
             $tag.click(function(event){
                 event.preventDefault();
-                tagManager.selectTag(tag);
+                self.selectTag(self, tag);
             });
-            tagManager.$tagSearchResultPanel.append($tag);
+            self.$tagSearchResultPanel.append($tag);
         });
     }
     
     /**
      * Render the selected tags on the form
      * 
-     * @param {TagManager} tm The tag manager
+     * @param {TagManager} self The tag manager
      * @returns {undefined}
      */
-    renderTagSelection (tm) {
-        if (tm.selectedTags.length === 0) {
-            tm.$tagSelect.addClass('d-none');
-            tm.$tagSelectNone.removeClass('d-none');
+    renderTagSelection (self) {
+        if (self.selectedTags.length === 0) {
+            self.$tagSelect.addClass('d-none');
+            self.$tagSelectNone.removeClass('d-none');
             return;
         }
         
-        tm.$tagSelect.removeClass('d-none').empty();
-        tm.$tagSelectNone.addClass('d-none');
+        self.$tagSelect.removeClass('d-none').empty();
+        self.$tagSelectNone.addClass('d-none');
         
-        tm.selectedTags.forEach(function(tag){
+        self.selectedTags.forEach(function(tag){
             var $tag = $('<a />', {href: '#', class: 'badge badge-primary p-2 mr-2 mb-2'});
             $tag.text(tag);
             $tag.click(function(event){
                 event.preventDefault();
-                tm.removeTag(tag);
+                self.removeTag(self, tag);
             });
-            tm.$tagSelect.append($tag);
+            self.$tagSelect.append($tag);
         });
     }
     
     /**
      * Add a tag to the selected tags list
      * 
-     * @param {string} tag The tag
+     * @param {TagManager} self The tag manager
+     * @param {string}     tag  The tag
      * @returns {undefined}
      */
-    selectTag(tag) {
-        tagManager.selectedTags.push(tag);
-        tagManager.selectedTags.sort();
-        tagManager.$tagSearch.val('').keyup();
-        tagManager.renderTagSelection(tagManager);
+    selectTag(self, tag) {
+        self.selectedTags.push(tag);
+        self.selectedTags.sort();
+        self.$tagSearch.val('').keyup();
+        self.renderTagSelection(self);
     }
     
     /**
      * Remove a tag from the selected tags list
      * 
-     * @param {string} tag The tag
+     * @param {TagManager} self The tag manager
+     * @param {string}     tag  The tag
      * @returns {undefined}
      */
-    removeTag (tag) {
-        var index = tagManager.selectedTags.indexOf(tag);
-        tagManager.selectedTags.splice(index, 1);
+    removeTag (self, tag) {
+        var index = self.selectedTags.indexOf(tag);
+        self.selectedTags.splice(index, 1);
         
         // Update the search panel, if open
-        tagManager.renderTagSelection(tagManager);
+        self.renderTagSelection(self);
         
-        tagManager.$tagSearch.keyup();
+        self.$tagSearch.keyup();
     }
 }
 
-class ModBackgroundManager {
+class BackgroundManager {
     /**
      * Setup background editing
      * 
-     * @returns {undefined}
+     * @param {object} $editModForm The edit mod form
+     * @returns {BackgroundManager}
      */
-    constructor() {
+    constructor($editModForm) {
         // Form elements
-        this.$editModForm = $('form#editMod');
+        this.$editModForm = $editModForm;
         this.$backgroundImage = $('img#background-image', this.$editModForm);
         this.$backgroundImageUpload = $('input#background-image-upload', this.$editModForm);
         this.$uploadMod = $('button#upload-mod', this.$editModForm);
@@ -448,8 +440,8 @@ class ModBackgroundManager {
         }
         
         // Handle events
-        this.$uploadMod.click(function(){modBackgroundManager.$backgroundImageUpload.click();});
-        this.$backgroundImageUpload.change(this.handleUpload);
+        this.$uploadMod.click(function(){this.$backgroundImageUpload.click();}.bind(this));
+        this.$backgroundImageUpload.change(function(){this.handleUpload(this)}.bind(this));
         
         // File data
         this.file = null;
@@ -471,10 +463,11 @@ class ModBackgroundManager {
     /**
      * Upload the selected background file
      * 
+     * @param {BackgroundManager} self The background manager
      * @returns {undefined}
      */
-    handleUpload() {
-        var files = modBackgroundManager.$backgroundImageUpload.prop('files');
+    handleUpload(self) {
+        var files = self.$backgroundImageUpload.prop('files');
         
         // Nothing to do if no files were selected
         if (files.length === 0) {
@@ -485,15 +478,17 @@ class ModBackgroundManager {
             new FileUpload(
                 files[0],
                 'background',
-                modBackgroundManager.$editModForm.data('create-upload-slot-action'),
-                modBackgroundManager.$editModForm.data('upload-file-chunk-action'),
-                modBackgroundManager.$editModForm.data('chunk-size'),
+                self.$editModForm.data('create-upload-slot-action'),
+                self.$editModForm.data('upload-file-chunk-action'),
+                self.$editModForm.data('chunk-size'),
                 function(response){console.log('Done callback', response);},
                 function(progress){console.log('Progress callback', progress, '%');},
                 function(){console.log('Retry attempts exceeded');}
             );
         } catch (e) {
-            console.log(e);
+            if (e === 404) {
+                console.log(Lang.global_chunk_upload_unsupported);
+            }
         }
     }
 }
@@ -671,6 +666,7 @@ class FileUpload {
     }
 }
 
-var tagManager = new TagManager();
-var modBackgroundManager = new ModBackgroundManager();
-var editModManager = new EditModManager(tagManager);
+// Boot it up
+$(function(){
+    new EditModManager();
+});
