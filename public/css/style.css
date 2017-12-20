@@ -28,9 +28,12 @@ body {
     display: flex;
     flex-direction: column;
     background-color: #cccccc;
+    background-position: top center;
+    background-repeat: no-repeat
 }
 
 div#content{
+    /* TODO: Use Bootstrap's flex classes' */
     flex-grow: 1;
     background: #ffffff;
 }

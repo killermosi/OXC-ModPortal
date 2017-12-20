@@ -38,7 +38,7 @@ class EditModManager {
         
         // Customizations
         this.beautifyBtnGroup();
-        this.$editModForm.submit(function(event){this.handleSubmit(this, event)}.bind(this));
+        this.$editModForm.submit(function(event){this.handleSubmit(this, event);}.bind(this));
         
         // Set the slug preview timer on every keyup event
         $('input#title', this.$editModForm).keyup(
@@ -214,8 +214,7 @@ class EditModManager {
             return;
         }
         
-        self.setLoadingState(self, false);
-        $('div#error-message', self.$editModForm).removeClass('d-none').text(data.content);
+        self.setLoadingState(self, false, data.content);
     }
     
     /**
@@ -225,30 +224,28 @@ class EditModManager {
      * @returns {undefined}
      */
     handleSubmitFail(self) {
-        self.setLoadingState(self, false);
-        $('div#error-message', self.$editModForm).removeClass('d-none').text(Lang.global_unexpected_error);        
+        self.setLoadingState(self, false, Lang.global_unexpected_error);
     }
     
     /**
      * Set the loading state for the edit mod form
      * 
-     * @param {EditModManager] self  The edit mod manager
-     * @param {boolean}        state The state
+     * @param {EditModManager] self    The edit mod manager
+     * @param {boolean}        state   The loading state, active or not 
+     * @param {string}         message The error message to show
      * @returns {undefined}
      */
-    setLoadingState(self, state) {
-        // TODO: Disable form controls according to the state
-        if (state) {
+    setLoadingState(self, state, message = null) {
+        if (state === true) {
             $('div#error-message', self.$editModForm).addClass('d-none');
             $('button', self.$editModForm).attr('disabled','');
             $('div#progress', self.$editModForm).removeClass('d-none');
         } else {
             $('button', self.$editModForm).removeAttr('disabled');
             $('div#progress', self.$editModForm).addClass('d-none');
+            $('div#error-message', self.$editModForm).removeClass('d-none').text(message);
         }
     }
-    
-
 }
 
 class TagManager {
@@ -431,17 +428,23 @@ class BackgroundManager {
         this.$editModForm = $editModForm;
         this.$backgroundImage = $('img#background-image', this.$editModForm);
         this.$backgroundImageUpload = $('input#background-image-upload', this.$editModForm);
-        this.$uploadMod = $('button#upload-mod', this.$editModForm);
-        this.$deleteMod = $('button#delete-mod', this.$editModForm);
+        this.$btnUploadMod = $('button#upload-background', this.$editModForm);
+        this.$btnDefaultMod = $('button#default-background', this.$editModForm);
+        this.$progressBarContainer = $('div#background-progress', this.$editModForm);
+        this.$progressBar = $(':first-child', this.$progressBarContainer);
+        this.$message = $('div#background-message', this.$editModForm);
+        this.$body = $('body#body');
+        
+        this.setFormState(this, false, false);
         
         // Enable delete button if a background image is available
         if (this.$backgroundImage.attr('src') !== this.$backgroundImage.data('default-background-url')) {
-            this.$deleteMod.removeAttr('disabled');
+            this.$btnDefaultMod.removeAttr('disabled');
         }
         
         // Handle events
-        this.$uploadMod.click(function(){this.$backgroundImageUpload.click();}.bind(this));
-        this.$backgroundImageUpload.change(function(){this.handleUpload(this)}.bind(this));
+        this.$btnUploadMod.click(function(){this.$backgroundImageUpload.click();}.bind(this));
+        this.$backgroundImageUpload.change(function(){this.handleUpload(this);}.bind(this));
         
         // File data
         this.file = null;
@@ -449,6 +452,12 @@ class BackgroundManager {
         this.totalChunks = null;
         
         this.chunkSize = parseInt(this.$editModForm.data('chunk-size'), 10);
+        
+        // Background image status:
+        // - null: no changes this session
+        // - false: use default background
+        // - string: the last uploaded background image temporary UUID
+        this.background = null;
     }
     
     /**
@@ -474,6 +483,8 @@ class BackgroundManager {
             return;
         }
         
+        self.setFormState(self, true, false);
+        
         try {
             new FileUpload(
                 files[0],
@@ -481,13 +492,104 @@ class BackgroundManager {
                 self.$editModForm.data('create-upload-slot-action'),
                 self.$editModForm.data('upload-file-chunk-action'),
                 self.$editModForm.data('chunk-size'),
-                function(response){console.log('Done callback', response);},
-                function(progress){console.log('Progress callback', progress, '%');},
-                function(){console.log('Retry attempts exceeded');}
+                function(response){self.handleUploadSuccess(self, response);},
+                function(progress){self.handleUploadProgress(self, progress);},
+                function(){self.handleUploadfail(self, Lang.global_unexpected_error);}
             );
         } catch (e) {
             if (e === 404) {
-                console.log(Lang.global_chunk_upload_unsupported);
+                self.setFormState(self, false, true, Lang.global_chunk_upload_unsupported);
+            } else {
+                self.setFormState(self, false, true, Lang.global_unexpected_error);
+            }
+        }
+    }
+    
+    /**
+     * Handle upload success
+     * 
+     * @param {BackgroundManager} self    The background manager
+     * @param {object}           response The response
+     * @returns {undefined}
+     */
+    handleUploadSuccess(self, response)
+    {
+        if (response.hasOwnProperty('success') === false || response.hasOwnProperty('message') === false) {
+            console.log('Unexpected response from server ', response);
+            self.setFormState(self, false, false, Lang.global_unexpected_error);
+            return;
+        }
+        
+        if (response.success === false) {
+            self.setFormState(self, false, false, response.message);
+            return;
+        }
+
+        // Success, set the background to both the preview and to the actual page for effect
+        // Load the image first, and then set it in the page (saves one duplicate processing on the backend)
+        var img = new Image();
+        img.onload = function(){
+            self.$backgroundImage.attr('src', response.message);
+            self.$body.css('background-image', 'url("' + response.message + '")');
+            self.setFormState(self, false, true, Lang.page_editmod_success_background);
+        };
+        img.src = response.message;
+    }
+    
+    /**
+     * Handle upload fail
+     * 
+     * @param {BackgroundManager} self    The background manager
+     * @param {string}            message Failure message
+     * @returns {undefined}
+     */
+    handleUploadFail(self, message) {
+        self.setFormState(self, false, false, message);
+    }
+    
+    /**
+     * Handle upload progress
+     * 
+     * @param {BackgroundManager} self     The background manager
+     * @param {number}            progress Upload progress
+     * @returns {undefined}
+     */
+    handleUploadProgress(self, progress) {
+        self.$progressBar.css('width', progress + '%');
+    }
+    
+    /**
+     * Set the form state of the upload mod section
+     * 
+     * @param {BackgroundManager} self    The background manager
+     * @param {boolean}           state   The loading state, active or not
+     * @param {boolean}           success If the result is a success or an error
+     * @param {string}            message The message to show
+     * @returns {undefined}
+     */
+    setFormState(self, state, success, message = null) {
+        if (state === true) {
+            self.$btnUploadMod.attr('disabled', '');
+            self.$btnDefaultMod.attr('disabled', '');
+            self.$progressBarContainer.removeClass('d-none');
+            self.$progressBar.css('width', '0%');
+            self.$message.addClass('d-none');
+        } else {
+            self.$btnUploadMod.removeAttr('disabled');
+            
+            if (self.$backgroundImage.attr('src') !== self.$backgroundImage.data('default-background-url')) {
+                self.$btnDefaultMod.removeAttr('disabled');
+            } else {
+                self.$btnDefaultMod.attr('disabled', '');
+            }
+            
+            self.$progressBarContainer.addClass('d-none');
+            
+            if (message !== null) {
+                self.$message.removeClass('d-none')
+                             .text(message)
+                             .addClass(success ? 'alert-success' : 'alert-warning')
+                             .removeClass(success ? 'alert-warning' : 'alert-success');
             }
         }
     }
@@ -506,7 +608,8 @@ class FileUpload {
      * @param {string} chunkUrl              The URL to call in order to upload a file chunk
      * @param {string} chunkSize             Chunk size, in bytes
      * @param {object} doneCallback          Callback to be executed when the upload finishes for either success or
-     *                                       failure - the server response is passed as a parameter
+     *                                       failure - the server response is passed as a parameter, along with the slot
+     *                                       UUID on success
      * @param {object} progressCallback      Callback to be executed before a chunk is uploaded
      *                                       The progress percentage (including the current chunk) is passed as a
      *                                       parameter
@@ -643,6 +746,7 @@ class FileUpload {
             }
             
             // Otherwise, this means that all chunks have been uploaded
+            response.slotUuid = self.slotUuid;
             self.doneCallback(response);
         })
         .fail(self.doneCallback);
