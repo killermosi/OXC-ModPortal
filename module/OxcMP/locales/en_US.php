@@ -118,6 +118,7 @@ return [
     'page_mymods_background_default' => 'Use the default background?',
     'page_mymods_background_default_help' => 'This will remove the personalized background set for this mod.',
     'page_mymods_background_default_use' => 'Use default',
+    'page_mymods_success_background_default' => 'Default background restored',
     'page_editmod_success' => 'Mod succesfully updated.',
     'page_editmod_form_btn_submit' => 'Update',
     'page_editmod_form_btn_delete' => 'Delete',

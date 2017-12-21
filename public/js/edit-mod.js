@@ -433,6 +433,8 @@ class BackgroundManager {
         this.$progressBarContainer = $('div#background-progress', this.$editModForm);
         this.$progressBar = $(':first-child', this.$progressBarContainer);
         this.$message = $('div#background-message', this.$editModForm);
+        
+        this.$btnUseDefaultBackground = $('button#use-default-background');
         this.$body = $('body#body');
         
         this.setFormState(this, false, false);
@@ -445,6 +447,7 @@ class BackgroundManager {
         // Handle events
         this.$btnUploadMod.click(function(){this.$backgroundImageUpload.click();}.bind(this));
         this.$backgroundImageUpload.change(function(){this.handleUpload(this);}.bind(this));
+        this.$btnUseDefaultBackground.click(function(){this.handleDefaultBackground(this);}.bind(this));
         
         // File data
         this.file = null;
@@ -454,10 +457,10 @@ class BackgroundManager {
         this.chunkSize = parseInt(this.$editModForm.data('chunk-size'), 10);
         
         // Background image status:
-        // - null: no changes this session
-        // - false: use default background
-        // - string: the last uploaded background image temporary UUID
-        this.background = null;
+        // - 0: no changes this session
+        // - 1: use default background
+        // - uuid: the last uploaded background image temporary UUID
+        this.background = 0;
     }
     
     /**
@@ -532,6 +535,11 @@ class BackgroundManager {
             self.$backgroundImage.attr('src', response.message);
             self.$body.css('background-image', 'url("' + response.message + '")');
             self.setFormState(self, false, true, Lang.page_editmod_success_background);
+            
+            // Store the new background UUID only after the image was loaded and the user had the opportunity to
+            // review it
+            
+            self.background = response.slotUuid;
         };
         img.src = response.message;
     }
@@ -556,6 +564,26 @@ class BackgroundManager {
      */
     handleUploadProgress(self, progress) {
         self.$progressBar.css('width', progress + '%');
+    }
+    
+    /**
+     * Revert to the default background
+     * 
+     * @param {BackgroundManager} self The background manager
+     * @returns {undefined}
+     */
+    handleDefaultBackground(self) {
+        var defaultBackgroundImageUrl = self.$backgroundImage.data('default-background-url');
+        
+        // Show the default background
+        self.$backgroundImage.attr('src', defaultBackgroundImageUrl);
+        self.$body.css('background-image', 'url("' + defaultBackgroundImageUrl + '")');
+        
+        // Store the action
+        self.background = 1;
+        
+        // Update the message
+        self.setFormState(self, false, true, Lang.page_mymods_success_background_default);
     }
     
     /**
