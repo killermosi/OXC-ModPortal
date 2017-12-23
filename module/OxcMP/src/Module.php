@@ -31,6 +31,10 @@ use OxcMP\Util\Log;
 
 class Module
 {
+    /**
+     * Product version
+     * @var string
+     */
     const VERSION = '1.0.0';
     
     /**
@@ -38,6 +42,8 @@ class Module
      * @var array 
      */
     private $configMap = [
+        /* publicKey => privateKey */
+        
         // API
         'api.url'            => 'oxcForumApi.url',
         'api.key'            => 'oxcForumApi.key',
@@ -68,7 +74,10 @@ class Module
         'log.level'   => 'log.priority',
         'log.sql'     => 'log.sql',
         // oAuth parameters
-        'oauth.url' => 'layout.oAuthUrl'
+        'oauth.url' => 'layout.oAuthUrl',
+        // Storage
+        'upload.chunkSize'  => 'upload.chunkSize',
+        'upload.throttling' => 'upload.throttling'
     ];
     
     /**

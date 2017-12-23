@@ -17,6 +17,29 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
+(function($, window, undefined) {
+    // If onprogress is not supported by the browser, do nothing
+    if (!("onprogress" in $.ajaxSettings.xhr())) {
+        return;
+    }
+    
+    // Patch ajax settings to call a progress callback
+    var oldXHR = $.ajaxSettings.xhr;
+    $.ajaxSettings.xhr = function() {
+        
+        var xhr = oldXHR.apply(this, arguments);
+        if(xhr instanceof window.XMLHttpRequest) {
+            xhr.addEventListener('progress', this.progress, false);
+        }
+        
+        if(xhr.upload) {
+            xhr.upload.addEventListener('progress', this.progress, false);
+        }
+
+        return xhr;
+    };
+})(jQuery, window);
+
 class EditModManager {
     /**
      * Setup mod editing
@@ -573,17 +596,25 @@ class BackgroundManager {
      * @returns {undefined}
      */
     handleDefaultBackground(self) {
+        self.setFormState(self, true);
+        
         var defaultBackgroundImageUrl = self.$backgroundImage.data('default-background-url');
         
-        // Show the default background
-        self.$backgroundImage.attr('src', defaultBackgroundImageUrl);
-        self.$body.css('background-image', 'url("' + defaultBackgroundImageUrl + '")');
+        var img = new Image();
         
-        // Store the action
-        self.background = 1;
+        img.onload = function(){
+            // Show the default background
+            self.$backgroundImage.attr('src', defaultBackgroundImageUrl);
+            self.$body.css('background-image', 'url("' + defaultBackgroundImageUrl + '")');
+
+            // Store the action
+            self.background = 1;
+
+            // Update the message
+            self.setFormState(self, false, true, Lang.page_mymods_success_background_default);
+        };
         
-        // Update the message
-        self.setFormState(self, false, true, Lang.page_mymods_success_background_default);
+        img.src = defaultBackgroundImageUrl;
     }
     
     /**
@@ -595,7 +626,7 @@ class BackgroundManager {
      * @param {string}            message The message to show
      * @returns {undefined}
      */
-    setFormState(self, state, success, message = null) {
+    setFormState(self, state, success = false, message = null) {
         if (state === true) {
             self.$btnUploadMod.attr('disabled', '');
             self.$btnDefaultMod.attr('disabled', '');
@@ -672,6 +703,11 @@ class FileUpload {
         // The upload slot UUID
         this.slotUuid = null;
         
+        // Check that the slice functionality is supported
+        if (!this.file.slice && !this.file.webkitSlice && !this.file.mozSlice) {
+            throw 404;
+        }
+        
         // Set file slice function
         this.sliceFunction = 
                 this.file.slice       ? this.file.slice :       // Standard API
@@ -713,7 +749,10 @@ class FileUpload {
             self.slotUuid = response.message;
             self.processNextChunk(self);
         })
-        .fail(self.doneCallback);
+        .fail(self.doneCallback)
+        .progress(function(event){
+            console.log('JQProgress',event.loaded, event.total);
+        });
     }
     
     /**
@@ -758,6 +797,7 @@ class FileUpload {
             data: data,
             processData: false,
             contentType: false,
+            cache: false,
             dataType: 'json'
         })
         .done(function(response){

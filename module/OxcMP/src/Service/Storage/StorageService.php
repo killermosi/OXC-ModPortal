@@ -23,7 +23,6 @@ namespace OxcMP\Service\Storage;
 
 use InvalidArgumentException;
 use Zend\Config\Config;
-use Ramsey\Uuid\Uuid;
 use Imagick;
 use ImagickException;
 use ZipArchive;
@@ -103,6 +102,7 @@ class StorageService
      * @param type $type The file type: resource, image or background
      * @param type $name The original file name
      * @return string The upload slot UUID
+     * @throws Exception\UploadConfigurationError
      * @throws Exception\UnexpectedError
      */
     public function createUploadSlot(Mod $mod, $size, $type, $name)
@@ -118,7 +118,9 @@ class StorageService
             $name
         );
         
-        $chunkSize = $this->config->storage->chunkSize * 1024 * 1024;
+        $this->checkUploadParameters();
+        
+        $chunkSize = $this->config->upload->chunkSize * 1024 * 1024;
         $fileChunks = ceil($size/$chunkSize);
         
         $fileType = self::TYPE_MAP[$type];
@@ -516,6 +518,48 @@ class StorageService
         Log::debug('Temporary uploaded file location: ', $temporaryFilePath);
         
         return $temporaryFilePath;
+    }
+    
+    /**
+     * Check the PHP upload configuration
+     * 
+     * @throws Exception\UploadConfigurationError
+     */
+    private function checkUploadParameters()
+    {
+        $uploadChunkSize = $this->config->upload->chunkSize * 1024 * 1024;
+        $safetyMargin = $this->config->upload->safetyMargin * 1024 * 1024;
+        
+        $iniUploadMaxFilesize = FileUtil::convertPhpIniShorthandValue(ini_get('upload_max_filesize'));
+        $iniPostMaxSize       = FileUtil::convertPhpIniShorthandValue(ini_get('post_max_size'));
+        
+        if ($uploadChunkSize > $iniUploadMaxFilesize) {
+            Log::critical('The upload chunk size is greater than the "upload_max_filesize" PHP setting');
+            throw new Exception\UploadConfigurationError(
+                'The upload chunk size is greater than the "upload_max_filesize" PHP setting'
+            );
+        }
+        
+        if ($uploadChunkSize + $safetyMargin > $iniPostMaxSize) {
+            Log::critical(
+                'The upload chunk size is too large considering the safety margin for the "post_max_size" php setting'
+            );
+            throw new Exception\UploadConfigurationError(
+                'The upload chunk size is too large considering the safety margin for the "post_max_size" php setting'
+            );
+        }
+        
+        // If we're here...
+        if ($iniUploadMaxFilesize + $safetyMargin > $iniPostMaxSize) {
+            Log::critical(
+                'The "upload_max_filesize" PHP setting is too large considering ',
+                'the safety margin for the "post_max_size" php setting'
+            );
+            throw new Exception\UploadConfigurationError(
+                'The "upload_max_filesize" PHP setting is too large considering'
+                . ' the safety margin for the "post_max_size" php setting'
+            );
+        }
     }
 }
 

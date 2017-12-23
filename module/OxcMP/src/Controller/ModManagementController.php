@@ -254,7 +254,7 @@ class ModManagementController extends AbstractController
         $this->view->gitHubFlavoredMarkdownGuideUrl = $this->config->layout->gitHubFlavoredMarkdownGuideUrl;
         $this->view->backgroundWidth = $this->config->storage->background->width;
         $this->view->backgroundHeight = $this->config->storage->background->height;
-        $this->view->chunkSize = $this->config->storage->chunkSize * 1024 * 1024; // This needs to be in bytes
+        $this->view->chunkSize = $this->config->upload->chunkSize * 1024 * 1024; // This needs to be in bytes
         $this->view->maxImageSize = $this->config->storage->maxFileSize->image;
         $this->view->maxResourceSize = $this->config->storage->maxFileSize->resource;
         

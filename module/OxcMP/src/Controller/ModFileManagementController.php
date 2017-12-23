@@ -221,6 +221,9 @@ class ModFileManagementController extends AbstractController
                 $parameters['type'],
                 $parameters['name']
             );
+        } catch (StorageException\UploadConfigurationError $exc) {
+            $result->message = $this->translate('page_editmod_error_upload_unavailable');
+            return $result;
         } catch (\Exception $exc) {
             $result->message = $this->translate('global_unexpected_error');
             return $result;
@@ -228,6 +231,8 @@ class ModFileManagementController extends AbstractController
         
         $result->success = true;
         $result->message = $slotUuid;
+        
+        $this->throttle();
         
         return $result;
     }
@@ -343,6 +348,8 @@ class ModFileManagementController extends AbstractController
             
             Log::debug('File can be accessed via temporary URL ', $url);
             $result->message = $url;
+        } else {
+            $this->throttle();
         }
         
         return $result;
@@ -440,6 +447,21 @@ class ModFileManagementController extends AbstractController
         Log::debug('Done serving temporary file');
         
         return $this->getResponse();
+    }
+    
+    /**
+     * Throttle the current action
+     * 
+     * @return void
+     */
+    private function throttle()
+    {
+        // Take a short nap if needed
+        $microseconds = $this->config->upload->throttlingDelay * 1000 * 1000;
+
+        if ($microseconds > 0) {
+            usleep($microseconds);
+        }
     }
     
     /**

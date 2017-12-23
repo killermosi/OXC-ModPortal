@@ -253,15 +253,19 @@ return [
             'image' => 10,
             'resource' => 512
         ],
-        // Upload chunk size
-        'chunkSize' => 2,
         // Background image size, in pixels
         'background' => [
             'width' => 1700,
             'height' => 700
         ],
-        'backgroundGradient' => dirname(__DIR__) . '/resource/background/gradient.png'
+        'backgroundGradient' => dirname(__DIR__) . '/resource/background/gradient.png',
     ],
+    // Upload settings
+    'upload' => [
+        'safetyMargin' => 4,
+        'chunkSize' => 5,
+        'throttling' => 0
+    ]
 ];
 
 /* EOF */

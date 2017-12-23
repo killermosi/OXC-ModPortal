@@ -85,6 +85,30 @@ class File
         
         return $returnName . $returnExt;
     }
+    
+    /**
+     * Convert a php.ini shorthand value (like 8M) to their byte values
+     * 
+     * @param string $value The value to convert
+     * @return float
+     */
+    public static function convertPhpIniShorthandValue($value)
+    {
+        $number = (float) preg_replace('/[^0-9\.]/', '', $value);
+
+        $unit = preg_replace('/[^kKmMgG]/', '', $value);
+        
+        switch (strtolower($unit)) {
+            case 'g':
+                return $number * 1024 * 1024 * 1024;
+            case 'm':
+                return $number * 1024 * 1024;
+            case 'k':
+                return $number * 1024;
+            default:
+                return $number;
+        }
+    }
 }
 
 /* EOF */
