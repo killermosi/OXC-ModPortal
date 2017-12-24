@@ -227,7 +227,7 @@ class StorageService
             throw new Exception\UnexpectedError('The file was already uploaded');
         }
         
-        $configChunkSize = $this->config->storage->chunkSize * 1024 * 1024;
+        $configChunkSize = $this->config->upload->chunkSize * 1024 * 1024;
         $uploadedChunkSize = filesize($chunkData['tmp_name']);
         
         // Check the chunk size

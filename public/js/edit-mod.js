@@ -17,29 +17,6 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
-(function($, window, undefined) {
-    // If onprogress is not supported by the browser, do nothing
-    if (!("onprogress" in $.ajaxSettings.xhr())) {
-        return;
-    }
-    
-    // Patch ajax settings to call a progress callback
-    var oldXHR = $.ajaxSettings.xhr;
-    $.ajaxSettings.xhr = function() {
-        
-        var xhr = oldXHR.apply(this, arguments);
-        if(xhr instanceof window.XMLHttpRequest) {
-            xhr.addEventListener('progress', this.progress, false);
-        }
-        
-        if(xhr.upload) {
-            xhr.upload.addEventListener('progress', this.progress, false);
-        }
-
-        return xhr;
-    };
-})(jQuery, window);
-
 class EditModManager {
     /**
      * Setup mod editing
@@ -541,7 +518,6 @@ class BackgroundManager {
     handleUploadSuccess(self, response)
     {
         if (response.hasOwnProperty('success') === false || response.hasOwnProperty('message') === false) {
-            console.log('Unexpected response from server ', response);
             self.setFormState(self, false, false, Lang.global_unexpected_error);
             return;
         }
@@ -669,9 +645,7 @@ class FileUpload {
      * @param {object} doneCallback          Callback to be executed when the upload finishes for either success or
      *                                       failure - the server response is passed as a parameter, along with the slot
      *                                       UUID on success
-     * @param {object} progressCallback      Callback to be executed before a chunk is uploaded
-     *                                       The progress percentage (including the current chunk) is passed as a
-     *                                       parameter
+     * @param {object} progressCallback      Callback to be executed when the upload data gets sent
      * @param {object} retryExceededCallback Callback to be executed before a chunk is uploaded
      * @returns {FileUpload}
      * @throws {404} Missing technical support from browser
@@ -765,11 +739,6 @@ class FileUpload {
         // Prepare chunk
         self.curentChunk++;
         self.retryCount = 0;
-
-        // Send progress update
-        var progressPercentage = Math.ceil((self.curentChunk * 100) / self.totalChunks);
-        self.progressCallback(progressPercentage);
-        
         self.uploadChunk(self);
     }
     
@@ -798,7 +767,21 @@ class FileUpload {
             processData: false,
             contentType: false,
             cache: false,
-            dataType: 'json'
+            dataType: 'json',
+            xhr: function () {
+                var xhr = new window.XMLHttpRequest();
+
+                //Upload progress
+                xhr.upload.onprogress = function(evt){
+                    var progressPercentage = Math.floor(
+                        ((self.curentChunk - 1) * self.chunkSize + evt.loaded) * 100 / self.file.size
+                    );
+        
+                    self.progressCallback(progressPercentage);
+                };
+                
+                return xhr;
+            }
         })
         .done(function(response){
             // On failure pass response

@@ -31,16 +31,9 @@ This portal is a repository for OpenXcom modifications.
     * Imagick extension
 * MySQL/MariaDB
 * Apache
+    * Rewrite module
 * Git
 * Composer
-
-#### Apache modules
-
-* mod_rewrite
-
-#### PHP extensions
-
-* ImageMagick
 
 ### Getting the source
 
@@ -61,24 +54,21 @@ $ composer install
 
 ### Database
 
-Create a MySQL database and an associated user. User the `db/create.sql` file
-to set it up.
+Create a MySQL database and an associated user. User the `db/create.sql` file to set it up.
 
 ### Apache
 
 Point Apache to the `public` directory to use for public access.
 
-The application uses an `.htaccess` located in the `public` directory to
-configure the Apache server. To make use of it, local overrides need to be
-enabled in the configuration.
+The application uses an `.htaccess` located in the `public` directory to configure the Apache server. To make use of it,
+local overrides need to be enabled in the configuration.
 
-Optionally, since that is the only `.htaccess` file used, its content can be
-placed directly in the apache configuration file, if possible. This will speed
-up the application a tiny bit, but will require an extra step on subsequent
-upgrades, if the `.htaccess` file was changed.
+Optionally, since that is the only `.htaccess` file used, its content can be placed directly in the apache configuration
+file, if possible. This will speed up the application a tiny bit, but will require an extra step on subsequent upgrades,
+if the `.htaccess` file was changed.
 
 ### Configuration
 
-Before using it, you will need to configure the application. To do so,
-open the `module/OxcMP/config/config.ini` file and adjust all values as needed.
+Before using it, you will need to configure the application. To do so, open the `module/OxcMP/config/config.ini` file
+and adjust all values as needed.
 
