@@ -69,6 +69,18 @@ class StorageService
     const TEMP_EXT = 'temp';
     
     /**
+     * File operation - copy
+     * @var string
+     */
+    const FOP_CPY = 'cpy';
+    
+    /**
+     * File operation - delete
+     * @var stirng
+     */
+    const FOP_DEL = 'del';
+    
+    /**
      * The storage options
      * @var StorageOptions
      */
@@ -79,6 +91,17 @@ class StorageService
      * @var Config
      */
     private $config;
+    
+    /**
+     * A list of queued file operations to perform
+     * @var array
+     */
+    private $fileOps = [
+        // Associative array: sourcePath => destinationPath
+        self::FOP_CPY => [],
+        // Indexed array: filePath
+        self::FOP_DEL => [],
+    ];
     
     /**
      * Class initialization
@@ -148,13 +171,6 @@ class StorageService
         Log::debug('Built sanitized file name: ', $sanitizedName);
 
         try {
-            $uploadSlotData = new UploadSlotData($fileType, $size, $sanitizedName, $fileChunks);
-        } catch (InvalidArgumentException $exc) {
-            Log::error('Error creating upload slot data object: ', $exc->getMessage());
-            throw new Exception\UnexpectedError('Failed to create upload slot data object');
-        }
-        
-        try {
             $uploadDir = $this->storageOptions->getTemporaryUploadStorageDirectory($mod, true);
         } catch (\Exception $exc) {
             Log::notice('Failed to create upload slot directory: ', $exc->getMessage());
@@ -163,6 +179,12 @@ class StorageService
         
         Log::debug('Using upload directory: ', $uploadDir);
         
+        try {
+            $uploadSlotData = new UploadSlotData($fileType, $size, $sanitizedName, $fileChunks, $uploadDir);
+        } catch (InvalidArgumentException $exc) {
+            Log::error('Error creating upload slot data object: ', $exc->getMessage());
+            throw new Exception\UnexpectedError('Failed to create upload slot data object');
+        }
         
         $uploadSlotFile = $uploadDir . $uploadSlotData->getUuid() . '.' . self::SLOT_EXT;
         
@@ -192,40 +214,7 @@ class StorageService
     {
         Log::info('Uploading a chunk for the uplod slot having the UUID ', $slotUuid);
         
-        // Get upload location
-        try {
-            $uploadDir = $this->storageOptions->getTemporaryUploadStorageDirectory($mod, true);
-        } catch (\Exception $exc) {
-            Log::notice('Failed to determine upload slot directory: ', $exc->getMessage());
-            throw new Exception\UnexpectedError('Failed to create upload slot directory');
-        }
-        
-        $uploadSlotFile = $uploadDir . $slotUuid . '.' . self::SLOT_EXT;
-        
-        if (!file_exists($uploadSlotFile)) {
-            Log::notice('Upload slot file not found: ', $uploadSlotFile);
-            throw new Exception\UnexpectedError('Upload slot file not found');
-        }
-        
-        // Get slot content
-        $uploadSlotFileContents = file_get_contents($uploadSlotFile);
-        
-        if ($uploadSlotFileContents === false) {
-            Log::notice('Upload slot file is not readable: ', $uploadSlotFile);
-            throw new Exception\UnexpectedError('Upload slot file is not readable');
-        }
-        
-        $uploadSlotData = unserialize($uploadSlotFileContents);
-        
-        if (!$uploadSlotData instanceof UploadSlotData) {
-            Log::notice('Upload slot data is not in a valid serialized object');
-            throw new Exception\UnexpectedError('Upload slot data is not in a valid serialized object');
-        }
-        
-        if ($uploadSlotData->isFileUploadCompleted()) {
-            Log::notice('The file was already uploaded');
-            throw new Exception\UnexpectedError('The file was already uploaded');
-        }
+        $uploadSlotData = $this->getUploadSlotData($mod, $slotUuid, false);
         
         $configChunkSize = $this->config->upload->chunkSize * 1024 * 1024;
         $uploadedChunkSize = filesize($chunkData['tmp_name']);
@@ -256,8 +245,8 @@ class StorageService
         $fileName = $slotUuid . '.' . self::FILE_EXT;
         $tempName = $slotUuid . '.' . self::TEMP_EXT;
 
-        $filePath = $uploadDir . $fileName;
-        $tempPath = $uploadDir . $tempName;
+        $filePath = $uploadSlotData->getUploadDir() . $fileName;
+        $tempPath = $uploadSlotData->getUploadDir() . $tempName;
         
         // Save the file data on disk
         if (!move_uploaded_file($chunkData['tmp_name'], $tempPath)) {
@@ -285,6 +274,7 @@ class StorageService
         
         // Update the slot data
         $uploadSlotData->incrementChunksUploaded();
+        $uploadSlotFile = $uploadSlotData->getUploadDir() . $slotUuid . '.' . self::SLOT_EXT;
         
         if (!file_put_contents($uploadSlotFile, serialize($uploadSlotData))) {
             Log::notice('Failed to rewrite the upload slot file: ', $uploadSlotFile);
@@ -466,41 +456,7 @@ class StorageService
             $mod->getId()->toString()
         );
         
-        // Get upload location
-        try {
-            $uploadDir = $this->storageOptions->getTemporaryUploadStorageDirectory($mod, true);
-        } catch (\Exception $exc) {
-            Log::notice('Failed to determine upload slot directory: ', $exc->getMessage());
-            throw new Exception\UnexpectedError('Failed to create upload slot directory');
-        }
-        
-        $uploadSlotFile = $uploadDir . $slotUuid . '.' . self::SLOT_EXT;
-        
-        if (!file_exists($uploadSlotFile)) {
-            Log::notice('Upload slot file not found: ', $uploadSlotFile);
-            throw new Exception\UnexpectedError('Upload slot file not found');
-        }
-        
-        // Get slot content
-        $uploadSlotFileContents = file_get_contents($uploadSlotFile);
-        
-        if ($uploadSlotFileContents === false) {
-            Log::notice('Upload slot file is not readable: ', $uploadSlotFile);
-            throw new Exception\UnexpectedError('Upload slot file is not readable');
-        }
-        
-        $uploadSlotData = unserialize($uploadSlotFileContents);
-        
-        if (!$uploadSlotData instanceof UploadSlotData) {
-            Log::notice('Upload slot data is not valid serialized object');
-            throw new Exception\UnexpectedError('Upload slot data is not valid serialized object');
-        }
-        
-        // Check that all the file chunks were uploaded
-        if ($uploadSlotData->isFileUploadCompleted() == false) {
-            Log::notice('File is only partailly uploaded');
-            throw new Exception\UnexpectedError('File is only partailly uploaded');
-        }
+        $uploadSlotData = $this->getUploadSlotData($mod, $slotUuid, true);
         
         // Make sure the type matches
         if ($uploadSlotData->getType() !== $type) {
@@ -508,7 +464,7 @@ class StorageService
             throw new Exception\UnexpectedError('Wrong file type');
         }
         
-        $temporaryFilePath = $uploadDir . $slotUuid . '.' . self::FILE_EXT;
+        $temporaryFilePath = $uploadSlotData->getUploadDir() . $slotUuid . '.' . self::FILE_EXT;
         
         if (false == file_exists($temporaryFilePath) || false == is_readable($temporaryFilePath)) {
             Log::notice('Temporary uploaded file is missing or it could not be read: ', $temporaryFilePath);
@@ -560,6 +516,218 @@ class StorageService
                 . ' the safety margin for the "post_max_size" php setting'
             );
         }
+    }
+    
+    /**
+     * Create a mod file by copying a uploaded file to mod storage (operation is queued)
+     * 
+     * @param Mod     $mod     The Mod entity
+     * @param ModFile $modFile The ModFile entity
+     * @return int The file size
+     * @throws Exception\UnexpectedError
+     */
+    public function createModFile(Mod $mod, ModFile $modFile, $slotUuid)
+    {
+        Log::info(
+            'Creating mod file ',
+            $modFile->getId()->toString(),
+            ' of type ',
+            $modFile->getType(),
+            ' belonging to mod ',
+            $mod->getId()->toString()
+        );
+        
+        $uploadSlotData = $this->getUploadSlotData($mod, $slotUuid, true);
+        
+        $uploadedFilePath = $uploadSlotData->getUploadDir() . $uploadSlotData->getUuid() . '.' . self::FILE_EXT;
+        Log::debug('Uploaded file path: ', $uploadedFilePath);
+        
+        $storageFilePath = $this->storageOptions->getModStorageDirectory($mod, true) . $modFile->getId()->toString();
+        Log::debug('Storage file path: ', $storageFilePath);
+        
+        $this->fileOps[self::FOP_CPY][$uploadedFilePath] = $storageFilePath;
+        
+        Log::debug('File copy queued');
+        
+        return $uploadSlotData->getSize();
+    }
+    
+    /**
+     * Delete a mod file from storage (operation is queued)
+     * 
+     * @param Mod     $mod     The Mod entity
+     * @param ModFile $modFile The ModFile entity
+     * @return void
+     * @throws Exception\UnexpectedError
+     */
+    public function deleteModFile(Mod $mod, ModFile $modFile)
+    {
+        Log::info(
+            'Deleting mod file ',
+            $modFile->getId()->toString(),
+            ' of type ',
+            $modFile->getType(),
+            ' belonging to mod ',
+            $mod->getId()->toString()
+        );
+        
+        // Get file path
+        try {
+            $filePath = $this->storageOptions->getModStorageDirectory($mod) . $modFile->getId()->toString();
+        } catch (\Exception $exc) {
+            Log::notice('Failed to determine mod file path: ', $exc->getMessage());
+        }
+        
+        Log::debug('File path: ', $filePath);
+        
+        // Do some checks
+        if (!file_exists($filePath)) {
+            Log::notice('File missing from storage: ', $filePath);
+            // Don't throw exception, as the file is already deleted, or not accessible (still, should not happen)
+            return;
+        }
+        
+        if (!is_writable($filePath)) {
+            Log::notice('File is not writable: ', $filePath);
+            throw new Exception\UnexpectedError('File not writable');
+        }
+        
+        // Queue the deletion
+        $this->fileOps[self::FOP_DEL][] = $filePath;
+        
+        Log::debug('File deletion queued');
+    }
+    
+    /**
+     * Delete the temporary upload directory for a mod
+     * 
+     * @param Mod $mod The Mod entity
+     * @return void
+     */
+    public function deleteModTemporaryUploadDirectory(Mod $mod)
+    {
+        Log::info('Deleting mod temporary upload directory');
+        
+        try {
+            $uploadDir = $this->storageOptions->getTemporaryUploadStorageDirectory($mod);
+        } catch (\Exception $exc) {
+            Log::notice('Failed to determine the mod temporary upload directory: ', $exc->getMessage());
+            return;
+        }
+        
+        Log::debug('Temporary upload directory: ', $uploadDir);
+        
+        $errors = FileUtil::deleteDirectoryAndContents($uploadDir);
+        
+        if (!empty($errors)) {
+            Log::notice('Failed to delete temporary files: ', $errors);
+        } else {
+            Log::debug('Mod temporary upload directory deleted');
+        }
+    }
+    
+    /**
+     * Apply file operations queued by methods of this service that handle mod storage file changes - ideal conditions
+     * are assumed: files exists, are readable/writable. Available disk space is checked though.
+     * TODO: check if the conditions are not ideal
+     * 
+     * @return void
+     * @throws Exception\UnexpectedError
+     */
+    public function applyFileOperations()
+    {
+        Log::info('Applying queued file operations');
+        
+        if (empty($this->fileOps[self::FOP_CPY]) && empty($this->fileOps[self::FOP_DEL])) {
+            Log::debug('No file operations queued, nothing to apply');
+            return;
+        }
+        
+        // Do the copy first, lefover files are less an issue than deleted files
+        foreach ($this->fileOps[self::FOP_CPY] as $source => $destination) {
+            Log::debug('Copying file ', $source, ' to ', $destination);
+            
+            if (!@copy($source, $destination)) {
+                Log::notice('Failed to copy file ', $source, ' to ', $destination);
+                throw new Exception\UnexpectedError('Failed to copy file');
+            }
+        }
+        
+        Log::debug('Copied ', count($this->fileOps[self::FOP_CPY]), ' file(s)');
+        
+        foreach ($this->fileOps[self::FOP_DEL] as $source) {
+            Log::debug('Deleting file ', $source);
+            
+            if (!@unlink($source)) {
+                Log::notice('Failed to delete file ', $source);
+                throw new Exception\UnexpectedError('Failed to delete file');
+            }
+        }
+        
+        Log::debug('Deleted ', count($this->fileOps[self::FOP_DEL]), ' file(s)');
+        
+        // Empty the queue
+        $this->fileOps[self::FOP_CPY] = [];
+        $this->fileOps[self::FOP_DEL] = [];
+        
+        Log::debug('File operations applied');
+    }
+    
+    /**
+     * Get the UploadSlotData for an upload slot
+     * 
+     * @param Mod $mod                The Mod entity
+     * @param string $slotUuid        The slot UUID
+     * @param string $uploadCompleted Upload status
+     * @return UploadSlotData
+     * @throws Exception\UnexpectedError
+     */
+    private function getUploadSlotData(Mod $mod, $slotUuid, $uploadCompleted)
+    {
+        Log::info('Retrieving upload slot data UUID ', $slotUuid, ' belonging to Mod ', $mod->getId()->toString());
+        
+        // Get upload location
+        try {
+            $uploadDir = $this->storageOptions->getTemporaryUploadStorageDirectory($mod, true);
+        } catch (\Exception $exc) {
+            Log::notice('Failed to determine upload slot directory: ', $exc->getMessage());
+            throw new Exception\UnexpectedError('Failed to create upload slot directory');
+        }
+        
+        $uploadSlotFile = $uploadDir . $slotUuid . '.' . self::SLOT_EXT;
+        
+        if (!file_exists($uploadSlotFile)) {
+            Log::notice('Upload slot file not found: ', $uploadSlotFile);
+            throw new Exception\UnexpectedError('Upload slot file not found');
+        }
+        
+        // Get slot content
+        $uploadSlotFileContents = file_get_contents($uploadSlotFile);
+        
+        if ($uploadSlotFileContents === false) {
+            Log::notice('Upload slot file is not readable: ', $uploadSlotFile);
+            throw new Exception\UnexpectedError('Upload slot file is not readable');
+        }
+        
+        $uploadSlotData = unserialize($uploadSlotFileContents);
+        
+        if (!$uploadSlotData instanceof UploadSlotData) {
+            Log::notice('Upload slot data is not in a valid serialized object');
+            throw new Exception\UnexpectedError('Upload slot data is not in a valid serialized object');
+        }
+        
+        // Validate status
+        if ($uploadCompleted == true && $uploadSlotData->isFileUploadCompleted() == false) {
+            Log::notice('The file is not completely uploaded');
+            throw new Exception\UnexpectedError('The file is not completely uploaded');
+        }
+        
+        if ($uploadCompleted == false && $uploadSlotData->isFileUploadCompleted() == true) {
+            Log::notice('The file was already uploaded');
+            throw new Exception\UnexpectedError('The file was already uploaded');
+        }
+        
+        return $uploadSlotData;
     }
 }
 

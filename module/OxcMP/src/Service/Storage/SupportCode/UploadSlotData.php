@@ -70,20 +70,28 @@ class UploadSlotData
     private $chunksUploaded = 0;
     
     /**
+     * Upload directory
+     * @var string 
+     */
+    private $uploadDir;
+    
+    /**
      * Class initialization
      * 
-     * @param integer $type   File type
-     * @param integer $size   File size, in bytes
-     * @param string  $name   File name
-     * @param integer $chunks Total number of chunks expected for this file
+     * @param integer $type      File type
+     * @param integer $size      File size, in bytes
+     * @param string  $name      File name
+     * @param integer $chunks    Total number of chunks expected for this file
+     * @param string  $uploadDir Upload directory
      * @throws InvalidArgumentException
      */
-    function __construct($type, $size, $name, $chunks)
+    function __construct($type, $size, $name, $chunks, $uploadDir)
     {
         $this->type        = (int) $type;
         $this->size        = (int) $size;
         $this->name        = (string) $name;
         $this->chunksTotal = (int) $chunks;
+        $this->uploadDir   = (string) $uploadDir;
         
         if (!in_array($this->type, StorageService::TYPE_MAP, true)) {
             throw new InvalidArgumentException('Invalid file type');
@@ -99,6 +107,10 @@ class UploadSlotData
         
         if ($this->chunksTotal < 1) {
             throw new InvalidArgumentException('Invalid file chunks');
+        }
+        
+        if (!is_dir($this->uploadDir)) {
+            throw new InvalidArgumentException('Invalid upload directory');
         }
         
         $this->uuid = Uuid::uuid4()->toString();
@@ -164,6 +176,16 @@ class UploadSlotData
         return $this->chunksUploaded;
     }
 
+    /**
+     * Get the upload directory
+     * 
+     * @return string
+     */
+    public function getUploadDir()
+    {
+        return $this->uploadDir;
+    }
+    
     /**
      * Increment the number of uploaded chunks
      * 

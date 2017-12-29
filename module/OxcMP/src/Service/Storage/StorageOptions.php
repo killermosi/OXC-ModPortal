@@ -56,10 +56,10 @@ class StorageOptions
     }
 
     /**
-     * Retrieve the mod storage directory
+     * Retrieve the mod root storage directory
      * 
      * @param boolean $createIfNotExists Create it if needed
-     * @return string
+     * @return string The mod root storage directory, with trailing slash
      * @throws \Exception
      */
     public function getModRootStorageDirectory($createIfNotExists = false)
@@ -76,6 +76,32 @@ class StorageOptions
         }
         
         return $modRootDir;
+    }
+    
+    /**
+     * Retrieve the mod storage directory
+     * 
+     * @param Mod     $mod               The Mod entity
+     * @param boolean $createIfNotExists Create it if needed
+     * @return string The mod storage directory, with trailing slash
+     * @throws \Exception
+     */
+    public function getModStorageDirectory(Mod $mod, $createIfNotExists = false)
+    {
+        $modRootDir = $this->getModRootStorageDirectory();
+        
+        $modDir = $modRootDir . $mod->getId()->toString() . '/';
+        
+        if (
+            is_dir($modDir) == false
+            && $createIfNotExists == true
+            && @mkdir($modDir, $this->mode, true) == false
+        ) {
+            Log::critical('The mod storage directory does not exists and could not be created: ', $modDir);
+            throw new \Exception('Mod storage directory does not exists and could not be created');
+        }
+        
+        return $modDir;
     }
     
     /**

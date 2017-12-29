@@ -24,7 +24,9 @@ namespace OxcMP\Service\Mod;
 use Behat\Transliterator\Transliterator;
 use Doctrine\ORM\EntityManager;
 use OxcMP\Entity\Mod;
+use OxcMP\Entity\ModFile;
 use OxcMP\Entity\ModTag;
+use OxcMP\Service\Storage\StorageService;
 use OxcMP\Util\Log;
 
 /**
@@ -34,21 +36,41 @@ use OxcMP\Util\Log;
  */
 class ModPersistenceService {
     /**
+     * The mod background remains unchanged
+     * @var integer
+     */
+    const BACKGROUND_NO_OP = 0;
+    
+    /**
+     * Use the default mod background
+     * @var integer
+     */
+    const BACKGROUND_DEFAULT = 1;
+    
+    /**
      * The Entity Manager
      * @var EntityManager 
      */
     private $entityManager;
     
     /**
+     * The storage service
+     * @var StorageService
+     */
+    private $storageService;
+    
+    /**
      * Class initialization
      * 
-     * @param EntityManager $entityManager The entity manager
+     * @param EntityManager  $entityManager  The entity manager
+     * @param StorageService $storageService The storage service
      */
-    public function __construct(EntityManager $entityManager)
+    public function __construct(EntityManager $entityManager, StorageService $storageService)
     {
         Log::info('Initializing ModPersistenceService');
         
-        $this->entityManager   = $entityManager;
+        $this->entityManager  = $entityManager;
+        $this->storageService = $storageService;
     }
     
     /**
@@ -91,12 +113,13 @@ class ModPersistenceService {
     /**
      * Update an existing mod entity
      * 
-     * @param Mod   $mod     The mod entity
-     * @param array $modTags The associated tags
+     * @param Mod    $mod           The mod entity
+     * @param array  $modTags       The associated tags
+     * @param string $modBackground The mod background data
      * @return void
      * @throws \Exception
      */
-    public function updateMod(Mod $mod, array $modTags)
+    public function updateMod(Mod $mod, array $modTags, $modBackground)
     {
         Log::info('Updating the mod having the ID ', $mod->getId()->toString());
         
@@ -105,27 +128,47 @@ class ModPersistenceService {
             $this->entityManager->getConnection()
                                 ->beginTransaction();
             
-            // Update tags
-            $tagsUpdated = $this->updateModTags($mod, $modTags);
+            $modUpdated = false;
             
-            if ($tagsUpdated) {
+            // Update tags
+            if ($this->updateModTags($mod, $modTags) == true) {
+                $modUpdated = true;
+            }
+            
+            // Update background
+            if ($this->updateModBackground($mod, $modBackground) == true) {
+                $modUpdated = true;
+            }
+            
+            // Mark mod updated if needed
+            if ($modUpdated) {
                 $mod->markUpdated();
             }
             
             // Update the Mod
             $this->entityManager->persist($mod);
 
-            // Persist changes
+            // Persist changes in the database
             $this->entityManager->flush();
+            
+            // Persist changes on disk
+            $this->storageService->applyFileOperations();
+            
+            // Commit the transaction
             $this->entityManager->getConnection()
                                 ->commit();
         } catch (\Exception $exc) {
-            Log::error('Failed to update the mod');
+            Log::error('Failed to update the mod: ', $exc->getMessage());
             $this->entityManager->getConnection()
                                 ->rollBack();
             
             throw $exc;
         }
+        
+        // Delete mod temporar uploaded files
+        $this->storageService->deleteModTemporaryUploadDirectory($mod);
+        
+        Log::debug('Mod successfully updated');
     }
     
     /**
@@ -259,6 +302,74 @@ class ModPersistenceService {
         }
         
         Log::debug('Done updating mod tags');
+        return true;
+    }
+    
+    /**
+     * Update the mod background data
+     * 
+     * @param Mod    $mod            The Mod entity
+     * @param string $backgroundData The background data
+     * @return boolean If the background was updated or not
+     */
+    private function updateModBackground(Mod $mod, $backgroundData)
+    {
+        Log::info('Updating the mod backgroud for mod ', $mod->getId()->toString());
+
+        if ($backgroundData == self::BACKGROUND_NO_OP) {
+            Log::debug('No changes to the mod background background requested');
+            return false;
+        }
+        
+        // Retrieve the current background, if any (as it is needed anyway)
+        $criteria = [
+            'modId' => $mod->getId(),
+            'type' => ModFile::TYPE_BACKGROUND
+        ];
+
+        $currentBackground = $this->entityManager->getRepository(ModFile::class)->findOneBy($criteria);
+        
+        // Delete it
+        if ($currentBackground instanceof ModFile) {
+            Log::debug('Removing current background');
+            
+            $this->storageService->deleteModFile($mod, $currentBackground);
+            $this->entityManager->remove($currentBackground);
+            $this->entityManager->flush($currentBackground);
+            
+            Log::debug('Current background removed');
+        }
+        
+        if ($backgroundData == self::BACKGROUND_DEFAULT) {
+            if (!$currentBackground instanceof ModFile) {
+                Log::debug('No custom background for this mod found, nothing to restore');
+                return false;
+            }
+            
+            Log::debug('Default background restored');
+            return true;
+        }
+        
+        // Create a new ModFile
+        $modFile = new ModFile();
+        $modFile->setModId($mod->getId());
+        $modFile->setName(ModFile::BACKGROUND_NAME);
+        $modFile->setUserId($mod->getUserId());
+        $modFile->setType(ModFile::TYPE_BACKGROUND);
+
+        // Persist it, so that we have an ID
+        $this->entityManager->persist($modFile);
+        
+        // Copy the file to storage
+        $fileSize = $this->storageService->createModFile($mod, $modFile, $backgroundData);
+        
+        // Update the file size
+        $modFile->setSize($fileSize);
+        
+        // Persist the file size change
+        $this->entityManager->persist($modFile);
+        
+        Log::debug('Mod background updated');
         return true;
     }
 }

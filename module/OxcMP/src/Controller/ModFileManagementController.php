@@ -195,23 +195,23 @@ class ModFileManagementController extends AbstractController
             return $result;
         }
         
-        // Check quota
-        try {
-            $this->quotaService->checkQuota($this->authenticationService->getIdentity(), $mod, $parameters['size']);
-        } catch (QuotaException\InsufficientStorageSpace $exc) {
-            $result->message = $this->translate('page_editmod_error_storage_insufficient');
-            return $result;
-        } catch (QuotaException\UserQuotaReached $exc) {
-            $result->message = $this->translate('page_editmod_error_storage_user_quota');
-            return $result;
-        } catch (QuotaException\ModQuotaReached $exc) {
-            $result->message = $this->translate('page_editmod_error_storage_mod_quota');
-            return $result;
-        } catch (\Exception $exc) {
-            Log::notice('Unexpected error: ', $exc->getMessage());
-            $result->message = $this->translate('global_unexpected_error');
-            return $result;
-        }
+        // Check quota - disabled for now, as it adds unnecessary complexity
+//        try {
+//            $this->quotaService->checkQuota($this->authenticationService->getIdentity(), $mod, $parameters['size']);
+//        } catch (QuotaException\InsufficientStorageSpace $exc) {
+//            $result->message = $this->translate('page_editmod_error_storage_insufficient');
+//            return $result;
+//        } catch (QuotaException\UserQuotaReached $exc) {
+//            $result->message = $this->translate('page_editmod_error_storage_user_quota');
+//            return $result;
+//        } catch (QuotaException\ModQuotaReached $exc) {
+//            $result->message = $this->translate('page_editmod_error_storage_mod_quota');
+//            return $result;
+//        } catch (\Exception $exc) {
+//            Log::notice('Unexpected error: ', $exc->getMessage());
+//            $result->message = $this->translate('global_unexpected_error');
+//            return $result;
+//        }
         
         // Create the upload slot
         try {

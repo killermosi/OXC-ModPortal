@@ -31,8 +31,8 @@ and/or other users interact with a mod.
 
 * **UUID**: The mod's universal unique identifier, used to aggregate mod data.
 * **User ID**: Who owns the mod.
-* **Slug**: The unique "friendly URL" of the mod. It is automatically derived from the title when the mod
-  is created.
+* **Slug**: The unique "friendly URL" of the mod. It is automatically derived from the title when the mod is created and
+  updated along with the title afterwards
 * **Date created**: Date and time when the mod was created.
 * **Date updated**: Date and time when the mod was updated.
 * **Rating Up**: The number of positive ratings the mod has received.

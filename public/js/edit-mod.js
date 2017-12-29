@@ -194,7 +194,8 @@ class EditModManager {
                 isPublished: $('input[name=isPublished]:checked', self.$editModForm).val(),
                 summary:  $('textarea#summary', self.$editModForm).val(),
                 descriptionRaw:  $('textarea#descriptionRaw', self.$editModForm).val(),
-                tags: self.tagManager.selectedTags.join(',')
+                tags: self.tagManager.selectedTags.join(','),
+                background: self.backgroundManager.background
             },
             dataType: 'json'
         })

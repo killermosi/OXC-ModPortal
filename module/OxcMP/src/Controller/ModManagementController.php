@@ -288,7 +288,8 @@ class ModManagementController extends AbstractController
         $hardFail = [
             'id',
             'isPublished',
-            'tags'
+            'tags',
+            'background'
         ];
         
         foreach ($updateData as $fieldName => $data) {
@@ -368,9 +369,9 @@ class ModManagementController extends AbstractController
         }
         
         try {
-            $this->modPersistenceService->updateMod($mod, $modTags);
+            $this->modPersistenceService->updateMod($mod, $modTags, $updateData['background']);
         } catch (\Exception $exc) {
-            Log::notice('Unexpected error while updating the mod entity:', $exc->getMessage());
+            Log::notice('Unexpected error while updating the mod entity: ', $exc->getMessage());
             $result->content = $this->translate('page_editmod_error_unknown');
             return $result;
         }
@@ -572,7 +573,8 @@ class ModManagementController extends AbstractController
             'summary' => $filters['summary']->filter($request->getPost('summary', '')),
             'isPublished' => (int) $request->getPost('isPublished', 0),
             'descriptionRaw' => $filters['descriptionRaw']->filter($request->getPost('descriptionRaw', '')),
-            'tags' => $request->getPost('tags', '')
+            'tags' => $request->getPost('tags', ''),
+            'background' => $request->getPost('background','')
         ];
     }
     

@@ -46,7 +46,7 @@ class ModBackgroundUrl extends AbstractUrlHelper
         }
         
         return $this->buildStaticUrl(
-            $this->view->url('mod-background', ['mod-slug' => $mod->getSlug()], ['force_canonical' => true])
+            $this->view->url('mod-background', ['modSlug' => $mod->getSlug()], ['force_canonical' => true])
         );
     }
 }

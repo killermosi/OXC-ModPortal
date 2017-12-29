@@ -109,6 +109,43 @@ class File
                 return $number;
         }
     }
+    
+    /**
+     * Delete a directory and all files within (not directories)
+     * 
+     * @param string $path Directory path
+     * @return array A list of paths that could not be deleted
+     */
+    public static function deleteDirectoryAndContents($path)
+    {
+        $errors = [];
+        
+        if (!is_dir($path)) {
+            return $errors;
+        }
+        
+        /* @var $fileInfo \DirectoryIterator */
+        foreach (new \DirectoryIterator($path) as $fileInfo) {
+            if ($fileInfo->isDot()) {
+                continue;
+            }
+            
+            if ($fileInfo->isDir()) {
+                $errors[] = $fileInfo->getPathname();
+                continue;
+            }
+            
+            if (@unlink($fileInfo->getPathname()) === false) {
+                $errors[] = $fileInfo->getPathname();
+            }
+        }
+        
+        if (@rmdir($path) === false) {
+            $errors[] = $path;
+        }
+        
+        return $errors;
+    }
 }
 
 /* EOF */

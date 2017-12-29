@@ -137,7 +137,8 @@ class ModuleFactory implements FactoryInterface
                 );
             case Service\Mod\ModPersistenceService::class:
                 return new $requestedName(
-                    $container->get('doctrine.entitymanager.orm_default')
+                    $container->get('doctrine.entitymanager.orm_default'),
+                    $container->get(Service\Storage\StorageService::class)
                 );
             case Service\ModFile\ModFileRetrievalService::class:
                 return new $requestedName(

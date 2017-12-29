@@ -24,6 +24,7 @@ namespace OxcMP;
 use Zend\Router\Http\Literal;
 use Zend\Router\Http\Segment;
 use Ramsey\Uuid\DegradedUuid as Uuid;
+use OxcMP\Entity\ModFile;
 use OxcMP\Service\Acl\Role;
 use OxcMP\Service\Storage\StorageService;
 
@@ -71,7 +72,7 @@ return [
             ],
         ],
         'my-mods' => [
-            'type'    => Segment::class,
+            'type'    => Literal::class,
             'options' => [
                 'route'    => '/mod-management',
                 'defaults' => [
@@ -79,6 +80,17 @@ return [
                     'action'     => 'my-mods',
                 ],
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
+            ],
+        ],
+        'mod-background' => [
+            'type'    => Segment::class,
+            'options' => [
+                'route'    => '/mod-image/:modSlug/' . ModFile::BACKGROUND_NAME,
+                'defaults' => [
+                    'controller' => Controller\ModFileController::class,
+                    'action'     => 'mod-background',
+                ],
+                'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
             ],
         ],
         'add-mod' => [

@@ -28,7 +28,10 @@ namespace OxcMP\Controller;
  */
 class ModFileController extends AbstractController
 {
-    //put your code here
+    public function modBackgroundAction()
+    {
+        return $this->getRequest();
+    }
 }
 
 /* EOF */
