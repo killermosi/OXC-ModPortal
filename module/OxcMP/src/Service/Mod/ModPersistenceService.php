@@ -314,7 +314,7 @@ class ModPersistenceService {
      */
     private function updateModBackground(Mod $mod, $backgroundData)
     {
-        Log::notice('Updating the mod backgroud for mod ', $mod->getId()->toString(), ' to "', $backgroundData, '"');
+        Log::info('Updating the mod background for mod ', $mod->getId()->toString(), ' to "', $backgroundData, '"');
 
         if ($backgroundData === (string) self::BACKGROUND_NO_OP) {
             Log::debug('No changes to the mod background background requested');

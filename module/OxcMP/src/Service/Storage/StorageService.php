@@ -602,11 +602,66 @@ class StorageService
         // Queue the deletion
         $this->fileOps[self::FOP_DEL][] = $filePath;
         
-        // TODO: Delete cache for images
+        if ($modFile->getType() === ModFile::TYPE_IMAGE || $modFile->getType() === ModFile::TYPE_BACKGROUND) {
+            $cachedFiles = $this->buildCachedImagesList($mod, $modFile);
+            
+            Log::debug('Found ', count($cachedFiles), ' additional image(s) in cache for this file');
+            
+            foreach ($cachedFiles as $cachedFile) {
+                $this->fileOps[self::FOP_DEL][] = $cachedFile;
+            }
+        }
         
         Log::debug('File deletion queued');
     }
     
+    /**
+     * Build a list of cached images that are to be deleted along with a mod image/background
+     * 
+     * @param Mod     $mod     The ModEntity
+     * @param ModFile $modFile The ModFile entity
+     * @return array
+     */
+    private function buildCachedImagesList(Mod $mod, ModFile $modFile)
+    {
+        Log::info('Building cached images list for mod file ', $modFile->getId()->toString());
+        
+        $images = [];
+        
+        // Resource?
+        if ($modFile->getType() === ModFile::TYPE_RESOURCE) {
+            Log::debug('Mod resources have no cached images');
+            return $images;
+        }
+        
+        // Cache dir
+        $cacheDir = $this->storageOptions->getModCacheDirectory($mod);
+        
+        if (!is_dir($cacheDir)) {
+            Log::debug('Cache directory does not exist, nothing to delete from cache');
+            return $images;
+        }
+        
+        // Background?
+        if ($modFile->getType() === ModFile::TYPE_BACKGROUND) {
+            $backgroundCachePath = $cacheDir . $modFile->getName();
+            
+            if (file_exists($backgroundCachePath)) {
+                Log::debug('Cached background image added to images list');
+                $images[] = $backgroundCachePath;
+            }
+            
+            return $images;
+        }
+        
+        // Image?
+        if ($modFile->getType() === ModFile::TYPE_IMAGE) {
+            // TODO: build images list
+            return $images;
+        }
+    }
+
+
     /**
      * Delete the temporary upload directory for a mod
      * 
