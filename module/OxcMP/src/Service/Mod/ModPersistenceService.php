@@ -314,9 +314,9 @@ class ModPersistenceService {
      */
     private function updateModBackground(Mod $mod, $backgroundData)
     {
-        Log::info('Updating the mod backgroud for mod ', $mod->getId()->toString());
+        Log::notice('Updating the mod backgroud for mod ', $mod->getId()->toString(), ' to "', $backgroundData, '"');
 
-        if ($backgroundData == self::BACKGROUND_NO_OP) {
+        if ($backgroundData === (string) self::BACKGROUND_NO_OP) {
             Log::debug('No changes to the mod background background requested');
             return false;
         }
@@ -340,7 +340,7 @@ class ModPersistenceService {
             Log::debug('Current background removed');
         }
         
-        if ($backgroundData == self::BACKGROUND_DEFAULT) {
+        if ($backgroundData === (string) self::BACKGROUND_DEFAULT) {
             if (!$currentBackground instanceof ModFile) {
                 Log::debug('No custom background for this mod found, nothing to restore');
                 return false;

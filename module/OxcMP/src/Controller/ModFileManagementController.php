@@ -463,16 +463,6 @@ class ModFileManagementController extends AbstractController
             usleep($microseconds);
         }
     }
-    
-    /**
-     * Build an error response
-     * 
-     * @return Response;
-     */
-    private function errorResponse()
-    {
-        return $this->getResponse()->setStatusCode(404);
-    }
 }
 
 /* EOF */

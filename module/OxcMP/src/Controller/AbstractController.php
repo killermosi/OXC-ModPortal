@@ -166,4 +166,14 @@ class AbstractController extends AbstractActionController {
         
         Log::debug('Done setting layout data values');
     }
+    
+    /**
+     * Build an error response
+     * 
+     * @return Response;
+     */
+    protected function errorResponse()
+    {
+        return $this->getResponse()->setStatusCode(404);
+    }
 }

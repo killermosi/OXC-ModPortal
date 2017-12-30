@@ -185,8 +185,6 @@ class EditModManager {
         event.preventDefault();
         self.setLoadingState(self, true);
         
-        // Collect
-        
         $.ajax(self.$editModForm.attr('action'), {
             method: 'post',
             data: {

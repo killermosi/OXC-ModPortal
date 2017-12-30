@@ -57,8 +57,8 @@ class Module
         'db.name' => 'doctrine.connection.orm_default.params.dbname',
         // Storage
         'storage.mod'                  => 'storage.mod',
-        'storage.cache'                => 'storage.temp',
-        'storage.temp'                 => 'storage.cache',
+        'storage.cache'                => 'storage.cache',
+        'storage.temp'                 => 'storage.temp',
         'storage.quota.freeSpace'      => 'storage.quota.freeSpace',
         'storage.quota.user'           => 'storage.quota.user',
         'storage.quota.mod'            => 'storage.quota.mod',
@@ -111,7 +111,11 @@ class Module
         // Init the log
         Log::init($config);
         
-        Log::info('Application starting, bootstrapping...');
+        Log::debug(' ');
+        Log::debug(' ');
+        Log::debug('******************************************');
+        Log::info('* Application starting, bootstrapping... *');
+        Log::debug('******************************************');
         
         // Config for the layout
         $event->getViewModel()->config = $config;

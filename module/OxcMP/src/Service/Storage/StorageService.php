@@ -87,6 +87,12 @@ class StorageService
     private $storageOptions;
     
     /**
+     * The image service
+     * @var ImageService
+     */
+    private $imageService;
+    
+    /**
      * Application configuration
      * @var Config
      */
@@ -109,11 +115,12 @@ class StorageService
      * @param StorageOptions $storageOptions The storage options
      * @param Config         $config         The application configuration
      */
-    function __construct(StorageOptions $storageOptions, Config $config)
+    function __construct(StorageOptions $storageOptions, ImageService $imageService, Config $config)
     {
         Log::info('Initializing StorageService');
         
         $this->storageOptions = $storageOptions;
+        $this->imageService   = $imageService;
         $this->config         = $config;
     }
     
@@ -595,6 +602,8 @@ class StorageService
         // Queue the deletion
         $this->fileOps[self::FOP_DEL][] = $filePath;
         
+        // TODO: Delete cache for images
+        
         Log::debug('File deletion queued');
     }
     
@@ -671,6 +680,84 @@ class StorageService
         $this->fileOps[self::FOP_DEL] = [];
         
         Log::debug('File operations applied');
+    }
+    
+    /**
+     * Get a mod background image
+     * 
+     * @param Mod     $mod        The Mod entity
+     * @param ModFile $background The background entity
+     * @return string The image contents
+     * @throws Exception\UnexpectedError
+     */
+    public function getModBackground(Mod $mod, ModFile $background)
+    {
+        Log::info('Retrieving mod background contents for mod ', $mod->getId()->toString());
+        
+        // Cache directory
+        try {
+            $cacheDir = $this->storageOptions->getModCacheDirectory($mod, true);
+        } catch (\Exception $exc) {
+            Log::notice('Failed to retrieve the cache directory: ', $exc->getMessage());
+            
+            $cacheDir = null;
+        }
+
+        $cachePath = $cacheDir . $background->getName();
+        
+        Log::debug('Using cache file path: ', $cachePath);
+        
+        // Check the cache
+        if (!is_null($cacheDir) && file_exists($cachePath)) {
+            $backgroundContents = file_get_contents($cachePath);
+            
+            if ($backgroundContents === false) {
+                Log::notice('Failed to read cached background file ', $cachePath);
+                throw new Exception\UnexpectedError('Failed to read cached background file');
+            }
+            
+            Log::debug('Background retrieved from cache');
+            return $backgroundContents;
+        }
+        
+        Log::debug('Background not found in cache');
+        
+        try {
+            $storageDir = $this->storageOptions->getModStorageDirectory($mod);
+        } catch (\Exception $exc) {
+            Log::notice('Failed to retrieve the mod storage directory: ', $exc->getMessage());
+            throw new Exception\UnexpectedError('Failed to retrieve the mod storage directory');
+        }
+        
+        $storagePath = $storageDir . $background->getId()->toString();
+        
+        Log::debug('Using storage file path: ', $storagePath);
+        
+        // Process the background
+        $rawBackgroundContents = file_get_contents($storagePath);
+        
+        if ($rawBackgroundContents === false) {
+            Log::notice('Failed to read background file from storage: ', $storagePath);
+            throw new Exception\UnexpectedError('Failed to read background file from storage');
+        }
+        
+        // This throws Exception\UnexpectedError, so we're good
+        $backgroundContents = $this->imageService->processBackgroundImage($rawBackgroundContents);
+        
+        // If the cache is not available, serve the file content directly
+        if (is_null($cacheDir)) {
+            Log::warn('Image cache is disabled or misconfigured, this is a major performance hit');
+            return $backgroundContents;
+        }
+        
+        // Try and save the file to cache
+        if (file_put_contents($cachePath, $backgroundContents) === false) {
+            Log::warn('Failed to write background image to cache');
+        } else {
+            Log::debug('Background image saved to cache');
+        }
+        
+        return $backgroundContents;
     }
     
     /**

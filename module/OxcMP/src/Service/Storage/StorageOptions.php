@@ -131,6 +131,38 @@ class StorageOptions
         
         return $dir;
     }
+    
+    /**
+     * Retrieve the cache directory for a mod
+     *  
+     * @param Mod $mod The Mod entity
+     * @param boolean $createIfNotExists Create it if needed
+     * @return string
+     * @throws \Exception
+     */
+    public function getModCacheDirectory(Mod $mod, $createIfNotExists = false)
+    {
+        $cacheDir = trim($this->config->storage->cache, '/');
+        $modDir = $mod->getSlug();
+        
+        if (empty($cacheDir)) {
+            Log::notice('Cache disabled');
+            throw new \Exception('Cache disabled');
+        }
+        
+        $dir = '/' . $cacheDir . '/' . $modDir . '/';
+        
+        if (
+            is_dir($dir) == false
+            && $createIfNotExists == true
+            && @mkdir($dir, $this->mode, true) == false
+        ) {
+            Log::critical('The mod cache directory does not exists and could not be created: ', $dir);
+            throw new \Exception('Mod cache storage directory does not exists and could not be created');
+        }
+        
+        return $dir;
+    }
 }
 
 /* EOF */

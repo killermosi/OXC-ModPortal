@@ -21,6 +21,13 @@
 
 namespace OxcMP\Controller;
 
+use OxcMP\Entity\Mod;
+use OxcMP\Entity\ModFile;
+use OxcMP\Service\Storage\StorageService;
+use OxcMP\Service\Mod\ModRetrievalService;
+use OxcMP\Service\ModFile\ModFileRetrievalService;
+use OxcMP\Util\Log;
+
 /**
  * Mod file retrieval
  *
@@ -28,9 +35,86 @@ namespace OxcMP\Controller;
  */
 class ModFileController extends AbstractController
 {
+    /**
+     * The storage service
+     * @var StorageService 
+     */
+    private $storageService;
+    
+    /**
+     * The mod retrieval service
+     * @var ModRetrievalService
+     */
+    private $modRetrievalService;
+    
+    /**
+     * The mod file retrieval service
+     * @var ModFileRetrievalService
+     */
+    private $modFileRetrievalService;
+    
+    /**
+     * Class initializations
+     * 
+     * @param StorageService          $storageService          The storage service
+     * @param ModRetrievalService     $modRetrievalService     The mod retrieval service
+     * @param ModFileRetrievalService $modFileRetrievalService The mod file retrieval service
+     */
+    function __construct(
+        StorageService $storageService,
+        ModRetrievalService $modRetrievalService,
+        ModFileRetrievalService $modFileRetrievalService
+    ) {
+        parent::__construct();
+        
+        $this->storageService          = $storageService;
+        $this->modRetrievalService     = $modRetrievalService;
+        $this->modFileRetrievalService = $modFileRetrievalService;
+    }
+
+        /**
+     * Retrieve a mod background
+     * 
+     * @return 
+     */
     public function modBackgroundAction()
     {
-        return $this->getRequest();
+        Log::info('Processing action mod-file/mod-background');
+        
+        $modSlug = $this->params()->fromRoute('modSlug');
+        
+        // Retrieve and check the mod
+        $mod = $this->modRetrievalService->getModBySlug($modSlug);
+        
+        if (!$mod instanceof Mod) {
+            Log::notice('The mod having the slug "', $modSlug, '" could not be found');
+            return $this->errorResponse();
+        }
+
+        // Retrieve and check the background
+        $modBackground = $this->modFileRetrievalService->getModBackground($mod);
+        
+        if (!$modBackground instanceof ModFile) {
+            Log::notice('The background for the mod having the slug "', $modSlug, '" could not be found');
+            return $this->errorResponse();
+        }
+        
+        // Get the background contents
+        try {
+            $backgroundContents = $this->storageService->getModBackground($mod, $modBackground);
+        } catch (\Exception $exc) {
+            Log::notice('Failed to retrieve the background file contents: ', $exc->getMessage());
+            return $this->errorResponse();
+        }
+        
+        $this->getResponse()->getHeaders()->addHeaderLine(sprintf('Content-Type: %s', ModFile::MIME_IMAGE));
+        $this->getResponse()->getHeaders()->addHeaderLine(
+            sprintf('Content-Disposition: inline; filename="%s"', ModFile::BACKGROUND_NAME)
+        );
+        
+        $this->getResponse()->setContent($backgroundContents);
+        
+        return $this->getResponse();
     }
 }
 

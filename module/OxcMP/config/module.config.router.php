@@ -90,6 +90,9 @@ return [
                     'controller' => Controller\ModFileController::class,
                     'action'     => 'mod-background',
                 ],
+                'constraints' => [
+                    'modSlug' => '[a-z0-9\-]+'
+                ],
                 'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
             ],
         ],

@@ -94,6 +94,12 @@ class ModuleFactory implements FactoryInterface
                     $container->get(Service\Storage\ImageService::class),
                     $container->get(Config::class)
                 );
+            case Controller\ModFileController::class:
+                return new $requestedName(
+                    $container->get(Service\Storage\StorageService::class),
+                    $container->get(Service\Mod\ModRetrievalService::class),
+                    $container->get(Service\ModFile\ModFileRetrievalService::class)
+                );
             case Controller\ModManagementController::class:
                 return new $requestedName(
                     $container->get(AuthenticationService::class),
@@ -163,6 +169,7 @@ class ModuleFactory implements FactoryInterface
             case Service\Storage\StorageService::class:
                 return new $requestedName(
                     $container->get(Service\Storage\StorageOptions::class),
+                    $container->get(Service\Storage\ImageService::class),
                     $container->get(Config::class)
                 );
             case Service\Storage\StorageOptions::class:

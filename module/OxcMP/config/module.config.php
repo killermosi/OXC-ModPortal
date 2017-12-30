@@ -24,6 +24,7 @@ return [
             Controller\IndexController::class             => ModuleFactory::class,
             Controller\UserController::class              => ModuleFactory::class,
             Controller\ModFileManagementController::class => ModuleFactory::class,
+            Controller\ModFileController::class           => ModuleFactory::class,
             Controller\ModManagementController::class     => ModuleFactory::class,
         ],
     ],
