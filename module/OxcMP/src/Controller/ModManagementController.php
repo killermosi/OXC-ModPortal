@@ -289,7 +289,7 @@ class ModManagementController extends AbstractController
             'id',
             'isPublished',
             'tags',
-            'background'
+            'backgroundUuid'
         ];
         
         foreach ($updateData as $fieldName => $data) {
@@ -327,11 +327,7 @@ class ModManagementController extends AbstractController
         if (false == $this->authenticationService->getIdentity()->getIsAdministrator()
             && $mod->getId() != $this->authenticationService->getIdentity()->getId()
         ) {
-            Log::notice(
-                'Non-administrator user attempted to preview the mod slug for the mod having the UUID "',
-                $modId,
-                '"'
-            );
+            Log::notice('Non-administrator user attempted to update the mod having the UUID "', $modId, '"');
             $result->content = $this->translate('global_bad_request');
             return $result;
         }
@@ -369,7 +365,7 @@ class ModManagementController extends AbstractController
         }
         
         try {
-            $this->modPersistenceService->updateMod($mod, $modTags, $updateData['background']);
+            $this->modPersistenceService->updateMod($mod, $modTags, $updateData['backgroundUuid']);
         } catch (\Exception $exc) {
             Log::notice('Unexpected error while updating the mod entity: ', $exc->getMessage());
             $result->content = $this->translate('page_editmod_error_unknown');
@@ -437,7 +433,7 @@ class ModManagementController extends AbstractController
             && $mod->getId() != $this->authenticationService->getIdentity()->getId()
         ) {
             Log::notice(
-                'Non-administrator user attempted to preview the mod slug for the mod having the UUID "',
+                'Non-administrator user attempted to preview the mod description for the mod having the UUID "',
                 $modId,
                 '"'
             );
@@ -574,7 +570,7 @@ class ModManagementController extends AbstractController
             'isPublished' => (int) $request->getPost('isPublished', 0),
             'descriptionRaw' => $filters['descriptionRaw']->filter($request->getPost('descriptionRaw', '')),
             'tags' => $request->getPost('tags', ''),
-            'background' => $request->getPost('background','')
+            'backgroundUuid' => $request->getPost('backgroundUuid','')
         ];
     }
     

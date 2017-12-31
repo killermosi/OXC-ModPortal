@@ -36,18 +36,6 @@ use OxcMP\Util\Log;
  */
 class ModPersistenceService {
     /**
-     * The mod background remains unchanged
-     * @var integer
-     */
-    const BACKGROUND_NO_OP = 0;
-    
-    /**
-     * Use the default mod background
-     * @var integer
-     */
-    const BACKGROUND_DEFAULT = 1;
-    
-    /**
      * The Entity Manager
      * @var EntityManager 
      */
@@ -113,13 +101,13 @@ class ModPersistenceService {
     /**
      * Update an existing mod entity
      * 
-     * @param Mod    $mod           The mod entity
-     * @param array  $modTags       The associated tags
-     * @param string $modBackground The mod background data
+     * @param Mod    $mod               The mod entity
+     * @param array  $modTags           The associated tags
+     * @param string $modBackgroundUuid The mod background UUID
      * @return void
      * @throws \Exception
      */
-    public function updateMod(Mod $mod, array $modTags, $modBackground)
+    public function updateMod(Mod $mod, array $modTags, $modBackgroundUuid)
     {
         Log::info('Updating the mod having the ID ', $mod->getId()->toString());
         
@@ -136,7 +124,7 @@ class ModPersistenceService {
             }
             
             // Update background
-            if ($this->updateModBackground($mod, $modBackground) == true) {
+            if ($this->updateModBackground($mod, $modBackgroundUuid) == true) {
                 $modUpdated = true;
             }
             
@@ -309,17 +297,12 @@ class ModPersistenceService {
      * Update the mod background data
      * 
      * @param Mod    $mod            The Mod entity
-     * @param string $backgroundData The background data
+     * @param string $backgroundUuid The background UUID
      * @return boolean If the background was updated or not
      */
-    private function updateModBackground(Mod $mod, $backgroundData)
+    private function updateModBackground(Mod $mod, $backgroundUuid)
     {
-        Log::info('Updating the mod background for mod ', $mod->getId()->toString(), ' to "', $backgroundData, '"');
-
-        if ($backgroundData === (string) self::BACKGROUND_NO_OP) {
-            Log::debug('No changes to the mod background background requested');
-            return false;
-        }
+        Log::info('Updating the mod background for mod ', $mod->getId()->toString(), ' to "', $backgroundUuid, '"');
         
         // Retrieve the current background, if any (as it is needed anyway)
         $criteria = [
@@ -328,6 +311,16 @@ class ModPersistenceService {
         ];
 
         $currentBackground = $this->entityManager->getRepository(ModFile::class)->findOneBy($criteria);
+        
+        if (!$currentBackground instanceof ModFile && strlen($backgroundUuid) === 0) {
+            Log::debug('No background changes - mod retains the default background');
+            return false;
+        }
+        
+        if ($currentBackground instanceof ModFile && $currentBackground->getId()->toString() === $currentBackground) {
+            Log::debug('No background changes - mod retains the custom background');
+            return false;
+        }
         
         // Delete it
         if ($currentBackground instanceof ModFile) {
@@ -338,16 +331,12 @@ class ModPersistenceService {
             $this->entityManager->flush($currentBackground);
             
             Log::debug('Current background removed');
-        }
-        
-        if ($backgroundData === (string) self::BACKGROUND_DEFAULT) {
-            if (!$currentBackground instanceof ModFile) {
-                Log::debug('No custom background for this mod found, nothing to restore');
-                return false;
-            }
             
-            Log::debug('Default background restored');
-            return true;
+            // If no new background specieid, stop here
+            if (strlen($backgroundUuid) === 0) {
+                Log::debug('Default background restored');
+                return true;
+            }
         }
         
         // Create a new ModFile
@@ -361,7 +350,7 @@ class ModPersistenceService {
         $this->entityManager->persist($modFile);
         
         // Copy the file to storage
-        $fileSize = $this->storageService->createModFile($mod, $modFile, $backgroundData);
+        $fileSize = $this->storageService->createModFile($mod, $modFile, $backgroundUuid);
         
         // Update the file size
         $modFile->setSize($fileSize);

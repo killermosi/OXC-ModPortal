@@ -28,8 +28,7 @@ use Zend\Validator\NotEmpty;
 use Zend\Validator\Regex;
 use Zend\Validator\StringLength;
 use Zend\Validator\Uuid;
-use Ramsey\Uuid\DegradedUuid; // Use this as we will need an alias for it anyway
-use OxcMP\Service\Mod\ModPersistenceService;
+use Ramsey\Uuid\DegradedUuid; // Use this as we will need an alias for UUID anyway
 use OxcMP\Service\Storage\StorageService;
 
 /**
@@ -163,14 +162,9 @@ class ModValidator {
         $tagsMustNotContain = new Regex(self::TAGS_REGEXP_MUST_NOT_CONTAIN);
         $tagsValidator->attach($tagsMustNotContain);
         
-        $backgroundValidator = new Regex(
-            // /^0|1|[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/
-            sprintf(
-                '/^%s|%s|%s$/',
-                trim(DegradedUuid::VALID_PATTERN, '^$'),
-                ModPersistenceService::BACKGROUND_NO_OP,
-                ModPersistenceService::BACKGROUND_DEFAULT
-            )
+        $backgroundUuidValidator = new Regex(
+            // /^$|^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/
+            sprintf('/^$|%s/',DegradedUuid::VALID_PATTERN)
         );
         
         return [
@@ -180,7 +174,7 @@ class ModValidator {
             'summary' => $summaryValidator,
             'descriptionRaw' => $descriptionRawValidator,
             'tags' => $tagsValidator,
-            'background' => $backgroundValidator
+            'backgroundUuid' => $backgroundUuidValidator
         ];
     }
     

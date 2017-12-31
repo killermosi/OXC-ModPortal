@@ -528,8 +528,9 @@ class StorageService
     /**
      * Create a mod file by copying a uploaded file to mod storage (operation is queued)
      * 
-     * @param Mod     $mod     The Mod entity
-     * @param ModFile $modFile The ModFile entity
+     * @param Mod     $mod      The Mod entity
+     * @param ModFile $modFile  The ModFile entity
+     * @param string  $slotUuid The temporary uploaded file
      * @return int The file size
      * @throws Exception\UnexpectedError
      */
@@ -545,6 +546,16 @@ class StorageService
         );
         
         $uploadSlotData = $this->getUploadSlotData($mod, $slotUuid, true);
+        
+        if ($uploadSlotData->getType() != $modFile->getType()) {
+            Log::notice(
+                'The mod file is of type ',
+                $modFile->getType(),
+                ' but the uploaded file is of type ',
+                $uploadSlotData->getType()
+            );
+            throw new Exception\UnexpectedError('Upload slot file not found');
+        }
         
         $uploadedFilePath = $uploadSlotData->getUploadDir() . $uploadSlotData->getUuid() . '.' . self::FILE_EXT;
         Log::debug('Uploaded file path: ', $uploadedFilePath);

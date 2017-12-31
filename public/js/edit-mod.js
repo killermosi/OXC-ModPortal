@@ -192,8 +192,8 @@ class EditModManager {
                 isPublished: $('input[name=isPublished]:checked', self.$editModForm).val(),
                 summary:  $('textarea#summary', self.$editModForm).val(),
                 descriptionRaw:  $('textarea#descriptionRaw', self.$editModForm).val(),
-                tags: self.tagManager.selectedTags.join(','),
-                background: self.backgroundManager.background
+                tags: self.tagManager.selectedTags.join(','),  // TODO: use same mechanism as below
+                backgroundUuid: self.backgroundManager.getBackgroundUuid()
             },
             dataType: 'json'
         })
@@ -454,21 +454,16 @@ class BackgroundManager {
         this.totalChunks = null;
         
         this.chunkSize = parseInt(this.$editModForm.data('chunk-size'), 10);
-        
-        // Background image status:
-        // - 0: no changes this session
-        // - 1: use default background
-        // - uuid: the last uploaded background image temporary UUID
-        this.background = 0;
     }
     
     /**
-     * Delete the current mod background
+     * Get the background UUID
      * 
-     * @returns {undefined}
+     * @returns {string}
      */
-    handleDelete() {
-        console.log('delete');
+    getBackgroundUuid()
+    {
+        return this.$backgroundImage.data('background-uuid');
     }
     
     /**
@@ -536,8 +531,7 @@ class BackgroundManager {
             
             // Store the new background UUID only after the image was loaded and the user had the opportunity to
             // review it
-            
-            self.background = response.slotUuid;
+            self.$backgroundImage.data('background-uuid', response.slotUuid);
         };
         img.src = response.message;
     }
@@ -582,8 +576,8 @@ class BackgroundManager {
             self.$backgroundImage.attr('src', defaultBackgroundImageUrl);
             self.$body.css('background-image', 'url("' + defaultBackgroundImageUrl + '")');
 
-            // Store the action
-            self.background = 1;
+            // Set background UUID to empty, this means default background
+            self.$backgroundImage.data('background-uuid', '');
 
             // Update the message
             self.setFormState(self, false, true, Lang.page_mymods_success_background_default);
@@ -611,7 +605,7 @@ class BackgroundManager {
         } else {
             self.$btnUploadMod.removeAttr('disabled');
             
-            if (self.$backgroundImage.attr('src') !== self.$backgroundImage.data('default-background-url')) {
+            if (self.$backgroundImage.data('background-uuid').length === 0) {
                 self.$btnDefaultMod.removeAttr('disabled');
             } else {
                 self.$btnDefaultMod.attr('disabled', '');

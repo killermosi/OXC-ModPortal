@@ -1,4 +1,6 @@
 <?php
+
+
     /* @var $mod \OxcMP\Entity\Mod  */
     /* @var $modBackground \OxcMP\Entity\ModFile  */
     /* @var $tag \OxcMP\Entity\Tag  */
@@ -18,11 +20,13 @@
         $selectedTagNames[] = $modTag->getTag();
     }
     
-    $homeUrl =  $this->url('home', [], ['force_canonical' => true]);
+    $backgroundImageDefaultUrl = $this->staticUrl('img/bg-default.png');
+    $backgroundImageInstructionsUrl = $this->staticUrl('img/bg-instructions.png');
+    $backgroundSupportArchiveUrl = $this->staticUrl('resources/background-support.zip');
     
-    $backgroundImageDefaultUrl = $homeUrl . 'img/bg-default.png';
-    $backgroundImageInstructionsUrl = $homeUrl . 'img/bg-instructions.png';
-    $backgroundSupportArchiveUrl = $homeUrl . 'resources/background-support.zip';
+    $backgroundDefaultUrl = $this->defaultBackgroundUrl();
+    $backgroundUrl = $this->modBackgroundUrl($mod, $modBackground);
+    $backgroundUuid = ($modBackground instanceof \OxcMP\Entity\ModFile) ? $modBackground->getId()->toString() : '';
     
     // Some translations that are needed by JS
     $jsLangKeys = [
@@ -134,7 +138,7 @@
     <div class="form-row">
         <div class="form-group col-sm-12 col-md-6">
             <label><?php echo $this->translate('page_editmod_form_background_current_title'); ?></label>
-            <img id="background-image" class="img-fluid" src="<?php echo $this->modBackgroundUrl($mod, $modBackground)?>" data-default-background-url="<?php echo $this->defaultBackgroundUrl(); ?>"  alt="<?php echo $this->translate('page_editmod_image_background_alt')?>">
+            <img id="background-image" class="img-fluid" src="<?php echo $backgroundUrl; ?>" data-background-uuid="<?php echo $backgroundUuid; ?>" data-default-background-url="<?php echo $backgroundDefaultUrl; ?>"  alt="<?php echo $this->translate('page_editmod_image_background_alt')?>">
             <input id="background-image-upload" accept="image/*" class="d-none" type="file" />
         </div>
         <div class="form-group col-sm-12 col-md-6">
