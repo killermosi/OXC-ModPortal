@@ -27,8 +27,6 @@ use Zend\View\Model\ViewModel;
 use Zend\Authentication\AuthenticationService;
 use Zend\Config\Config;
 use OxcMP\Entity\Mod;
-use OxcMP\Entity\ModTag;
-use OxcMP\Entity\Tag;
 use OxcMP\Service\Markdown\MarkdownService;
 use OxcMP\Service\Mod\ModRetrievalService;
 use OxcMP\Service\Mod\ModPersistenceService;
@@ -358,14 +356,7 @@ class ModManagementController extends AbstractController
         }
         
         try {
-            $modTags = $this->buildTagsArray($mod, $updateData['tags']);
-        } catch (\Exception $exc) {
-            $result->content = $this->translate('global_bad_request');
-            return $result;
-        }
-        
-        try {
-            $this->modPersistenceService->updateMod($mod, $modTags, $updateData['backgroundUuid']);
+            $this->modPersistenceService->updateMod($mod, $updateData['tags'], $updateData['backgroundUuid']);
         } catch (\Exception $exc) {
             Log::notice('Unexpected error while updating the mod entity: ', $exc->getMessage());
             $result->content = $this->translate('page_editmod_error_unknown');
@@ -572,55 +563,6 @@ class ModManagementController extends AbstractController
             'tags' => $request->getPost('tags', ''),
             'backgroundUuid' => $request->getPost('backgroundUuid','')
         ];
-    }
-    
-    /**
-     * Build a ModTag array for the specified mod
-     * 
-     * @param Mod    $mod  The mod entity
-     * @param string $tagNames The tags list, comma separated
-     * @return array
-     * @throw \Exception
-     */
-    private function buildTagsArray(Mod $mod, $tagNames)
-    {
-        Log::info('Building ModTag list');
-        
-        if (empty($tagNames)) {
-            return [];
-        }
-        
-        $tagNamesList = explode(',', $tagNames);
-        
-        // Make sure there are no duplicates
-        if (count($tagNamesList) != count(array_unique($tagNamesList))) {
-            Log::notice('Duplicate tags found in the received tags list: ', $tagNamesList);
-            throw new \Exception('Duplicate tags received');
-        }
-        
-        // The ModTag list
-        $tagList = [];
-        
-        foreach ($tagNamesList as $tagName) {
-            $tag = $this->tagRetrievalService->getTag($tagName);
-            
-            if (!$tag instanceof Tag) {
-                Log::notice('The tag having the name "', $tagName, '" could not be found');
-                throw new \Exception('Tag not found');
-            }
-            
-            $modTag = new ModTag();
-            $modTag->setModId($mod->getId());
-            $modTag->setTag($tagName);
-            
-            $tagList[] = $modTag;
-            
-            unset($modTag);
-        }
-        
-        Log::info('Done building ModTag list: ', count($tagList), ' item(s)');
-        
-        return $tagList;
     }
 }
 

@@ -26,6 +26,7 @@ use Doctrine\ORM\EntityManager;
 use OxcMP\Entity\Mod;
 use OxcMP\Entity\ModFile;
 use OxcMP\Entity\ModTag;
+use OxcMP\Entity\Tag;
 use OxcMP\Service\Storage\StorageService;
 use OxcMP\Util\Log;
 
@@ -102,12 +103,12 @@ class ModPersistenceService {
      * Update an existing mod entity
      * 
      * @param Mod    $mod               The mod entity
-     * @param array  $modTags           The associated tags
+     * @param string  $modTags           The associated tags
      * @param string $modBackgroundUuid The mod background UUID
      * @return void
      * @throws \Exception
      */
-    public function updateMod(Mod $mod, array $modTags, $modBackgroundUuid)
+    public function updateMod(Mod $mod, $modTags, $modBackgroundUuid)
     {
         Log::info('Updating the mod having the ID ', $mod->getId()->toString());
         
@@ -220,76 +221,85 @@ class ModPersistenceService {
     }
     
     /**
-     * Update the ModTags for a Mod
+     * Update a mod tags
      * 
-     * @param Mod   $mod            The Mod entity
-     * @param array $updatedModTags The updated ModTag list
+     * @param Mod    $mod          The Mod entity
+     * @param string $selectedTags The mod tags, in a comma-separated list
      * @return boolean If any changes were made to the mod tags
+     * @throws \Exception
      */
-    private function updateModTags(Mod $mod, array $updatedModTags)
+    private function updateModTags(Mod $mod, $selectedTags)
     {
-        Log::info('Updating Mod tags');
+        Log::info('Updating the mod tags for mod ', $mod->getId()->toString(), ' to "', $selectedTags, '"');
         
-        $modTagRepository =  $this->entityManager->getRepository(ModTag::class);
+        $selectedTagsList = (strlen($selectedTags) != 0) ? explode(',', $selectedTags): [];
         
-        $currentModTags = $modTagRepository->findBy(['modId' => $mod->getId()]);
-        
-        $updatedModTagNames = $currentModTagNames = [];
-        $tagsToAdd = $tagsToRemove = [];
-        
-        // Build lists of tag names
-        
-        /* @var $updatedModTag ModTag */
-        foreach ($updatedModTags as $updatedModTag) {
-            $updatedModTagNames[] = $updatedModTag->getTag();
+        // Look for duplicates
+        if (count($selectedTagsList) != count(array_unique($selectedTagsList))) {
+            Log::notice('Received duplicated tags: ', $selectedTagsList);
+            throw new \Exception('Received duplicated tags');
         }
         
-        /* @var $currentModTag ModTag */
-        foreach ($currentModTags as $currentModTag) {
-            $currentModTagNames[] = $currentModTag->getTag();
-        }
-        
-        // Build lists of added and removed tags
-        foreach ($updatedModTags as $updatedModTag) {
-            if (!in_array($updatedModTag->getTag(), $currentModTagNames)) {
-                $tagsToAdd[$updatedModTag->getTag()] = $updatedModTag;
+        // Check that all received tags are valid
+        foreach ($selectedTagsList as $selectedTag) {
+            $selectedModTag = $this->entityManager->getRepository(Tag::class)->find($selectedTag);
+            
+            if (!$selectedModTag instanceof Tag) {
+                Log::notice('Received unknown mod tag: ', $selectedTag);
+                throw new \Exception('Received unknown mod tag');
             }
         }
         
-        foreach ($currentModTags as $currentModTag) {
-            if (!in_array($currentModTag->getTag(), $updatedModTagNames)) {
-                $tagsToRemove[$currentModTag->getTag()] = $currentModTag;
+        // Retrieve all set tags for the mod
+        $currentModTags = $this->entityManager->getRepository(ModTag::class)->findBy(['modId' => $mod->getId()]);
+        
+        // List, for logging purposes
+        $finalTags = [];
+        
+        // Determine which tags to remove and which to add
+        foreach ($currentModTags as $index => $currentModTag) {
+            /* @var $currentModTag ModTag */
+            if (!in_array($currentModTag->getTag(), $selectedTagsList)) {
+                
+                continue;
             }
+            
+            $finalTags[] = $currentModTag->getTag();
+            
+            // Delete the values from both lists
+            unset($selectedTagsList[array_search($currentModTag->getTag(), $selectedTagsList)]);
+            unset($currentModTags[$index]);
         }
         
-        if (count($tagsToAdd) == 0 && count($tagsToRemove) == 0) {
-            Log::debug('No Mod tags added or removed');
+        // What's left in the $currentModTags must be removed and what's in $selectedTagsList must be added
+        if (count($currentModTags) == 0 && count($selectedTagsList) == 0) {
+            Log::debug('No tags added or removed');
             return false;
         }
         
-        // Log tally
-        if (count($tagsToAdd) == 0) {
-            Log::debug('No Mod tags added');
-        } else {
-            Log::debug('Adding ', count($tagsToAdd), ' ModTag(s): ', implode(', ', array_keys($tagsToAdd)));
+        // Remove entries
+        foreach ($currentModTags as $currentModTag) {
+            $this->entityManager->remove($currentModTag);
         }
         
-        if (count($tagsToRemove) == 0) {
-            Log::debug('No Mod tags removed');
-        } else {
-            Log::debug('Removing ', count($tagsToRemove), ' ModTag(s): ', implode(', ', array_keys($tagsToRemove)));
-        }
+        Log::debug('Removed ', count($currentModTags), ' tag(s)');
         
-        // Persist changes
-        foreach ($tagsToAdd as $modTag) {
+        // Add entries
+        foreach ($selectedTagsList as $selectedTag) {
+            $modTag = new ModTag();
+            $modTag->setTag($selectedTag);
+            $modTag->setModId($mod->getId());
+            
             $this->entityManager->persist($modTag);
+            
+            $finalTags[] = $selectedTag;
         }
         
-        foreach ($tagsToRemove as $modTag) {
-            $this->entityManager->remove($modTag);
-        }
+        Log::debug('Added ', count($selectedTagsList), ' tag(s)');
         
-        Log::debug('Done updating mod tags');
+        sort($finalTags);
+        
+        Log::debug('Done updating mod tags, mod tags list set to ', $finalTags);
         return true;
     }
     
@@ -317,7 +327,7 @@ class ModPersistenceService {
             return false;
         }
         
-        if ($currentBackground instanceof ModFile && $currentBackground->getId()->toString() === $currentBackground) {
+        if ($currentBackground instanceof ModFile && $currentBackground->getId()->toString() === $backgroundUuid) {
             Log::debug('No background changes - mod retains the custom background');
             return false;
         }

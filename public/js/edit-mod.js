@@ -192,7 +192,7 @@ class EditModManager {
                 isPublished: $('input[name=isPublished]:checked', self.$editModForm).val(),
                 summary:  $('textarea#summary', self.$editModForm).val(),
                 descriptionRaw:  $('textarea#descriptionRaw', self.$editModForm).val(),
-                tags: self.tagManager.selectedTags.join(','),  // TODO: use same mechanism as below
+                tags: self.tagManager.getSelectedTags(),
                 backgroundUuid: self.backgroundManager.getBackgroundUuid()
             },
             dataType: 'json'
@@ -282,6 +282,16 @@ class TagManager {
         
         // Render inital tags
         this.renderTagSelection(this);
+    }
+    
+    /**
+     * Get the selected tags
+     * 
+     * @returns {string}
+     */
+    getSelectedTags()
+    {
+        return this.selectedTags.join(',');
     }
     
     /**
@@ -439,7 +449,7 @@ class BackgroundManager {
         this.setFormState(this, false, false);
         
         // Enable delete button if a background image is available
-        if (this.$backgroundImage.attr('src') !== this.$backgroundImage.data('default-background-url')) {
+        if (this.$backgroundImage.data('background-uuid').length !== 0) {
             this.$btnDefaultMod.removeAttr('disabled');
         }
         
