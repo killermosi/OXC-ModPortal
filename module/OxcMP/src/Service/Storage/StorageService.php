@@ -26,6 +26,7 @@ use Zend\Config\Config;
 use Imagick;
 use ImagickException;
 use ZipArchive;
+use Predis\Client as RedisClient;
 use OxcMP\Entity\Mod;
 use OxcMP\Entity\ModFile;
 use OxcMP\Service\Storage\StorageOptions;
@@ -81,6 +82,12 @@ class StorageService
     const FOP_DEL = 'del';
     
     /**
+     * File lock key template
+     * @var string
+     */
+    const FILE_LOCK_KEY = 'oxcmp:fileLock:%s';
+    
+    /**
      * The storage options
      * @var StorageOptions
      */
@@ -99,6 +106,12 @@ class StorageService
     private $config;
     
     /**
+     * The Redis client
+     * @var RedisClient 
+     */
+    private $redisClient;
+    
+    /**
      * A list of queued file operations to perform
      * @var array
      */
@@ -115,12 +128,18 @@ class StorageService
      * @param StorageOptions $storageOptions The storage options
      * @param Config         $config         The application configuration
      */
-    function __construct(StorageOptions $storageOptions, ImageService $imageService, Config $config)
-    {
+    function __construct(
+        StorageOptions $storageOptions,
+        ImageService $imageService,
+        RedisClient $redisClient,
+        Config $config
+
+    ) {
         Log::info('Initializing StorageService');
         
         $this->storageOptions = $storageOptions;
         $this->imageService   = $imageService;
+        $this->redisClient    = $redisClient;
         $this->config         = $config;
     }
     
@@ -750,6 +769,7 @@ class StorageService
     
     /**
      * Get a mod background image
+     * TODO: Put the lock/unlock mechanism in a different method to avoid many unlock calls?
      * 
      * @param Mod     $mod        The Mod entity
      * @param ModFile $background The background entity
@@ -765,7 +785,6 @@ class StorageService
             $cacheDir = $this->storageOptions->getModCacheDirectory($mod, true);
         } catch (\Exception $exc) {
             Log::notice('Failed to retrieve the cache directory: ', $exc->getMessage());
-            
             $cacheDir = null;
         }
 
@@ -788,9 +807,31 @@ class StorageService
         
         Log::debug('Background not found in cache');
         
+        $prevLocked = $this->lockFile($background);
+        
+        if ($prevLocked && !is_null($cacheDir) && file_exists($cachePath)) {
+            Log::debug('The file was previously locked, retrying the cache');
+            
+            $backgroundContents = file_get_contents($cachePath);
+            
+            if ($backgroundContents === false) {
+                $this->unlockFile($background);
+                
+                Log::notice('Failed to read cached background file ', $cachePath);
+                throw new Exception\UnexpectedError('Failed to read cached background file');
+            }
+            
+            $this->unlockFile($background);
+            
+            Log::debug('Background retrieved from cache');
+            return $backgroundContents;
+        }
+        
         try {
             $storageDir = $this->storageOptions->getModStorageDirectory($mod);
         } catch (\Exception $exc) {
+            $this->unlockFile($background);
+            
             Log::notice('Failed to retrieve the mod storage directory: ', $exc->getMessage());
             throw new Exception\UnexpectedError('Failed to retrieve the mod storage directory');
         }
@@ -803,6 +844,8 @@ class StorageService
         $rawBackgroundContents = file_get_contents($storagePath);
         
         if ($rawBackgroundContents === false) {
+            $this->unlockFile($background);
+            
             Log::notice('Failed to read background file from storage: ', $storagePath);
             throw new Exception\UnexpectedError('Failed to read background file from storage');
         }
@@ -812,6 +855,8 @@ class StorageService
         
         // If the cache is not available, serve the file content directly
         if (is_null($cacheDir)) {
+            $this->unlockFile($background);
+            
             Log::warn('Image cache is disabled or misconfigured, this is a major performance hit');
             return $backgroundContents;
         }
@@ -822,6 +867,8 @@ class StorageService
         } else {
             Log::debug('Background image saved to cache');
         }
+        
+        $this->unlockFile($background);
         
         return $backgroundContents;
     }
@@ -881,6 +928,100 @@ class StorageService
         }
         
         return $uploadSlotData;
+    }
+    
+    /**
+     * Lock a file to prevent parallel processing
+     * 
+     * @param ModFile $file   The file to lock
+     * @param int     $width  The image width
+     * @param int     $height The image height
+     * @return boolean If the file was already locked when attempting the lock
+     */
+    private function lockFile(ModFile $file, $width = null, $height = null)
+    {
+        Log::info('Locking file ', $file->getId()->toString());
+        
+        $lockKey = $this->buildLockKey($file, $width, $height);
+        
+        Log::debug('Using lock key ', $lockKey);
+        
+        $prevLocked = false;
+        $lockTimeout = $this->config->storage->fileLock->timeout;
+        $retryDelay = $this->config->storage->fileLock->retryDelay;
+        
+        do {
+            try {
+                $locked = $this->redisClient->set($lockKey, time(), 'ex', $lockTimeout, 'nx');
+            } catch (\Exception $exc) {
+                Log::notice('Redis client error: ', $exc->getMessage());
+                throw $exc;
+            }
+            
+            if ($locked) {
+                break;
+            }
+            
+            if ($prevLocked === false) {
+                Log::debug('File is already locked, retrying...');
+                $prevLocked = true;
+            }
+            
+            sleep($retryDelay);
+        } while (!$locked);
+        
+        Log::debug('File lock aquired');
+        
+        return $prevLocked;
+    }
+    
+    /**
+     * Unlock a file locked to prevent parallel processing
+     * 
+     * @param ModFile $file   The file to lock
+     * @param int     $width  The image width
+     * @param int     $height The image height
+     * @return boolean If the file was already locked when attempting the lock
+     */
+    private function unlockFile(ModFile $file, $width = null, $height = null)
+    {
+        Log::info('Unlocking file ', $file->getId()->toString());
+        
+        $lockKey = $this->buildLockKey($file, $width, $height);
+        
+        Log::debug('Using lock key ', $lockKey);
+        
+        try {
+            $delCount = $this->redisClient->del($lockKey);
+        } catch (\Exception $exc) {
+            Log::notice('Redis client error: ', $exc->getMessage());
+            throw $exc;
+        }
+        
+        if (0 !== $delCount ) {
+            Log::debug('File unlocked');
+        } else {
+            Log::notice('File was not locked');
+        }
+    }
+    
+    /**
+     * Build the lock key for a file
+     * 
+     * @param ModFile $file   The file
+     * @param int     $width  The image width
+     * @param int     $height The image height
+     * @return string
+     */
+    private function buildLockKey(ModFile $file, $width = null, $height = null)
+    {
+        $lockKey  = sprintf(self::FILE_LOCK_KEY, $file->getId()->toString());
+        
+        if (!is_null($width) && !is_null($height)) {
+            $lockKey .= '-' . $width . '/' . $height;
+        }
+        
+        return $lockKey;
     }
 }
 

@@ -244,9 +244,11 @@ class ModManagementController extends AbstractController
             $this->translate('page_editmod_description')
         );
         
+        $modBackground = $this->modFileRetrievalService->getModBackground($mod);
+        
         // Assign data to view
         $this->view->mod = $mod;
-        $this->view->modBackground = $this->modFileRetrievalService->getModBackground($mod);
+        $this->view->modBackground = $modBackground;
         $this->view->tags = $this->tagRetrievalService->getAllTags();
         $this->view->modTags = $this->modTagRetrievalService->getModTags($mod);
         $this->view->gitHubFlavoredMarkdownGuideUrl = $this->config->layout->gitHubFlavoredMarkdownGuideUrl;
@@ -255,6 +257,10 @@ class ModManagementController extends AbstractController
         $this->view->chunkSize = $this->config->upload->chunkSize * 1024 * 1024; // This needs to be in bytes
         $this->view->maxImageSize = $this->config->storage->maxFileSize->image;
         $this->view->maxResourceSize = $this->config->storage->maxFileSize->resource;
+        
+        // Some data needs to go to the layout too
+        $this->getEvent()->getViewModel()->mod = $mod;
+        $this->getEvent()->getViewModel()->modBackground = $modBackground;
         
         return $this->view;
     }

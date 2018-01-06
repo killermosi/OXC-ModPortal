@@ -55,6 +55,11 @@ class Module
         'db.user' => 'doctrine.connection.orm_default.params.user',
         'db.pass' => 'doctrine.connection.orm_default.params.password',
         'db.name' => 'doctrine.connection.orm_default.params.dbname',
+        // Redis
+        'redis.scheme'   => 'redis.scheme',
+        'redis.host'     => 'redis.host',
+        'redis.post'     => 'redis.post',
+        'redis.database' => 'redis.database',
         // Storage
         'storage.mod'                  => 'storage.mod',
         'storage.cache'                => 'storage.cache',

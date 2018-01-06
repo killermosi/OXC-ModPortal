@@ -29,6 +29,7 @@ use Zend\Session\SessionManager;
 use Zend\ServiceManager\Exception\ServiceNotCreatedException;
 use Zend\ServiceManager\Exception\ServiceNotFoundException;
 use Zend\Config\Config;
+use Predis\Client as RedisClient;
 use OxcMP\Service;
 use OxcMP\Util;
 use OxcMP\Controller;
@@ -170,6 +171,7 @@ class ModuleFactory implements FactoryInterface
                 return new $requestedName(
                     $container->get(Service\Storage\StorageOptions::class),
                     $container->get(Service\Storage\ImageService::class),
+                    $container->get(RedisClient::class),
                     $container->get(Config::class)
                 );
             case Service\Storage\StorageOptions::class:
@@ -195,10 +197,6 @@ class ModuleFactory implements FactoryInterface
                 );
 
             // External services
-            case Config::class:
-                return new $requestedName(
-                    $container->get('Config')
-                );
             case AuthenticationService::class:
                 return new $requestedName(
                     new SessionStorage(
@@ -208,6 +206,17 @@ class ModuleFactory implements FactoryInterface
                     ),
                     $container->get(Service\Authentication\AuthenticationAdapter::class)
                 );
+            case Config::class:
+                return new $requestedName(
+                    $container->get('Config')
+                );
+            case RedisClient::class:
+                return new $requestedName([
+                    'scheme'   => $container->get(Config::class)->redis->scheme,
+                    'host'     => $container->get(Config::class)->redis->host,
+                    'port'     => $container->get(Config::class)->redis->port,
+                    'database' => $container->get(Config::class)->redis->database
+                ]);
                 
             /********************/
             /**  VIEW HELPERS  **/

@@ -60,7 +60,11 @@
     echo PHP_EOL;
 ?>
     </head>
-    <body id="body" style="background-image: url('<?php echo $this->defaultBackgroundUrl() ?>');"  class="container">
+<?php
+    $mod = isset($this->mod) ? $this->mod : null;
+    $modBackground = isset($this->modBackground) ? $this->modBackground : null;
+?>
+    <body id="body" style="background-image: url('<?php echo $this->modBackgroundUrl($mod, $modBackground) ?>');"  class="container">
 <?php
     // Main menu
     echo $this->placeholder('mainmenu')

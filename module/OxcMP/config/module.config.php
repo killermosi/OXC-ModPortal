@@ -12,6 +12,7 @@ use Zend\Authentication\AuthenticationService;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as PDOMySqlDriver;
 use Ramsey\Uuid\Doctrine\UuidType;
+use Predis\Client as RedisClient;
 use OxcMP\Controller\AbstractController;
 use OxcMP\Factory\ModuleFactory;
 use OxcMP\Util\Resource\DoctrineUtcDateTimeType;
@@ -30,9 +31,9 @@ return [
     ],
     'controller_plugins' => [
         'factories' => [
-            Controller\Plugin\Translate::class => InvokableFactory::class,
+            Controller\Plugin\Translate::class    => InvokableFactory::class,
             Controller\Plugin\AddPageTitle::class => InvokableFactory::class,
-            Controller\Plugin\EscapeHtml::class => InvokableFactory::class,
+            Controller\Plugin\EscapeHtml::class   => InvokableFactory::class,
         ],
         'aliases' => [
             'translate' => Controller\Plugin\Translate::class,
@@ -42,7 +43,7 @@ return [
     'service_manager' => [
         'factories' => [
             
-            /* Local-defined services */
+            /* Local services */
             // ACL
             Service\Acl\AclService::class                       => ModuleFactory::class,
             // Authentication
@@ -71,12 +72,13 @@ return [
             Service\User\UserRetrievalService::class            => ModuleFactory::class,
             Service\User\UserRemoteService::class               => ModuleFactory::class,
             
-            /* Framework-defined services */
+            /* External services */
             // Config
             Config::class                                       => ModuleFactory::class,
             // Authentication
             AuthenticationService::class                        => ModuleFactory::class,
-            
+            // Redis client
+            RedisClient::class                                  => ModuleFactory::class,
             /* Utility resources */
             // Doctrine log
             Util\Resource\DoctrineLog::class                    => ModuleFactory::class
@@ -260,12 +262,25 @@ return [
             'height' => 700
         ],
         'backgroundGradient' => dirname(__DIR__) . '/resource/background/gradient.png',
+        'fileLock' => [
+            // Lock timeout for a file, in case the lock is not properly removed, in seconds
+            'timeout' => 30,
+            // How fast to retry if the attempt fails, in seconds
+            'retryDelay'=> 1
+        ]
     ],
     // Upload settings
     'upload' => [
         'safetyMargin' => 4,
         'chunkSize' => 5,
         'throttling' => 0
+    ],
+    // Redis settings
+    'redis' => [
+        'scheme' => 'tcp',
+        'host' => '127.0.0.1',
+        'port' => '6379',
+        'database' => 13
     ]
 ];
 

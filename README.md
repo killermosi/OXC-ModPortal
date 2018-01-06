@@ -32,6 +32,7 @@ This portal is a repository for OpenXcom modifications.
 * MySQL/MariaDB
 * Apache
     * Rewrite module
+* Redis
 * Git
 * Composer
 
