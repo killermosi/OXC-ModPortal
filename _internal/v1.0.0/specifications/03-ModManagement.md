@@ -175,7 +175,7 @@ However, since gallery images must be presented at different resolutions, the or
 cropped if needed) to the requested sizes. These additional images will be stored in a separate `cache` directory
 defined in the configuration:
 
-`/path/to/cache/<mod_slug>/<image_name>_<width>_<height>.png`
+`/path/to/cache/<mod_slug>/<image_name>-<width>-<height>.png`
 
 The following URL format will be used to request a mod's gallery image:
 

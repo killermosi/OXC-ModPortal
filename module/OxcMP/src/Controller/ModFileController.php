@@ -101,7 +101,7 @@ class ModFileController extends AbstractController
         
         // Get the background contents
         try {
-            $backgroundContents = $this->storageService->getModBackground($mod, $modBackground);
+            $backgroundContents = $this->storageService->getModImage($mod, $modBackground);
         } catch (\Exception $exc) {
             Log::notice('Failed to retrieve the background file contents: ', $exc->getMessage());
             return $this->errorResponse();

@@ -768,109 +768,159 @@ class StorageService
     }
     
     /**
-     * Get a mod background image
-     * TODO: Put the lock/unlock mechanism in a different method to avoid many unlock calls?
+     * Get a mod image contents
      * 
-     * @param Mod     $mod        The Mod entity
-     * @param ModFile $background The background entity
+     * @param Mod     $mod    The Mod entity
+     * @param ModFile $image  The ModFile entity
+     * @param int     $width  Image width (not used for background)
+     * @param int     $height Image height (not used for background)
      * @return string The image contents
      * @throws Exception\UnexpectedError
      */
-    public function getModBackground(Mod $mod, ModFile $background)
+    public function getModImage(Mod $mod, ModFile $image, $width = null, $height = null)
     {
-        Log::info('Retrieving mod background contents for mod ', $mod->getId()->toString());
+        Log::info('Retrieving mod image contents for mod ', $mod->getId()->toString());
+        
+        // Sanity check #1
+        if ($image->getType() != ModFile::TYPE_IMAGE && $image->getType() != ModFile::TYPE_BACKGROUND) {
+            Log::notice('Non-image file received as parameter');
+            throw new Exception\UnexpectedError('Non-image file received as parameter');
+        }
+        
+        //Sanity check #2
+        if ($image->getType() == ModFile::TYPE_IMAGE && (is_null($width) || is_null($height))) {
+            Log::notice('Width and/or height values not provided for an image');
+            throw new Exception\UnexpectedError('Width and/or height values not provided for an image');
+        }
         
         // Cache directory
         try {
             $cacheDir = $this->storageOptions->getModCacheDirectory($mod, true);
         } catch (\Exception $exc) {
+            // Don't error out, cache may be disabled
             Log::notice('Failed to retrieve the cache directory: ', $exc->getMessage());
             $cacheDir = null;
         }
-
-        $cachePath = $cacheDir . $background->getName();
+        
+        $cachePath = $cacheDir . $this->buildImageName($image, $width, $height);
         
         Log::debug('Using cache file path: ', $cachePath);
         
         // Check the cache
         if (!is_null($cacheDir) && file_exists($cachePath)) {
-            $backgroundContents = file_get_contents($cachePath);
+            $imageContents = file_get_contents($cachePath);
             
-            if ($backgroundContents === false) {
-                Log::notice('Failed to read cached background file ', $cachePath);
-                throw new Exception\UnexpectedError('Failed to read cached background file');
+            if ($imageContents === false) {
+                Log::notice('Failed to read cached image file ', $cachePath);
+                throw new Exception\UnexpectedError('Failed to read cached image file');
             }
             
-            Log::debug('Background retrieved from cache');
-            return $backgroundContents;
+            Log::debug('Image retrieved from cache');
+            return $imageContents;
         }
         
-        Log::debug('Background not found in cache');
+        Log::debug('Image not found in cache');
         
-        $prevLocked = $this->lockFile($background);
+        $prevLocked = $this->lockFile($image, $width, $height);
         
         if ($prevLocked && !is_null($cacheDir) && file_exists($cachePath)) {
             Log::debug('The file was previously locked, retrying the cache');
             
-            $backgroundContents = file_get_contents($cachePath);
+            $imageContents = file_get_contents($cachePath);
             
-            if ($backgroundContents === false) {
-                $this->unlockFile($background);
+            if ($imageContents === false) {
+                $this->unlockFile($image);
                 
-                Log::notice('Failed to read cached background file ', $cachePath);
-                throw new Exception\UnexpectedError('Failed to read cached background file');
+                Log::notice('Failed to read cached image file ', $cachePath);
+                throw new Exception\UnexpectedError('Failed to read cached image file');
             }
             
-            $this->unlockFile($background);
+            $this->unlockFile($image);
             
-            Log::debug('Background retrieved from cache');
-            return $backgroundContents;
+            Log::debug('Image retrieved from cache');
+            return $imageContents;
         }
         
         try {
             $storageDir = $this->storageOptions->getModStorageDirectory($mod);
         } catch (\Exception $exc) {
-            $this->unlockFile($background);
+            $this->unlockFile($image);
             
             Log::notice('Failed to retrieve the mod storage directory: ', $exc->getMessage());
             throw new Exception\UnexpectedError('Failed to retrieve the mod storage directory');
         }
         
-        $storagePath = $storageDir . $background->getId()->toString();
+        $storagePath = $storageDir . $image->getId()->toString();
         
         Log::debug('Using storage file path: ', $storagePath);
         
-        // Process the background
-        $rawBackgroundContents = file_get_contents($storagePath);
+        // Process the image
+        $rawImageContents = file_get_contents($storagePath);
         
-        if ($rawBackgroundContents === false) {
-            $this->unlockFile($background);
+        if ($rawImageContents === false) {
+            $this->unlockFile($image);
             
-            Log::notice('Failed to read background file from storage: ', $storagePath);
-            throw new Exception\UnexpectedError('Failed to read background file from storage');
+            Log::notice('Failed to read image file from storage: ', $storagePath);
+            throw new Exception\UnexpectedError('Failed to read image file from storage');
         }
         
         // This throws Exception\UnexpectedError, so we're good
-        $backgroundContents = $this->imageService->processBackgroundImage($rawBackgroundContents);
+        if ($image->getType() == ModFile::TYPE_IMAGE) {
+            $imageContents = $this->imageService->processImage($rawImageContents, $width, $height);
+        } else {
+            $imageContents = $this->imageService->processBackgroundImage($rawImageContents);
+        }
         
         // If the cache is not available, serve the file content directly
         if (is_null($cacheDir)) {
-            $this->unlockFile($background);
+            $this->unlockFile($image);
             
             Log::warn('Image cache is disabled or misconfigured, this is a major performance hit');
-            return $backgroundContents;
+            return $imageContents;
         }
         
         // Try and save the file to cache
-        if (file_put_contents($cachePath, $backgroundContents) === false) {
-            Log::warn('Failed to write background image to cache');
+        if (file_put_contents($cachePath, $imageContents) === false) {
+            Log::warn('Failed to write image image to cache');
         } else {
-            Log::debug('Background image saved to cache');
+            Log::debug('Image saved to cache');
         }
         
-        $this->unlockFile($background);
+        $this->unlockFile($image);
         
-        return $backgroundContents;
+        return $imageContents;
+    }
+    
+    /**
+     * Build a name for an image
+     * 
+     * @param ModFile $image The mod image
+     * @return string
+     */
+    private function buildImageName(ModFile $image, $width, $height)
+    {
+        Log::info('Building image name for file ', $image->getId()->toString());
+        
+        if ($image->getType() == ModFile::TYPE_BACKGROUND) {
+            Log::debug('Image is a background, using name "', ModFile::BACKGROUND_NAME, '"');
+            return ModFile::BACKGROUND_NAME;
+        }
+        
+        Log::debug('Image dimensions: ', $width, 'x', $height, ' pixels');
+        
+        $fileInfo = new \SplFileInfo($image->getName());
+        
+        $searchReplace = [
+            '{name}'   => $fileInfo->getBasename('.' . $fileInfo->getExtension()),
+            '{width'   => $width,
+            '{height}' => $height
+        ];
+        
+        $imageName = str_replace(array_keys($searchReplace), array_values($searchReplace), ModFile::IMAGE_CACHE_NAME);
+        
+        Log::debug('Built image name "', $imageName, '"');
+        
+        return $imageName;
     }
     
     /**
@@ -1006,18 +1056,18 @@ class StorageService
     }
     
     /**
-     * Build the lock key for a file
+     * Build the lock key for a image file
      * 
-     * @param ModFile $file   The file
+     * @param ModFile $image  The image file
      * @param int     $width  The image width
      * @param int     $height The image height
      * @return string
      */
-    private function buildLockKey(ModFile $file, $width = null, $height = null)
+    private function buildLockKey(ModFile $image, $width = null, $height = null)
     {
-        $lockKey  = sprintf(self::FILE_LOCK_KEY, $file->getId()->toString());
+        $lockKey  = sprintf(self::FILE_LOCK_KEY, $image->getId()->toString());
         
-        if (!is_null($width) && !is_null($height)) {
+        if ($image->getType() == ModFile::TYPE_IMAGE) {
             $lockKey .= '-' . $width . '/' . $height;
         }
         

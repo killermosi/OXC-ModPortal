@@ -50,9 +50,14 @@ class ModFile
     const EXTENSION_RESOURCE = 'zip';
     
     /*
+     * Image name format for cache
+     */
+    const IMAGE_CACHE_NAME = '{name}-{width}-{height}.' . self::EXTENSION_IMAGE;
+    
+    /*
      * Background image name
      */
-    const BACKGROUND_NAME = 'background.' .self::EXTENSION_IMAGE;
+    const BACKGROUND_NAME = 'background.' . self::EXTENSION_IMAGE;
     
     /*
      * Mime types

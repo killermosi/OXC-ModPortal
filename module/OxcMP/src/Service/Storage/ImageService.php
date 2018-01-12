@@ -61,8 +61,8 @@ class ImageService
      */
     public function processBackgroundImage($backgroundImageData)
     {
-        Log::info('Processing background image');
-        // TODO: set EXIF data with source (webasite) and mod name
+        Log::info('Processing mod background image');
+
         try {
             $background = new Imagick();
             $background->readImageBlob($backgroundImageData);
@@ -74,6 +74,7 @@ class ImageService
             $gradient->setImageColorspace(Imagick::COLORSPACE_RGB);
             
             $background->compositeimage($gradient, Imagick::COMPOSITE_ATOP, 0, 0);
+            
             $background->setImageFormat(ModFile::IMAGE_FORMAT);
             $background->stripImage();
             
@@ -82,6 +83,7 @@ class ImageService
             $background->clear();
             $gradient->clear();
             
+            Log::debug('Mod background image processing complete');
             return $processedBackground;
             
         } catch (ImagickException $exc) {
@@ -90,9 +92,58 @@ class ImageService
         }
     }
     
+    /**
+     * Process a image by converting it to PNG and resizing it to fill the specified size
+     * 
+     * @param string $imageData The image data
+     * @param int    $width     The image width
+     * @param int    $height    The image height
+     * @return string The processed background image, in PNG format
+     * @throws Exception\UnexpectedError
+     */
     public function processImage($imageData, $width, $height)
     {
+        Log::info('Processing mod image');
         
+        try {
+            $image = new Imagick();
+            $image->readImageBlob($imageData);
+
+            $image->setImageColorspace(Imagick::COLORSPACE_RGB);
+            
+            // Calculate crop coordinates
+            $wh = $image->getimagegeometry();
+
+            if(($wh['width'] / $width) < ($wh['height'] / $height)) {
+                $cropWidth = $wh['width'];
+                $cropHeight = floor($height * $wh['width'] / $width);
+                $cropX = 0;
+                $cropY = ($wh['height'] - ($height * $wh['width'] / $width)) / 2;
+            } else {
+                $cropWidth = ceil($width * $wh['height'] / $height);
+                $cropHeight = $wh['height'];
+                $cropX = ($wh['width'] - ($width * $wh['height'] / $height)) / 2;
+                $cropY = 0;
+            }
+            
+            // Crop and resize
+            $image->cropImage($cropWidth. $cropHeight, $cropX, $cropY);
+            $image->thumbnailimage($width, $height, true);
+            
+            // Set format to PNG and strip any EXIF data
+            $image->setImageFormat(ModFile::IMAGE_FORMAT);
+            $image->stripImage();
+            
+            $processedImage = $image->getimageblob();
+            
+            $image->clear();
+            
+            Log::debug('Mod image processing complete');
+            return $processedImage;
+        } catch (ImagickException $exc) {
+            Log::notice('Unexpected Imagick exception: ', $exc->getMessage());
+            throw new Exception\UnexpectedError('Unexpected error while processing background image');
+        }
     }
 }
 
