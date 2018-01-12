@@ -38,7 +38,6 @@ use OxcMP\Util\File as FileUtil;
  * Handle file storage
  *
  * @author Silviu Ghita <killermosi@yahoo.com>
- * TODO: Lock the slot files while processing (REDIS? flock()?) 
  */
 class StorageService
 {
@@ -128,7 +127,7 @@ class StorageService
      * @param StorageOptions $storageOptions The storage options
      * @param Config         $config         The application configuration
      */
-    function __construct(
+    public function __construct(
         StorageOptions $storageOptions,
         ImageService $imageService,
         RedisClient $redisClient,
@@ -725,12 +724,16 @@ class StorageService
      * are assumed: files exists, are readable/writable. Available disk space is checked though.
      * TODO: check if the conditions are not ideal
      * 
+     * @param Mod $mod the Mod entity
      * @return void
      * @throws Exception\UnexpectedError
      */
-    public function applyFileOperations()
+    public function applyFileOperations(Mod $mod)
     {
         Log::info('Applying queued file operations');
+        
+        // Do the cache renaming first
+        $this->renameModCacheDirectory($mod);
         
         if (empty($this->fileOps[self::FOP_CPY]) && empty($this->fileOps[self::FOP_DEL])) {
             Log::debug('No file operations queued, nothing to apply');
@@ -765,6 +768,50 @@ class StorageService
         $this->fileOps[self::FOP_DEL] = [];
         
         Log::debug('File operations applied');
+    }
+    
+    /**
+     * Rename a Mod's cache directory
+     * 
+     * @param Mod $mod The Mod entity
+     * @return void
+     */
+    private function renameModCacheDirectory(Mod $mod)
+    {
+        Log::info('Renaming MOD cache directory for mod ', $mod->getId()->toString());
+        
+        if ($mod->wasSlugChanged() == false) {
+            Log::debug('Mod slug was not changed, no cache rename needed');
+            return;
+        }
+        
+        if (empty($this->config->storage->cache)) {
+            Log::debug('Cache is disabled, nothing to rename');
+            return;
+        }
+        
+        try {
+            $initialCacheDir = $this->storageOptions->getModInitialCacheDirectory($mod);
+            Log::debug('Initial cache dir: ', $initialCacheDir);
+            
+            if (is_dir($initialCacheDir) === false) {
+                Log::debug('Initial cache directory does not exist, no rename needed');
+                return;
+            }
+            
+            $newCacheDir = $this->storageOptions->getModCacheDirectory($mod);
+            Log::debug('New cache dir: ', $newCacheDir);
+        } catch (\Exception $exc) {
+            Log::notice('Failed to determine mod cache directories: ', $exc->getMessage());
+            throw new Exception\UnexpectedError('Failed to determine mod cache directories');
+        }
+
+        if (@rename($initialCacheDir, $newCacheDir) === false) {
+            Log::notice('Failed to rename cache directory ', $initialCacheDir, ' to ', $newCacheDir);
+            throw new Exception\UnexpectedError('Failed to rename cache directory');
+        }
+        
+        Log::debug('Cache directory successfully renamed');
     }
     
     /**

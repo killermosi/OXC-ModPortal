@@ -129,7 +129,7 @@ class ModPersistenceService {
                 $modUpdated = true;
             }
             
-            // Mark mod updated if needed
+            // Manually mark mod updated if needed
             if ($modUpdated) {
                 $mod->markUpdated();
             }
@@ -141,7 +141,7 @@ class ModPersistenceService {
             $this->entityManager->flush();
             
             // Persist changes on disk
-            $this->storageService->applyFileOperations();
+            $this->storageService->applyFileOperations($mod);
             
             // Commit the transaction
             $this->entityManager->getConnection()

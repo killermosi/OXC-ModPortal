@@ -126,7 +126,7 @@ class Mod
      * @ORM\Column(name="downloads", type="integer", nullable=false)
      */
     private $dowloads = 0;
-
+    
     /**
      * The initial title, set when the entity is loaded, used to determine if the title was changed
      * @var string 
@@ -134,10 +134,16 @@ class Mod
     private $initialTitle;
     
     /**
-     * The initial raw description, set when the entity is loaded, used to determine if the description was changed
+     * The initial raw description, set when the entity is loaded, used to determine if the raw description was changed
      * @var string 
      */
     private $initialDescriptionRaw;
+    
+    /**
+     * The initial slug, set when the entity is loaded, used to determine if the slug was changed
+     * @var string 
+     */
+    private $initialSlug;
     
     /**
      * Get the internal identifier
@@ -361,6 +367,26 @@ class Mod
     }
     
     /**
+     * Check if the mod slug was changed
+     * 
+     * @return string
+     */
+    public function wasSlugChanged()
+    {
+        return $this->slug !== $this->initialSlug;
+    }
+    
+    /**
+     * Get the initial slug for the mod
+     * 
+     * @return string
+     */
+    public function getInitialSlug()
+    {
+        return $this->initialSlug;
+    }
+    
+    /**
      * Update the dateUpdated value
      * 
      * @return void
@@ -403,6 +429,7 @@ class Mod
     {
         $this->initialTitle = $this->title;
         $this->initialDescriptionRaw = $this->descriptionRaw;
+        $this->initialSlug = $this->slug;
     }
 }
 

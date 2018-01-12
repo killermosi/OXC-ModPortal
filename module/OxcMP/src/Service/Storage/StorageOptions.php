@@ -163,6 +163,28 @@ class StorageOptions
         
         return $dir;
     }
+    
+    /**
+     * Retrieve the initial cache directory for a mod
+     *  
+     * @param Mod $mod The Mod entity
+     * @return string
+     * @throws \Exception
+     */
+    public function getModInitialCacheDirectory(Mod $mod)
+    {
+        $cacheDir = trim($this->config->storage->cache, '/');
+        $modDir = $mod->getInitialSlug();
+        
+        if (empty($cacheDir)) {
+            Log::notice('Cache disabled');
+            throw new \Exception('Cache disabled');
+        }
+        
+        $dir = '/' . $cacheDir . '/' . $modDir . '/';
+        
+        return $dir;
+    }
 }
 
 /* EOF */
