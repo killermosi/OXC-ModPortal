@@ -328,8 +328,7 @@ class ModFileManagementController extends AbstractController
             return $result;
         }
         
-        // TODO: Make this configurable
-        sleep(1);
+        $this->throttle();
         
         // Prepare the success message
         $result->success = true;
@@ -347,9 +346,12 @@ class ModFileManagementController extends AbstractController
             $url = $this->url()->fromRoute('temporary-file', $routeParams, ['force_canonical' => true]);
             
             Log::debug('File can be accessed via temporary URL ', $url);
-            $result->message = $url;
-        } else {
-            $this->throttle();
+            
+            $message = new \stdClass();
+            $message->url = $url;
+            $message->name = $uploadSlotData->getName();
+            
+            $result->message = $message;
         }
         
         return $result;

@@ -535,15 +535,15 @@ class BackgroundManager {
         // Load the image first, and then set it in the page (saves one duplicate processing on the backend)
         var img = new Image();
         img.onload = function(){
-            self.$backgroundImage.attr('src', response.message);
-            self.$body.css('background-image', 'url("' + response.message + '")');
+            self.$backgroundImage.attr('src', response.message.url);
+            self.$body.css('background-image', 'url("' + response.message.url + '")');
             self.setFormState(self, false, true, Lang.page_editmod_success_background);
             
             // Store the new background UUID only after the image was loaded and the user had the opportunity to
             // review it
             self.$backgroundImage.data('background-uuid', response.slotUuid);
         };
-        img.src = response.message;
+        img.src = response.message.url;
     }
     
     /**
