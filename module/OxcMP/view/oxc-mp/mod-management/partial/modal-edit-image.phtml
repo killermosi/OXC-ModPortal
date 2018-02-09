@@ -1,0 +1,46 @@
+<?php
+    $imageExtension = '.' . \OxcMP\Entity\ModFile::EXTENSION_IMAGE;
+?>
+
+<div class="modal fade" id="edit-image" tabindex="-1" role="dialog" aria-labelledby="edit-image-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="multi-upload-title"><?php echo $this->translate('page_editmod_form_edit_image_modal_title'); ?></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="<?php echo $this->translate('global_close'); ?>">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img class="figure-img img-fluid rounded" src="" alt="">
+                <div class="form-group">
+                    <label for="image-caption"><?php echo $this->translate('page_editmod_form_gallery_caption'); ?></label>
+                    <input type="text" class="form-control" id="image-caption" aria-describedby="image-caption-help" placeholder="<?php echo $this->translate('page_editmod_form_gallery_caption_placeholder'); ?>">
+                    <small id="image-caption-help" class="form-text text-muted"><?php echo $this->translate('page_editmod_form_gallery_caption_help'); ?></small>
+                </div>
+                <div class="form-group">
+                    <label for="image-filename"><?php echo $this->translate('page_editmod_form_gallery_filename'); ?></label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="image-filename" aria-describedby="image-filename-help" placeholder="<?php echo $this->translate('page_editmod_form_gallery_filename_placeholder'); ?>">
+                        <div class="input-group-append">
+                            <span class="input-group-text"><?php echo $imageExtension; ?></span>
+                        </div>
+                    </div>
+                    <small id="image-filename-help" class="form-text text-muted"><?php echo $this->translate('page_editmod_form_gallery_filename_help'); ?></small>
+                </div>
+                <div class="form-group">
+                    <label for="image-order"><?php echo $this->translate('page_editmod_form_gallery_order'); ?></label>
+                    <input type="number" maxlength="3" min="1" max="999" class="form-control" id="image-order" aria-describedby="image-order-help" placeholder="<?php echo $this->translate('page_editmod_form_gallery_order_placeholder'); ?>">
+                    <small id="image-order-help" class="form-text text-muted"><?php echo $this->translate('page_editmod_form_gallery_order_help'); ?></small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="image-delete-cancel" class="btn btn-secondary mr-auto"><?php echo $this->translate('page_editmod_form_edit_image_modal_delete_cancel') ?></button>
+                <button type="button" id="image-delete-confirm" class="btn btn-danger"><?php echo $this->translate('page_editmod_form_edit_image_modal_delete_confirm') ?></button>
+                <button type="button" id="image-delete" class="btn btn-danger mr-auto"><?php echo $this->translate('page_editmod_form_edit_image_modal_delete') ?></button>
+                <button type="button" id="image-update" class="btn btn-primary"><?php echo $this->translate('page_editmod_form_edit_image_modal_update') ?></button>
+                <button type="button" id="image-close" class="btn btn-secondary" data-dismiss="modal"><?php echo $this->translate('global_close') ?></button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,28 @@
+<?php
+    use OxcMP\Entity\Mod;
+    use OxcMP\Entity\ModFile;
+    
+    /* @var $mod Mod */
+    /* @var $modImage ModFile */
+    /* @var $config \Zend\Config\Config */
+    
+    list($width, $height) = explode('x', $config->storage->imageSize->b575);
+    
+    // This card is used for the individual mod images but also as a template for the newly uploaded ones,
+    // so init empty Mod and ModImage instances if none are specified
+    if (!isset($mod) || !isset($modImage) || !$modImage instanceof ModFile || $modImage->getType() != ModFile::TYPE_IMAGE) {
+        $mod = new Mod();
+        $modImage = new ModFile();
+    }
+?>
+<div class="col-sm-6 col-md-4 col-lg-3" data-uuid="<?php echo empty($modImage->getId()) ? '' : $modImage->getId()->toString();?>">
+    <div class="card m-2">
+        <img class="card-img-top" src="<?php echo $this->modImageUrl($mod, $modImage, $width, $height); ?>" alt="<?php echo $modImage->getName(); ?>"/>
+        <div class="card-body">
+            <input type="text" name="caption" class="form-control form-control-sm" placeholder="<?php echo $this->translate('page_editmod_form_gallery_caption_placeholder'); ?>" value="<?php echo $this->escapeHtml($modImage->getDescription()); ?>" disabled/>
+        </div>
+        <div class="card-footer text-right">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#edit-image"><?php echo $this->translate('page_editmod_form_gallery_edit'); ?></button>
+        </div>
+    </div>
+</div>

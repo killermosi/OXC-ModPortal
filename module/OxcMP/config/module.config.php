@@ -107,11 +107,13 @@ return [
         'factories' => [
             View\Helper\DefaultBackgroundUrl::class => ModuleFactory::class,
             View\Helper\ModBackgroundUrl::class     => ModuleFactory::class,
+            View\Helper\ModImageUrl::class          => ModuleFactory::class,
             View\Helper\StaticUrl::class            => ModuleFactory::class,
         ],
        'aliases' => [
             'defaultBackgroundUrl' => View\Helper\DefaultBackgroundUrl::class,
             'modBackgroundUrl'     => View\Helper\ModBackgroundUrl::class,
+            'modImageUrl'          => View\Helper\ModImageUrl::class,
             'staticUrl'            => View\Helper\StaticUrl::class,
        ]
     ], 
@@ -167,18 +169,18 @@ return [
     'layout' => [
         'css' => [
             'bootstrapMin' => [
-                'href' => 'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css',
-                'integrity' => 'sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M'
+                'href' => 'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css',
+                'integrity' => 'sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy'
             ],
         ],
         'js' => [
             'bootstrapMin' => [
-                'src' => 'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js',
-                'integrity' => 'sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1'
+                'src' => 'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js',
+                'integrity' => 'sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4'
             ],
             'popperMin' => [
-                'src' => 'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js',
-                'integrity' => 'sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4'
+                'src' => 'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js',
+                'integrity' => 'sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q'
             ],
             'jqueryMin' => [
                 'src' => 'https://code.jquery.com/jquery-3.2.1.min.js',
@@ -241,7 +243,7 @@ return [
         'mode' => 0775,
         // Where to store the mod files
         'mod' => '/tmp/oxcmp/data',
-        // Where to cache the mod images, can be null to disable the cache
+        // Where to cache the mod images, can be null to disable the cache (NOT recommended)
         'cache' => null,
         // Where to store temporary files
         'temp' => '/tmp/oxcmp/',
@@ -260,6 +262,13 @@ return [
         'background' => [
             'width' => 1700,
             'height' => 700
+        ],
+        // Gallery image sizes, in pixels, for each bootstrap breakpoint
+        'imageSize' =>[
+            'b575' => '527x296', // One card per row
+            'b767' => '222x125',
+            'b991' => '192x108',
+            'b1199' => '237x133' // Four cards per row
         ],
         'backgroundGradient' => dirname(__DIR__) . '/resource/background/gradient.png',
         'fileLock' => [

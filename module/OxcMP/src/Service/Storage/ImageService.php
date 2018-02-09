@@ -127,7 +127,7 @@ class ImageService
             }
             
             // Crop and resize
-            $image->cropImage($cropWidth. $cropHeight, $cropX, $cropY);
+            $image->cropImage($cropWidth, $cropHeight, $cropX, $cropY);
             $image->thumbnailimage($width, $height, true);
             
             // Set format to PNG and strip any EXIF data

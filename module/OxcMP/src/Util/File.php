@@ -72,15 +72,13 @@ class File
         
         $basename = $fileInfo->getBasename('.' . $fileInfo->getExtension());
         
-        $name = trim(preg_replace('/[^ \w]+/', '', $basename));
+        $returnName = Transliterator::transliterate($basename);
         
         // If a name could not be extracted, return null
-        if (strlen($name) == 0) {
+        if (strlen($returnName) == 0) {
             return null;
         }
         
-        // Transliteration does strtolower automatically
-        $returnName = trim(Transliterator::transliterate($name), '-');
         $returnExt = (strlen($ext) == 0) ? '' : strtolower('.' . $ext);
         
         return $returnName . $returnExt;

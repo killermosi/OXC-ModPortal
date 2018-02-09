@@ -167,6 +167,8 @@ class ModValidator {
             sprintf('/^$|%s/',DegradedUuid::VALID_PATTERN)
         );
         
+        $imagesValidator = new ValidatorChain();
+        
         return [
             'id' => $idValidator,
             'isPublished' => $isPublishedValidator,
@@ -174,7 +176,8 @@ class ModValidator {
             'summary' => $summaryValidator,
             'descriptionRaw' => $descriptionRawValidator,
             'tags' => $tagsValidator,
-            'backgroundUuid' => $backgroundUuidValidator
+            'backgroundUuid' => $backgroundUuidValidator,
+            'images' => $imagesValidator
         ];
     }
     

@@ -232,6 +232,11 @@ class ModuleFactory implements FactoryInterface
                     $container->get(Config::class)
                 );
                 
+            case View\Helper\ModImageUrl::class:
+                return new $requestedName(
+                    $container->get(Config::class)
+                );
+                
             case View\Helper\StaticUrl::class:
                 return new $requestedName(
                     $container->get(Config::class)
@@ -251,7 +256,7 @@ class ModuleFactory implements FactoryInterface
             /***************/
                 
             default:
-                Log::notice('No service definition for "', $requestedName, '"');
+                Log::error('No service definition for "', $requestedName, '"');
                 throw new ServiceNotFoundException();
         }
     }

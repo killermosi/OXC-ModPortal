@@ -27,6 +27,7 @@ use Imagick;
 use ImagickException;
 use ZipArchive;
 use Predis\Client as RedisClient;
+use Behat\Transliterator\Transliterator;
 use OxcMP\Entity\Mod;
 use OxcMP\Entity\ModFile;
 use OxcMP\Service\Storage\StorageOptions;
@@ -177,12 +178,14 @@ class StorageService
         switch ($fileType) {
             case ModFile::TYPE_RESOURCE:
             case ModFile::TYPE_IMAGE;
-                $ext = ($fileType == ModFile::TYPE_IMAGE) ? ModFile::EXTENSION_IMAGE : ModFile::EXTENSION_RESOURCE;
                 
-                $sanitizedName = FileUtil::sanitizeFilename($name, $ext);
+                $fileInfo = new \SplFileInfo($name);
+                
+                // TODO: Do proper sanitization?
+                $sanitizedName = Transliterator::transliterate($fileInfo->getBasename('.' . $fileInfo->getExtension()));
                 
                 if (is_null($sanitizedName)) {
-                    $sanitizedName = $mod->getSlug() . '.' . $ext;
+                    $sanitizedName = $mod->getSlug();
                 }
                 break;
             case ModFile::TYPE_BACKGROUND:

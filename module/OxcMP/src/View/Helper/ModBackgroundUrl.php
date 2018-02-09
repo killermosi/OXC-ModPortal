@@ -36,7 +36,7 @@ class ModBackgroundUrl extends AbstractUrlHelper
      * 
      * @param Mod     $mod           The Mod entity
      * @param ModFile $modBackground The mod background image
-     * @return string URL to the mod image, or to the default background if no valid background image was specified
+     * @return string URL to the mod background, or to the default background if no valid background image was specified
      */
     public function __invoke(Mod $mod = null, ModFile $modBackground = null)
     {

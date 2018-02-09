@@ -27,6 +27,7 @@ use Ramsey\Uuid\DegradedUuid as Uuid;
 use OxcMP\Entity\ModFile;
 use OxcMP\Service\Acl\Role;
 use OxcMP\Service\Storage\StorageService;
+use OxcMP\Util\Regex;
 
 /** !!! PRIVATE CONFIGURATION - DO NOT MODIFY !!! **/
 
@@ -61,9 +62,9 @@ return [
             ],
         ],
         'logout' => [
-            'type'    => Segment::class,
+            'type'    => Literal::class,
             'options' => [
-                'route'    => '/logout[/]',
+                'route'    => '/logout',
                 'defaults' => [
                     'controller' => Controller\UserController::class,
                     'action'     => 'logout',
@@ -91,13 +92,30 @@ return [
                     'action'     => 'mod-background',
                 ],
                 'constraints' => [
-                    'modSlug' => '[a-z0-9\-]+'
+                    'modSlug' => trim (Regex::SLUG, '^$')
+                ],
+                'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
+            ],
+        ],
+        'mod-image' => [
+            'type'    => Segment::class,
+            'options' => [
+                'route'    => '/mod-image/:modSlug/[:imageName]-[:imageWidth]-[:imageHeight].' . ModFile::EXTENSION_IMAGE,
+                'defaults' => [
+                    'controller' => Controller\ModFileController::class,
+                    'action'     => 'mod-image',
+                ],
+                'constraints' => [
+                    'modSlug' => trim (Regex::SLUG, '^$'),
+                    'imageName' => trim (Regex::SLUG, '^$'),
+                    'imageWidth' => '[1-9]\d*',
+                    'imageHeight' => '[1-9]\d*',
                 ],
                 'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
             ],
         ],
         'add-mod' => [
-            'type'    => Segment::class,
+            'type'    => Literal::class,
             'options' => [
                 'route'    => '/mod-management/add-mod',
                 'defaults' => [

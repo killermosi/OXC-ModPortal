@@ -1,13 +1,23 @@
 <?php
 
-
+    /* @var $config \Zend\Config\Config */
     /* @var $mod \OxcMP\Entity\Mod  */
     /* @var $modBackground \OxcMP\Entity\ModFile  */
+    /* @var $modImage \OxcMP\Entity\ModFile */
     /* @var $tag \OxcMP\Entity\Tag  */
     /* @var $modTag \OxcMP\Entity\ModTag  */
     /* @var $gitHubFlavoredMarkdownGuideUrl string */
     
     $this->headScript()->appendFile($this->url('home', [], ['force_canonical' => true]) . 'js/edit-mod.js');
+    
+    // "Extract" some variables from the config
+    $gitHubFlavoredMarkdownGuideUrl = $config->layout->gitHubFlavoredMarkdownGuideUrl;
+    $backgroundWidth = $config->storage->background->width;
+    $backgroundHeight = $config->storage->background->height;
+    $chunkSize = $config->upload->chunkSize * 1024 * 1024; // This needs to be in bytes
+    $maxImageSize = $config->storage->maxFileSize->image;
+    $maxResourceSize = $config->storage->maxFileSize->resource;
+    
     $modDescriptionHelpText = sprintf($this->translate('page_editmod_form_description_help'), $gitHubFlavoredMarkdownGuideUrl);
     
     $availableTagNames = [];
@@ -29,11 +39,17 @@
     $backgroundUuid = ($modBackground instanceof \OxcMP\Entity\ModFile) ? $modBackground->getId()->toString() : '';
     
     // Some translations that are needed by JS
+    // TODO: Embed them in a json somewhere?
     $jsLangKeys = [
         'global_unexpected_error',
         'global_chunk_upload_unsupported',
         'page_editmod_success_background',
-        'page_mymods_success_background_default'
+        'page_editmod_success_background_default',
+        'page_editmod_error_multi_upload_abort',
+        'page_editmod_error_multi_upload_failure',
+        'page_editmod_success_multi_upload',
+        'page_editmod_error_file_upload_abort',
+        'page_editmod_error_file_upload_retry',
     ];
     
     $jsLang = [];
@@ -72,7 +88,7 @@
         <div class="form-group col-sm-12 col-md-4">
             <label><?php echo $this->translate('page_editmod_form_published_title'); ?></label>
             <div class="clearfix"></div>
-            <div class="btn-group w-100" data-toggle="buttons" data-active-class="btn-primary" data-inactive-class="btn-secondary">
+            <div class="btn-group btn-group-toggle w-100" data-toggle="buttons" data-active-class="btn-primary" data-inactive-class="btn-secondary">
                 <label class="btn w-50 <?php if ($mod->getIsPublished()) {echo 'btn-primary active';} else {echo 'btn-secondary';}?>">
                     <input type="radio" name="isPublished" value="1" <?php if ($mod->getIsPublished()) {echo 'checked';}?>> <?php echo $this->translate('page_editmod_form_published_yes'); ?>
                 </label>
@@ -183,6 +199,30 @@
             <small class="form-text text-muted"><?php echo sprintf($this->translate('page_editmod_form_background_manage_help_technical'), $backgroundWidth, $backgroundHeight, $maxImageSize, $backgroundSupportArchiveUrl); ?></small>
         </div>
     </div>
+    <div class="form-row">
+        <div class="form-group col-12">
+            <div id="image-card-sample" class="d-none">
+                <?php echo $this->partial('oxc-mp/mod-management/partial/card-image.phtml') . PHP_EOL; ?>
+            </div>
+            <label><?php echo $this->translate('page_editmod_form_gallery_title'); ?></label>
+            <div id="image-list" class="row">
+                <?php
+                    echo $this->partial('oxc-mp/mod-management/partial/card-image-upload.phtml') . PHP_EOL;
+                    
+                    foreach ($modImages as $modImage) {
+                        $parameters = [
+                            'mod' => $mod,
+                            'modImage' => $modImage,
+                            'config' => $config
+                        ];
+                        echo $this->partial('oxc-mp/mod-management/partial/card-image.phtml', $parameters) . PHP_EOL;
+                    }
+                ?>
+            </div>
+            <small id="gallery-help" class="form-text text-muted"><?php echo sprintf($this->translate('page_editmod_form_gallery_help'), $maxImageSize); ?></small>
+            <input id="upload-image" type="file" class="d-none" multiple accept="image/*"/>
+        </div>
+    </div>
     <div class="modal-footer">
         <div id="progress" class="progress w-100 d-none">
             <div class="progress-bar progress-bar-striped progress-bar-animated w-100" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
@@ -193,4 +233,7 @@
     </div>
 </form>
 <?php
-     echo $this->partial('oxc-mp/mod-management/partial/modal-default-background.phtml');
+    // Associated modals
+     echo $this->partial('oxc-mp/mod-management/partial/modal-default-background.phtml') . PHP_EOL;
+     echo $this->partial('oxc-mp/mod-management/partial/modal-multi-upload.phtml') . PHP_EOL;
+     echo $this->partial('oxc-mp/mod-management/partial/modal-edit-image.phtml') . PHP_EOL;

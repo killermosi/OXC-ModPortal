@@ -249,14 +249,10 @@ class ModManagementController extends AbstractController
         // Assign data to view
         $this->view->mod = $mod;
         $this->view->modBackground = $modBackground;
+        $this->view->modImages = $this->modFileRetrievalService->getModImages($mod);
         $this->view->tags = $this->tagRetrievalService->getAllTags();
         $this->view->modTags = $this->modTagRetrievalService->getModTags($mod);
-        $this->view->gitHubFlavoredMarkdownGuideUrl = $this->config->layout->gitHubFlavoredMarkdownGuideUrl;
-        $this->view->backgroundWidth = $this->config->storage->background->width;
-        $this->view->backgroundHeight = $this->config->storage->background->height;
-        $this->view->chunkSize = $this->config->upload->chunkSize * 1024 * 1024; // This needs to be in bytes
-        $this->view->maxImageSize = $this->config->storage->maxFileSize->image;
-        $this->view->maxResourceSize = $this->config->storage->maxFileSize->resource;
+        $this->view->config = $this->config;
         
         // Some data needs to go to the layout too
         $this->getEvent()->getViewModel()->mod = $mod;
@@ -288,6 +284,8 @@ class ModManagementController extends AbstractController
         $updateData = $this->collectModUpdateData();
         $updateValidator = (new SupportCode\ModValidator())->buildModUpdateValidator();
 
+        Log::notice($updateData['images']);
+        
         // These fields are not directly editable by the user and should never fail validation
         $hardFail = [
             'id',
@@ -567,7 +565,8 @@ class ModManagementController extends AbstractController
             'isPublished' => (int) $request->getPost('isPublished', 0),
             'descriptionRaw' => $filters['descriptionRaw']->filter($request->getPost('descriptionRaw', '')),
             'tags' => $request->getPost('tags', ''),
-            'backgroundUuid' => $request->getPost('backgroundUuid','')
+            'backgroundUuid' => $request->getPost('backgroundUuid',''),
+            'images' => $request->getPost('images', []),
         ];
     }
 }

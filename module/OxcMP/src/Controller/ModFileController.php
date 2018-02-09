@@ -116,6 +116,19 @@ class ModFileController extends AbstractController
         
         return $this->getResponse();
     }
+    
+    public function modImageAction()
+    {
+        $response = $this->getResponse();
+        
+        $imageName = $this->params()->fromRoute('imageName');
+        $imageWidth = $this->params()->fromRoute('imageWidth');
+        $imageHeight = $this->params()->fromRoute('imageHeight');
+        
+        $response->setContent("Name: {$imageName}<br/>Width: {$imageWidth}<br/>Height: {$imageHeight}");
+        
+        return $response;
+    }
 }
 
 /* EOF */

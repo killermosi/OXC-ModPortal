@@ -349,10 +349,12 @@ class ModPersistenceService {
             }
         }
         
+        $fileInfo = new \SplFileInfo(ModFile::BACKGROUND_NAME);
+        
         // Create a new ModFile
         $modFile = new ModFile();
         $modFile->setModId($mod->getId());
-        $modFile->setName(ModFile::BACKGROUND_NAME);
+        $modFile->setName($fileInfo->getBasename('.' . ModFile::EXTENSION_IMAGE));
         $modFile->setUserId($mod->getUserId());
         $modFile->setType(ModFile::TYPE_BACKGROUND);
 

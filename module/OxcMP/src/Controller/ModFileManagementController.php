@@ -406,9 +406,9 @@ class ModFileManagementController extends AbstractController
         }
         
         // Serve the file
-        // TODO: This seems hackish...
         switch ($fileType) {
             case ModFile::TYPE_RESOURCE:
+                // TODO: This seems hack-ish...
                 // Disable output buffering
                 while (ob_get_level()) {
                     ob_end_clean();
@@ -429,7 +429,11 @@ class ModFileManagementController extends AbstractController
             case ModFile::TYPE_BACKGROUND:
                 $this->getResponse()->getHeaders()->addHeaderLine(sprintf('Content-Type: %s', ModFile::MIME_IMAGE));
                 $this->getResponse()->getHeaders()->addHeaderLine(
-                    sprintf('Content-Disposition: inline; filename="%s"', ModFile::BACKGROUND_NAME)
+                    sprintf(
+                        'Content-Disposition: inline; filename="%s.%s"',
+                        $parameters['slotUuid'],
+                        ModFile::EXTENSION_IMAGE
+                    )
                 );
                 $this->getResponse()->setContent(
                     $this->imageService->processBackgroundImage(file_get_contents($temporaryFilePath))
@@ -438,9 +442,16 @@ class ModFileManagementController extends AbstractController
             case ModFile::TYPE_IMAGE:
                 $this->getResponse()->getHeaders()->addHeaderLine(sprintf('Content-Type: %s', ModFile::MIME_IMAGE));
                 $this->getResponse()->getHeaders()->addHeaderLine(
-                    sprintf('Content-Disposition: inline; filename="%s.%s"', $parameters,['slotUuid'], ModFile::EXTENSION_IMAGE)
+                    sprintf(
+                        'Content-Disposition: inline; filename="%s.%s"',
+                        $parameters['slotUuid'],
+                        ModFile::EXTENSION_IMAGE
+                    )
                 );
-                $this->getResponse()->setContent(file_get_contents($temporaryFilePath));
+                list($imageWidth, $imageHeight) = explode('x', $this->config->storage->imageSize->b575);
+                $this->getResponse()->setContent(
+                    $this->imageService->processImage(file_get_contents($temporaryFilePath), $imageWidth, $imageHeight)
+                );
                 break;
             default:
                 Log::notice('Unsupported file type: ', $parameters['fileType']);

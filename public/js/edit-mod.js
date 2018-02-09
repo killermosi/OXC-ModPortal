@@ -29,6 +29,7 @@ class EditModManager {
         
         this.tagManager = new TagManager(this.$editModForm);
         this.backgroundManager = new BackgroundManager(this.$editModForm);
+        this.imageManager = new ImageManager(this.$editModForm);
         
         // Delay before making the slug preview request, in milliseconds
         this.modSlugPreviewDelay = 500;
@@ -193,7 +194,8 @@ class EditModManager {
                 summary:  $('textarea#summary', self.$editModForm).val(),
                 descriptionRaw:  $('textarea#descriptionRaw', self.$editModForm).val(),
                 tags: self.tagManager.getSelectedTags(),
-                backgroundUuid: self.backgroundManager.getBackgroundUuid()
+                backgroundUuid: self.backgroundManager.getBackgroundUuid(),
+                images: self.imageManager.getImages()
             },
             dataType: 'json'
         })
@@ -566,6 +568,7 @@ class BackgroundManager {
      */
     handleUploadProgress(self, progress) {
         self.$progressBar.css('width', progress + '%');
+        self.$progressBar.attr('aria-valuenow', progress);
     }
     
     /**
@@ -590,7 +593,7 @@ class BackgroundManager {
             self.$backgroundImage.data('background-uuid', '');
 
             // Update the message
-            self.setFormState(self, false, true, Lang.page_mymods_success_background_default);
+            self.setFormState(self, false, true, Lang.page_editmod_success_background_default);
         };
         
         img.src = defaultBackgroundImageUrl;
@@ -634,6 +637,519 @@ class BackgroundManager {
 }
 
 /**
+ * Manage mod images
+ */
+class ImageManager {
+    /**
+     * Class initialization
+     * 
+     * @param {object} $editModForm The form
+     * @returns {ImageManager}
+     */
+    constructor($editModForm) {
+        this.$editModForm = $editModForm;
+        
+        this.$uploadImageInput = $('input#upload-image', this.$editModForm);
+        this.$uploadImageBtn = $('input#add-image', this.$editModForm);
+        
+        this.$imageList = $('div#image-list', this.$editModForm);
+        
+        this.$imageCardSample = $('div#image-card-sample', this.$editModForm).children().first();
+        this.$imageCardUpload = this.$imageList.children().last();
+        
+        this.$editImageModal = $('div#edit-image');
+        this.$editImageImg = $('img', this.$editImageModal);
+        
+        this.$editImageCaption = $('input#image-caption', this.$editImageModal);
+        this.$editImageFilename = $('input#image-filename', this.$editImageModal);
+        this.$editImageOrder = $('input#image-order', this.$editImageModal);
+        
+        this.$editImageBtnDeleteCancel = $('button#image-delete-cancel', this.$editImageModal);
+        this.$editImageBtnDeleteConfirm = $('button#image-delete-confirm', this.$editImageModal);
+        this.$editImageBtnDelete = $('button#image-delete', this.$editImageModal);
+        this.$editImageBtnUpdate = $('button#image-update', this.$editImageModal);
+        this.$editImageBtnClose = $('button#image-close', this.$editImageModal);
+        
+        this.$editImageBtnDelete.click(function(){
+            this.setModalState(this, true);
+        }.bind(this));
+        
+        this.$editImageBtnDeleteConfirm.click(function(){
+            this.$editImageModal.data('card').remove();
+            this.$editImageModal.modal('hide');
+        }.bind(this));
+        
+        this.$editImageBtnDeleteCancel.click(function(){
+            this.setModalState(this, false);
+        }.bind(this));
+        
+        this.$editImageBtnUpdate.click(function(){
+            this.handleUpdate(this);
+        }.bind(this));
+        
+        // Handle events
+        $('button#add-image', this.$editModForm).click(function(){this.$uploadImageInput.click();}.bind(this));
+        this.$uploadImageInput.change(function(){this.handleUpload(this);}.bind(this));
+        
+        this.$editImageModal.on('show.bs.modal', function(event){
+            this.handleEditModalOpen(this, $(event.relatedTarget).parent().parent().parent());
+        }.bind(this));
+    }
+    
+    /**
+     * Retrieve a list of images and their properties as a JSON-encoded string
+     * 
+     * @returns {string}
+     */
+    getImages() {
+        var imagesList = new Array();
+
+        this.$imageList.children().each(function(){
+            var $imageCard = $(this);
+            
+            if (!$imageCard.data('uuid')) {
+                return;
+            }
+            
+            var image = {
+                uuid: $imageCard.data('uuid'),
+                filename: $imageCard.data('filename'),
+                caption: $imageCard.find('input').val()
+            };
+            
+            imagesList.push(image);
+        });
+        
+        return JSON.stringify(imagesList);
+    }
+    
+    /**
+     * Handle file(s) upload
+     * 
+     * @param {ImageManager} self The ImageManager
+     * @returns {undefined}
+     */
+    handleUpload(self){
+        var files = self.$uploadImageInput.prop('files');
+        
+        // Nothing to do if no files were selected
+        if (files.length === 0) {
+            return;
+        }
+        
+        new MultiUpload(
+            files,
+            self.$editModForm,
+            function(response){
+                self.handleUploadCallback(self, response)
+            }
+        );
+    }
+    
+    /**
+     * Handle callback for a successfully uploaded file
+     * 
+     * @param {ImageManager} self     The ImageManager
+     * @param {object}       response The server response
+     * @returns {undefined}
+     */
+    handleUploadCallback(self, response) {
+        if (response.success === false) {
+            return;
+        }
+        
+        var $imageCard = self.$imageCardSample.clone();
+        $imageCard.data('uuid', response.slotUuid);
+        $imageCard.data('filename', response.message.name);
+        
+        $('img', $imageCard).attr('src', response.message.url);
+        
+        // Add it before the last card (the "add image" one)
+        self.$imageCardUpload.before($imageCard);
+    }
+    
+    /**
+     * Set the modal state
+     * 
+     * @param {ImageManager} self The ImageManager
+     * @param {boolean} forDelete If the state is for delete confirmation
+     * @returns {undefined}
+     */
+    setModalState(self, forDelete = false) {
+        if (forDelete) {
+            self.$editImageBtnDeleteCancel.removeClass('d-none');
+            self.$editImageBtnDeleteConfirm.removeClass('d-none');
+            self.$editImageBtnDelete.addClass('d-none');
+            self.$editImageBtnUpdate.addClass('d-none');
+            self.$editImageBtnClose.addClass('d-none');
+        } else {
+            self.$editImageBtnDeleteCancel.addClass('d-none');
+            self.$editImageBtnDeleteConfirm.addClass('d-none');
+            self.$editImageBtnDelete.removeClass('d-none');
+            self.$editImageBtnUpdate.removeClass('d-none');
+            self.$editImageBtnClose.removeClass('d-none');
+        }
+    }
+    
+    /**
+     * Populate the edit image modal with the correct data of a image card
+     * 
+     * @param {ImageManager} self      The ImageManager
+     * @param {object}       $imageCard The image card
+     * @returns {undefined}
+     */
+    handleEditModalOpen(self, $imageCard) {
+        
+        // Set data
+        var imgSrc = $('img', $imageCard).attr('src');
+        var caption = $('input', $imageCard).val();
+        var filename = $imageCard.data('filename');
+        var order = $imageCard.index() + 1; // Order starts from one, 
+        
+        self.$editImageImg.attr('src', imgSrc).attr('alt', caption);
+        self.$editImageCaption.val(caption);
+        self.$editImageFilename.val(filename);
+        self.$editImageOrder.val(order);
+        
+        self.$editImageModal.data('card', $imageCard);
+        
+        self.setModalState(this, false);
+    }
+    
+    /**
+     * Update the current image card
+     * 
+     * @param {ImageManager} self The ImageManager
+     * @returns {undefined}
+     */
+    handleUpdate(self) {
+        
+        self.$editImageModal.modal('hide');
+        
+        var $imageCard = self.$editImageModal.data('card');
+        var currentIndex = $imageCard.index();
+        
+        var caption = self.$editImageCaption.val();
+        var filename = self.$editImageFilename.val();
+
+        $('input', $imageCard).val(caption);
+        $imageCard.data('filename', filename);
+        
+        var imageCards = self.$imageList.children();
+        var itemsCount = imageCards.length - 1; // Last one is the "add image" card
+        
+        // Update order
+        var order = parseInt(self.$editImageOrder.val());
+        
+        // Make adjustments to the order if needed
+        // TODO: Make a more elegant version, this one just works
+        order = order || 1;
+        
+        if (order <= 0) {
+            order = 1;
+        }
+        
+        if (order > itemsCount) {
+            order = itemsCount;
+        }
+        
+        // Stop if the position has not changed
+        if (order - 1 === $imageCard.index()) {
+            return;
+        }
+        
+        if (order > currentIndex) {
+            order++; // The element is removed, freeing up a space in the list
+        }
+
+        imageCards[order - 1].before($imageCard[0]);
+    }
+    
+    
+}
+
+/**
+ * Upload multiple files while displaying the status in a nice interface
+ */
+class MultiUpload {
+    /**
+     * Class initialization
+     * 
+     * @param {array}    files          The files to upload
+     * @param {object}   $editModForm   The mod edit form
+     * @param {function} uploadCallback Callback for each successfully uploaded file, the server response is passed as
+     *                                  parameter
+     * @returns {MultiUpload}
+     */
+    constructor(files, $editModForm, uploadCallback) {
+        this.files = files;
+        this.$editModForm = $editModForm;
+        this.uploadCallback = uploadCallback;
+        
+        this.$modal = $('div#multi-upload');
+
+        // If the modal can be manually closed
+        this.canClose = false;
+        
+        this.$modal.on('hide.bs.modal', function(event){
+            if (this.canClose === false) {
+                event.preventDefault();
+            }
+        }.bind(this));
+        
+        // Get handles to various modal elements
+        this.$content = $('div.modal-content', this.$modal);
+        
+        this.$body = $('div.modal-body', this.$modal);
+        this.$footer = $('div.modal-footer', this.$modal);
+        this.$progressContainer = $('div.progress', this.$footer);
+        this.$progressBar = $('div.progress-bar', this.$progressContainer);
+        this.$alert = $('div.alert', this.$footer);
+        this.$btnClose = $('button.btn-secondary', this.$footer);
+        this.$btnAbort = $('button.btn-danger', this.$footer);
+        
+        this.$fileStatusSample = $('div#file-card-sample', this.$modal).children();
+        
+        // Reset the modal
+        $('h5#multi-upload-title', this.$modal).find('span').text(files.length);
+        this.$body.empty();
+        
+        if (this.files.length > 1) {
+            this.$progressContainer.removeClass('d-none');
+        } else {
+            this.$progressContainer.addClass('d-none');
+        }
+        
+        this.$progressBar.css('width', '0%');
+        this.$alert.removeClass('alert-warning').removeClass('alert-success').addClass('d-none');
+        this.$btnClose.addClass('d-none');
+        this.$btnAbort.removeClass('d-none').off().click(function(){this.handleAbort(this);}.bind(this));
+
+        // List files to upload, store the displayed elements
+        this.totalSize = 0;
+        this.fileStatus = [];
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            // Total file size
+            this.totalSize += file.size;
+            
+            var $fileStatus = this.$fileStatusSample.clone();
+            $fileStatus.addClass('mb-2');
+            $('li.list-group-item', $fileStatus).first().text(file.name);
+            
+            this.$body.append($fileStatus);
+            this.fileStatus.push($fileStatus);
+        }
+        // Remove the bottom margin from the very last file element
+        $fileStatus.removeClass('mb-2');
+
+        // Start uploading only once the modal is completly displayed
+        this.$modal.on('shown.bs.modal', function(){
+            this.handleNextFile(this);
+        }.bind(this));
+        
+        // Remove the event listener when the modal is hidden
+        this.$modal.on('hidden.bs.modal', function(){
+            this.$modal.off();
+        }.bind(this));
+
+        // Curent file (starts at negative 1 for reasons)
+        this.fileIndex = -1;
+
+        // Status
+        this.uploadSuccess = 0;
+        this.uploadFail = 0;
+        
+        // The file uploader
+        this.fileUpload = null;
+        
+        // Show the dialog
+        this.$modal.modal('show');
+    }
+    
+    /**
+     * Set the modal finished state
+     * 
+     * @param {MultiUpload} self    The MultiUpload instance
+     * @param {boolean}     state   Success or not
+     * @param {string}      message The message to display
+     * @returns {undefined}
+     */
+    setFinishedState(self, state, message) {
+        // The modal can be closed now (but force it open for half a second,
+        // so that the user gets a chance to see the message)
+        setTimeout(
+            function(){self.canClose = true;}
+            , 500
+        );
+
+        // Show status
+        self.$btnClose.removeClass('d-none');
+        self.$btnAbort.addClass('d-none');
+        self.$progressContainer.addClass('d-none');
+        
+        var alertClass = state ? 'alert-success' : 'alert-warning';
+        self.$alert.removeClass('d-none').addClass(alertClass).html(message);
+    }
+    
+    /**
+     * Set the completion status of the current active file
+     * 
+     * @param {MultiUpload} self    The MultiUpload instance
+     * @param {boolean}     status  Success or failure
+     * @param {string}      message The message
+     * @returns {undefined}
+     */
+    setFileStatus(self, status, message = null) {
+        var $fileStatus = this.fileStatus[self.fileIndex];
+        
+        $fileStatus.find('div.progress-bar')
+            .removeClass('progress-bar-animated')
+            .removeClass('progress-bar-striped')
+            .addClass(status ? 'bg-success' : 'bg-danger')
+            .css('width', '100%')
+            .text(message);
+    
+        // Increment appropiate counter
+        if (status) {
+            self.uploadSuccess++;
+        } else {
+            self.uploadFail++;
+        }
+    }
+    
+    /**
+     * Handle upload abort
+     * // TODO: This does not work properly
+     * 
+     * @returns {undefined}
+     */
+    handleAbort() {
+        if (this.fileUpload !== null) {
+            this.fileUpload.abort();
+        }
+        
+        var message = Lang.page_editmod_error_multi_upload_abort.replace('X', this.uploadSuccess);
+        this.setFileStatus(this, false, Lang.page_editmod_error_file_upload_abort);
+        this.setFinishedState(this, false, message);
+    }
+    /**
+     * Upload the next file in the list
+     * 
+     * @param {MultiUpload} self The MultiUpload instance
+     * @returns {undefined}
+     */
+    handleNextFile(self) {
+        // Increment the index
+        self.fileIndex++;
+
+        // Check that the upload is finished
+        if (self.fileIndex === self.files.length) {
+            var message;
+            
+            if (this.uploadFail !== 0) {
+                message = Lang.page_editmod_error_multi_upload_failure
+                    .replace('X', self.uploadSuccess)
+                    .replace('X', self.uploadFail);
+            } else {
+                message = Lang.page_editmod_success_multi_upload.replace('X', self.uploadSuccess);
+            }
+            
+            self.setFinishedState(self, this.uploadFail === 0, message);
+            return;
+        }
+        
+        var file = self.files[self.fileIndex];
+        
+        try {
+            self.fileUpload = new FileUpload(
+                file,
+                'image',
+                self.$editModForm.data('create-upload-slot-action'),
+                self.$editModForm.data('upload-file-chunk-action'),
+                self.$editModForm.data('chunk-size'),
+                function(response){self.handleFileUploadDone(self, response);},
+                function(percentage){self.handleUploadProgress(self, percentage);},
+                function(){self.handleRetryExceeded(self);}
+            );
+        } catch (e) {
+            if (e === 404) {
+                self.setFinishedState(self, false, Lang.global_chunk_upload_unsupported);
+            } else {
+                throw e;
+            }
+        }
+    }
+    
+    /**
+     * Handle file upload processing
+     * 
+     * @param {MultiUpload} self     The MultiUpload instance
+     * @param {object}      response The server response
+     * @returns {undefined}
+     */
+    handleFileUploadDone(self, response) {
+        var status = false;
+        var message = null;
+        
+        if (typeof response === 'object') {
+            status = response.success;
+            
+            if (status === false) {
+               message = response.message;
+            }
+        }
+        
+        self.setFileStatus(self, status, message);
+        
+        if (status) {
+            this.uploadCallback(response);
+        }
+        
+        self.handleNextFile(self);
+    }
+    
+    /**
+     * Update the upload progress with the percentage (both general and current file)
+     * 
+     * @param {MultiUpload} self       The MultiUpload instance
+     * @param {number}      percentage The uploaded percentage for the current file
+     * @returns {undefined}
+     */
+    handleUploadProgress(self, percentage){
+        // Calculate the uploaded file size
+        var uploadedSize = 0;
+        
+        // Add previous completed files
+        for (var i = 0; i < self.fileIndex; i++) {
+            uploadedSize += self.files[i].size;
+        }
+        
+        // Add current file uploaded size
+        uploadedSize += Math.floor(self.files[self.fileIndex].size * percentage / 100);
+        
+        // Calculate and set global percentage
+        var globalPercentage = Math.floor(uploadedSize * 100 / self.totalSize);
+        self.$progressBar.css('width', globalPercentage + '%');
+        
+        // Set local percentage
+        var $progressBar = self.fileStatus[self.fileIndex].find('div.progress-bar');
+        $progressBar.css('width', percentage + '%');
+    }
+    
+    /**
+     * Handle upload failure due to failed retry attempts
+     * 
+     * @param {MultiUpload} self The MultiUpload instance
+     * @returns {undefined}
+     */
+    handleRetryExceeded(self) {
+        this.setFileStatus(this, false, Lang.page_editmod_error_file_upload_retry);
+        self.handleNextFile(self);
+    }
+}
+
+/**
  * Upload a file in chunks
  */
 class FileUpload {
@@ -649,14 +1165,13 @@ class FileUpload {
      *                                       failure - the server response is passed as a parameter, along with the slot
      *                                       UUID on success
      * @param {object} progressCallback      Callback to be executed when the upload data gets sent
-     * @param {object} retryExceededCallback Callback to be executed before a chunk is uploaded
+     * @param {object} retryExceededCallback Callback to be executed when the upload retries are exceeded
      * @returns {FileUpload}
      * @throws {404} Missing technical support from browser
      */
     constructor(file, type, slotUrl, chunkUrl, chunkSize, doneCallback, progressCallback, retryExceededCallback) {
         // Check for browser support
         if (typeof FormData === 'undefined') {
-            console.log('FormData is not supported by the browser');
             throw 404;
         }
         
@@ -695,7 +1210,25 @@ class FileUpload {
                     throw 404;
                 };
         
+        // XHR
+        this.xhr = null;
+        this.aborted = false;
+        
         this.uploadFile(this);
+    }
+    
+    /**
+     * Abort the upload
+     * TODO: Check and test that it really works properly
+     * 
+     * @returns {undefined}
+     */
+    abort() {
+        this.aborted = true;
+        
+        if (this.xhr !== null) {
+            this.xhr.abort();
+        }
     }
     
     /**
@@ -713,7 +1246,12 @@ class FileUpload {
                 size: self.file.size,
                 name: self.file.name
             },
-            dataType: 'json'
+            dataType: 'json',
+            xhr: function () {
+                var xhr = new window.XMLHttpRequest();
+                self.xhr = xhr;
+                return xhr;
+            }
         })
         .done(function(response){
             // On failure pass response
@@ -726,10 +1264,7 @@ class FileUpload {
             self.slotUuid = response.message;
             self.processNextChunk(self);
         })
-        .fail(self.doneCallback)
-        .progress(function(event){
-            console.log('JQProgress',event.loaded, event.total);
-        });
+        .fail(self.doneCallback);
     }
     
     /**
@@ -739,6 +1274,11 @@ class FileUpload {
      * @returns {undefined}
      */
     processNextChunk(self) {
+        // Stop if aborted
+        if (this.aborted === true) {
+            return;
+        }
+        
         // Prepare chunk
         self.curentChunk++;
         self.retryCount = 0;
@@ -783,6 +1323,7 @@ class FileUpload {
                     self.progressCallback(progressPercentage);
                 };
                 
+                self.xhr = xhr;
                 return xhr;
             }
         })

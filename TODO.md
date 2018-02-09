@@ -8,3 +8,4 @@
 * Keep cache directory in sync with the mod data: rename on mod slug change, update cached image names on image rename,
   delete cache directory on mod removal
 * Implement Etag header for images
+* Investigate security headers (forbid embedded/remote scripts)

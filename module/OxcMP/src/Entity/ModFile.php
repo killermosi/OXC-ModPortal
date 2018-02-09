@@ -122,12 +122,20 @@ class ModFile
     private $fileVersion;
     
     /**
-     * The original file name, must be unique per mod_id and type
+     * The base file name, doubles as slug, must be unique per mod_id and type
      * @var string
      * 
      * @ORM\Column(name="name", type="string", length=128, nullable=false)
      */
     private $name;
+    
+    /**
+     * A short file description, used for images as caption and for resources as details
+     * @var string
+     * 
+     * @ORM\Column(name="description", type="string", length=256, nullable=true)
+     */
+    private $description;
     
     /**
      * Date and time when the file was uploaded
@@ -276,6 +284,27 @@ class ModFile
     public function setName($name)
     {
         $this->name = $name;
+    }
+    
+    /**
+     * Get the file description
+     * 
+     * @return string
+     */
+    function getDescription()
+    {
+        return $this->description;
+    }
+
+    /**
+     * Set the file description
+     * 
+     * @param string $description The description
+     * @return void
+     */
+    function setDescription($description)
+    {
+        $this->description = $description;
     }
 
     /**
