@@ -23,6 +23,7 @@ namespace OxcMP\Controller\SupportCode;
 
 use Zend\Validator\ValidatorChain;
 use Zend\Validator\Digits;
+use Zend\Validator\Callback;
 use Zend\Validator\InArray;
 use Zend\Validator\NotEmpty;
 use Zend\Validator\Regex;
@@ -30,6 +31,7 @@ use Zend\Validator\StringLength;
 use Zend\Validator\Uuid;
 use Ramsey\Uuid\DegradedUuid; // Use this as we will need an alias for UUID anyway
 use OxcMP\Service\Storage\StorageService;
+use OxcMP\Controller\SupportCode\Validator\ModFileValidator;
 
 /**
  * Validator for mod data
@@ -39,7 +41,7 @@ use OxcMP\Service\Storage\StorageService;
 class ModValidator {
     /**
      * Regexp for "Latin letters, numbers and basic punctuation" validation
-     * @TODO: improve character range
+     * @TODO: use the Regex clas
      * @var string
      */
     const BASIC_LATIN_REGEXP = '/^[A-Za-z0-9 _:\-\.\/\*\(\)\&]*$/';
@@ -164,10 +166,28 @@ class ModValidator {
         
         $backgroundUuidValidator = new Regex(
             // /^$|^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/
-            sprintf('/^$|%s/',DegradedUuid::VALID_PATTERN)
+            sprintf('/^$|%s/', DegradedUuid::VALID_PATTERN)
         );
         
         $imagesValidator = new ValidatorChain();
+        
+        $imagesUuid = new Callback(
+            function ($imageUuids) {
+                if (!is_array($imageUuids)) {
+                    return false;
+                }
+                
+                $uuidValidator = new Uuid();
+                foreach ($imageUuids as $imageUuid) {
+                    if (!$uuidValidator->isValid($imageUuid)) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            }
+        );
+        //$imagesValidator->attach($imagesUuid);
         
         return [
             'id' => $idValidator,
@@ -241,5 +261,15 @@ class ModValidator {
             'modUuid' => $modUuidValidator,
             'slotUuid' => $slotUuidValidator,
         ];
+    }
+    
+    /**
+     * Build the mod file validator
+     * 
+     * @return ModFileValidator
+     */
+    public function buildModFileValidator()
+    {
+        return new ModFileValidator();
     }
 }

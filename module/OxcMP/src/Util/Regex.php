@@ -33,7 +33,20 @@ class Regex
      * Match a slug (lowercase Latin letters, numbers and dashes)
      * TODO: don't match if it contains two consecutive dashes of if it starts/ends with a dash
      */
-    const SLUG = '^[a-z0-9\-]+$';
+    const SLUG = '/^[a-z0-9\-]+$/';
+    
+    /**
+     * Regex for "Latin letters, numbers and basic punctuation" validation
+     * @TODO: improve character range
+     * @var string
+     */
+    const BASIC_LATIN_AND_PUNCTUATION = '/^[A-Za-z0-9 _:\-\.\/\*\(\)\&]*$/';
+    
+    /**
+     * Regex for "positive integer strict"
+     * @var string
+     */
+    const PINTS = '/^([1-9][0-9]*)$/';
 }
 
 /* EOF */

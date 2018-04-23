@@ -463,6 +463,49 @@ class ModFileManagementController extends AbstractController
     }
     
     /**
+     * Validate a mod file data (caption, filename, position)
+     * 
+     * @return JsonModel
+     */
+    public function validateModFileAction()
+    {
+        Log::info('Processing mod-management/validate-mod-file action');
+        
+        // Go to MyMods if the request is not AJAX
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            Log::notice('Request is not AJAX, ignoring');
+            return $this->redirect()->toRoute('my-mods');
+        }
+        
+        // Validate
+        $result = new JsonModel();
+        $result->success = false;
+        $result->content = null; // Error message
+        
+        // The validator expects a list 
+        $modFileData = [
+            [
+                'uuid'        => $this->params()->fromPost('uuid', ''),
+                'description' => $this->params()->fromPost('caption', ''),
+                'filename'    => $this->params()->fromPost('filename', ''),
+                'position'    => $this->params()->fromPost('order', '')
+            ]
+        ];
+        
+        $validator = (new SupportCode\ModValidator())->buildModFileValidator();
+        
+        if (!$validator->isValid($modFileData)) {
+            $errorMessages = $validator->getMessages();
+            $result->content = $this->translate(reset($errorMessages));
+            return $result;
+        }
+        
+        $result->success = true;
+        
+        return $result;
+    }
+    
+    /**
      * Throttle the current action
      * 
      * @return void

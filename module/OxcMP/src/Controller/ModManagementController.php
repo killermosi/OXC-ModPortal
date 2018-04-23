@@ -291,7 +291,8 @@ class ModManagementController extends AbstractController
             'id',
             'isPublished',
             'tags',
-            'backgroundUuid'
+            'backgroundUuid',
+            'images'
         ];
         
         foreach ($updateData as $fieldName => $data) {
@@ -307,7 +308,6 @@ class ModManagementController extends AbstractController
             } else {
                 $errorMessages = $validator->getMessages();
                 $errorMessageKey = reset($errorMessages);
-                
             }
             
             $result->content = $this->translate($errorMessageKey);
@@ -500,7 +500,6 @@ class ModManagementController extends AbstractController
         $mod->setTitle($modTitle);
         $this->modPersistenceService->buildModSlug($mod);
         $result->slug = $mod->getSlug();
-
         
         return $result;
     }

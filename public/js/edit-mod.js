@@ -670,6 +670,12 @@ class ImageManager {
         this.$editImageBtnUpdate = $('button#image-update', this.$editImageModal);
         this.$editImageBtnClose = $('button#image-close', this.$editImageModal);
         
+        this.$editImageProgress = $('div.progress', this.$editImageModal);
+        this.$editImageErrorMessage = $('div#error-message', this.$editImageModal);
+        
+        this.canCloseEditImageModal = true;
+        this.imageValidationUrl = this.$editModForm.data('validate-mod-file-action');
+        
         this.$editImageBtnDelete.click(function(){
             this.setModalState(this, true);
         }.bind(this));
@@ -693,6 +699,12 @@ class ImageManager {
         
         this.$editImageModal.on('show.bs.modal', function(event){
             this.handleEditModalOpen(this, $(event.relatedTarget).parent().parent().parent());
+        }.bind(this));
+        
+        this.$editImageModal.on('hide.bs.modal', function(event){
+            if (this.canCloseEditImageModal === false) {
+                event.preventDefault();
+            }
         }.bind(this));
     }
     
@@ -771,11 +783,15 @@ class ImageManager {
     /**
      * Set the modal state
      * 
-     * @param {ImageManager} self The ImageManager
-     * @param {boolean} forDelete If the state is for delete confirmation
+     * @param {ImageManager} self      The ImageManager
+     * @param {boolean}      forDelete If the state is for delete confirmation
      * @returns {undefined}
      */
     setModalState(self, forDelete = false) {
+        // The progress and the error message must be always hidden on open
+        self.$editImageProgress.addClass('d-none');
+        self.$editImageErrorMessage.addClass('d-none');
+        
         if (forDelete) {
             self.$editImageBtnDeleteCancel.removeClass('d-none');
             self.$editImageBtnDeleteConfirm.removeClass('d-none');
@@ -785,16 +801,50 @@ class ImageManager {
         } else {
             self.$editImageBtnDeleteCancel.addClass('d-none');
             self.$editImageBtnDeleteConfirm.addClass('d-none');
-            self.$editImageBtnDelete.removeClass('d-none');
+            self.$editImageBtnDelete.removeClass('d-none').addClass('mr-auto');
             self.$editImageBtnUpdate.removeClass('d-none');
             self.$editImageBtnClose.removeClass('d-none');
         }
     }
     
     /**
+     * Set the modal loading state
+     * 
+     * @param {ImageManager} self         The ImageManager
+     * @param {boolean}      loading      The loading state
+     * @param {string}       errorMessage The error message
+     * @returns {undefined}
+     */
+    setModalLoadingState(self, loading = false, errorMessage = false)
+    {
+        if (loading === true) {
+            self.$editImageBtnDelete.attr('disabled','');
+            self.$editImageBtnUpdate.attr('disabled','');
+            self.$editImageBtnClose.attr('disabled','');
+            
+            self.canCloseEditImageModal = false;
+            
+            self.$editImageErrorMessage.addClass('d-none');
+            self.$editImageProgress.removeClass('d-none');
+        } else {
+            self.$editImageBtnDelete.removeAttr('disabled');
+            self.$editImageBtnUpdate.removeAttr('disabled');
+            self.$editImageBtnClose.removeAttr('disabled');
+            
+            self.canCloseEditImageModal = true;
+            self.$editImageProgress.addClass('d-none');
+            
+            if (errorMessage) {
+                self.$editImageBtnDelete.removeClass('mr-auto');
+                self.$editImageErrorMessage.removeClass('d-none').text(errorMessage);
+            }
+        }
+    }
+    
+    /**
      * Populate the edit image modal with the correct data of a image card
      * 
-     * @param {ImageManager} self      The ImageManager
+     * @param {ImageManager} self       The ImageManager
      * @param {object}       $imageCard The image card
      * @returns {undefined}
      */
@@ -813,17 +863,47 @@ class ImageManager {
         
         self.$editImageModal.data('card', $imageCard);
         
-        self.setModalState(this, false);
+        self.setModalState(self, false);
     }
     
     /**
-     * Update the current image card
+     * Validate the data and update the current image card
      * 
      * @param {ImageManager} self The ImageManager
      * @returns {undefined}
      */
     handleUpdate(self) {
+        // Validate the image data
+        self.setModalLoadingState(self, true);
         
+        $.ajax(self.imageValidationUrl, {
+            method: 'post',
+            data: {
+                uuid: self.$editImageModal.data('card').data('uuid'),
+                caption: self.$editImageCaption.val(),
+                filename: self.$editImageFilename.val(),
+                order: self.$editImageOrder.val()
+            },
+            dataType: 'json'
+        })
+        .done(function(response){
+            if (response.success) {
+                self.setModalLoadingState(self, false);
+                self.processUpdate(self);
+            } else {
+                self.setModalLoadingState(self, false, response.content);
+            }
+        })
+        .fail(function(){self.setModalLoadingState(self, false, Lang.global_unexpected_error);});
+    }
+    
+    /**
+     * Process the updated data
+     * 
+     * @param {ImageManager} self The ImageManager
+     * @returns {undefined}
+     */
+    processUpdate(self) {
         self.$editImageModal.modal('hide');
         
         var $imageCard = self.$editImageModal.data('card');
@@ -864,8 +944,6 @@ class ImageManager {
 
         imageCards[order - 1].before($imageCard[0]);
     }
-    
-    
 }
 
 /**

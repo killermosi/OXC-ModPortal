@@ -71,6 +71,7 @@
     data-description-preview-action="<?php echo $this->url('preview-mod-description', ['modUuid' => $mod->getId()->toString()], ['force_canonical' => true]); ?>"
     data-create-upload-slot-action="<?php echo $this->url('create-upload-slot', ['modUuid' => $mod->getId()->toString()], ['force_canonical' => true]); ?>"
     data-upload-file-chunk-action="<?php echo $this->url('upload-file-chunk', ['modUuid' => $mod->getId()->toString()], ['force_canonical' => true]); ?>"
+    data-validate-mod-file-action="<?php echo $this->url('validate-mod-file', [], ['force_canonical' => true]); ?>"
     data-chunk-size="<?php echo $chunkSize; ?>"
 >
     <script> var Lang = <?php echo json_encode($jsLang); ?>; </script>

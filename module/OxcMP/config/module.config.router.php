@@ -209,6 +209,17 @@ return [
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],
         ],
+        'validate-mod-file' => [
+            'type'    => Literal::class,
+            'options' => [
+                'route'    => '/mod-file-management/validate-mod-file/',
+                'defaults' => [
+                    'controller' => Controller\ModFileManagementController::class,
+                    'action'     => 'validate-mod-file',
+                ],
+                'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
+            ],
+        ],
         'temporary-file' => [
             'type'    => Segment::class,
             'options' => [
