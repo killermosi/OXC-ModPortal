@@ -171,23 +171,7 @@ class ModValidator {
         
         $imagesValidator = new ValidatorChain();
         
-        $imagesUuid = new Callback(
-            function ($imageUuids) {
-                if (!is_array($imageUuids)) {
-                    return false;
-                }
-                
-                $uuidValidator = new Uuid();
-                foreach ($imageUuids as $imageUuid) {
-                    if (!$uuidValidator->isValid($imageUuid)) {
-                        return false;
-                    }
-                }
-                
-                return true;
-            }
-        );
-        //$imagesValidator->attach($imagesUuid);
+        $imagesValidator->attach(new Validator\ModFileValidator());
         
         return [
             'id' => $idValidator,

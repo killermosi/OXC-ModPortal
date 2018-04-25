@@ -146,7 +146,7 @@ return [
     'page_editmod_form_edit_image_modal_delete' => 'Delete',
     'page_editmod_form_edit_image_modal_delete_confirm' => 'Yes, delete it',
     'page_editmod_form_edit_image_modal_delete_cancel' => 'Cancel',
-    'page_editmod_error_invalid_caption' => 'Invalid caption',
+    'page_editmod_error_invalid_description' => 'Invalid caption',
     'page_editmod_error_invalid_filename' => 'Invalid filename',
     'page_editmod_error_invalid_position' => 'Invalid position',
     'page_editmod_success' => 'Mod succesfully updated.',

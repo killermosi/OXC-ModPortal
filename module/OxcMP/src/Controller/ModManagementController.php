@@ -283,10 +283,8 @@ class ModManagementController extends AbstractController
         // Collect and validate update data
         $updateData = $this->collectModUpdateData();
         $updateValidator = (new SupportCode\ModValidator())->buildModUpdateValidator();
-
-        Log::notice($updateData['images']);
         
-        // These fields are not directly editable by the user and should never fail validation
+        // These fields are not directly editable by the user anr/or valready validated and should never fail validation
         $hardFail = [
             'id',
             'isPublished',
@@ -565,7 +563,7 @@ class ModManagementController extends AbstractController
             'descriptionRaw' => $filters['descriptionRaw']->filter($request->getPost('descriptionRaw', '')),
             'tags' => $request->getPost('tags', ''),
             'backgroundUuid' => $request->getPost('backgroundUuid',''),
-            'images' => $request->getPost('images', []),
+            'images' => json_decode($request->getPost('images', '[]'), true), //Images are JSON-encoded
         ];
     }
 }

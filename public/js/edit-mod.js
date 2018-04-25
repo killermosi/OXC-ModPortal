@@ -726,7 +726,7 @@ class ImageManager {
             var image = {
                 uuid: $imageCard.data('uuid'),
                 filename: $imageCard.data('filename'),
-                caption: $imageCard.find('input').val()
+                description: $imageCard.find('input').val()
             };
             
             imagesList.push(image);
@@ -876,6 +876,7 @@ class ImageManager {
         // Validate the image data
         self.setModalLoadingState(self, true);
         
+        //TODO: Don't make the request if the details were not changed        
         $.ajax(self.imageValidationUrl, {
             method: 'post',
             data: {

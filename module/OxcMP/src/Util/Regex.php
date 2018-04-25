@@ -40,7 +40,7 @@ class Regex
      * @TODO: improve character range
      * @var string
      */
-    const BASIC_LATIN_AND_PUNCTUATION = '/^[A-Za-z0-9 _:\-\.\/\*\(\)\&]*$/';
+    const BASIC_LATIN_AND_PUNCTUATION = '/^[A-Za-z0-9\\ _:\-\.\/\*\(\)\&,\+\!\#\$\%\^\*\(\)]*$/';
     
     /**
      * Regex for "positive integer strict"

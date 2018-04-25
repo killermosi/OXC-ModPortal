@@ -25,6 +25,7 @@ use Zend\Validator\AbstractValidator;
 use Zend\Validator\Uuid;
 use Zend\Validator\Regex;
 use OxcMP\Util\Regex as RegexUtil;
+use OxcMP\Util\Log;
 
 /**
  * Validate a ModFile structure
@@ -39,7 +40,7 @@ class ModFileValidator extends AbstractValidator
     const BAD_REQUEST         = 'bad_request';
     const INVALID_DESCRIPTION = 'invalid_description';
     const INVALID_FILENAME    = 'invalid_filename';
-    const INVALID_POSITION    = 'invalid_position';
+    const INVALID_ORDER       = 'invalid_order';
     
     /**
      * Validation message templates
@@ -49,7 +50,7 @@ class ModFileValidator extends AbstractValidator
         self::BAD_REQUEST         => 'global_bad_request',
         self::INVALID_DESCRIPTION => 'page_editmod_error_invalid_description',
         self::INVALID_FILENAME    => 'page_editmod_error_invalid_filename',
-        self::INVALID_POSITION    => 'page_editmod_error_invalid_position'
+        self::INVALID_ORDER       => 'page_editmod_error_invalid_order'
     ];
     
     /**
@@ -64,18 +65,20 @@ class ModFileValidator extends AbstractValidator
         
         // Value should be array
         if (!is_array($value)) {
+            Log::notice('Incorrect ModFile value: ', $value);
             $this->error(self::BAD_REQUEST);
             return false;
         }
         
         // Valiate each sub-item
         foreach ($value as $item) {
-            // Each sub-item should be an array and must contain exactly 4 keys
+            // Each sub-item should be an array and must contain only the following keys
             // - uuid
             // - description
             // - filename
-            // - position
-            if (!is_array($item) || count($item) != 4) {
+            // - order (optional)
+            if (!is_array($item) && (count($item) < 3 || count($item) > 4)) {
+                Log::notice('Incorrect ModFile item value: ', $item);
                 $this->error(self::BAD_REQUEST);
                 return false;
             }
@@ -92,7 +95,7 @@ class ModFileValidator extends AbstractValidator
                 return false;
             }
             
-            if (!$this->validatePosition($item)) {
+            if (!$this->validateOrder($item)) {
                 return false;
             }
         }
@@ -111,18 +114,15 @@ class ModFileValidator extends AbstractValidator
     {
         // "uuid" must be present and be a string
         if (!isset($item['uuid']) || !is_string($item['uuid'])) {
+            Log::notice('Incorrect ModFile item UUID value: ', $item['uuid']);
             $this->error(self::BAD_REQUEST);
             return false;
-        }
-        
-        // UUID can be empty
-        if (empty($item['uuid'])) {
-            return true;
         }
         
         $validator = new Uuid();
         
         if (!$validator->isValid($item['uuid'])) {
+            Log::notice('Invalid ModFile item UUID value');
             $this->error(self::BAD_REQUEST);
             return false;
         }
@@ -141,6 +141,7 @@ class ModFileValidator extends AbstractValidator
     {
         // "description" must be present and be a string
         if (!isset($item['description']) || !is_string($item['description'])) {
+            Log::notice('Incorrect ModFile item description value: ', $item['description']);
             $this->error(self::BAD_REQUEST);
             return false;
         }
@@ -153,6 +154,7 @@ class ModFileValidator extends AbstractValidator
         $validator = new Regex(RegexUtil::BASIC_LATIN_AND_PUNCTUATION);
         
         if (!$validator->isValid($item['description'])) {
+            Log::notice('Invalid ModFile item description value');
             $this->error(self::INVALID_DESCRIPTION);
             return false;
         }
@@ -171,6 +173,7 @@ class ModFileValidator extends AbstractValidator
     {
         // "filename" must be present and be a string
         if (!isset($item['filename']) || !is_string($item['filename'])) {
+            Log::notice('Incorrect ModFile item filename value: ', $item['filename']);
             $this->error(self::BAD_REQUEST);
             return false;
         }
@@ -183,6 +186,7 @@ class ModFileValidator extends AbstractValidator
         $validator = new Regex(RegexUtil::SLUG);
         
         if (!$validator->isValid($item['filename'])) {
+            Log::notice('Invalid ModFile item file value');
             $this->error(self::INVALID_FILENAME);
             return false;
         }
@@ -192,28 +196,35 @@ class ModFileValidator extends AbstractValidator
     }
     
     /**
-     * Validate the position for a ModFile
+     * Validate the order for a ModFile
      * 
      * @param array $item The item data
      * @return boolean
      */
-    private function validatePosition(array $item)
+    private function validateOrder(array $item)
     {
-        // "position" must be present and be a string
-        if (!isset($item['position']) || !is_string($item['position'])) {
+        // "order" is optional
+        if (!isset($item['order'])) {
+            return true;
+        }
+        
+        // If present, must be a string
+        if (!is_string($item['order'])) {
+            Log::notice('Incorrect ModFile item order value: ', $item['order']);
             $this->error(self::BAD_REQUEST);
             return false;
         }
         
-        // Position must be a strict positive integer string representation of a number
+        // Order must be a strict positive integer string representation of a number
         $validator = new Regex(RegexUtil::PINTS);
         
-        if (!$validator->isValid($item['position'])) {
-            $this->error(self::INVALID_POSITION);
+        if (!$validator->isValid($item['order'])) {
+            Log::notice('Invalid ModFile item order value');
+            $this->error(self::INVALID_ORDER);
             return false;
         }
         
-        // Position is valid
+        // Order is valid
         return true;
     }
 }

@@ -488,7 +488,7 @@ class ModFileManagementController extends AbstractController
                 'uuid'        => $this->params()->fromPost('uuid', ''),
                 'description' => $this->params()->fromPost('caption', ''),
                 'filename'    => $this->params()->fromPost('filename', ''),
-                'position'    => $this->params()->fromPost('order', '')
+                'order'       => $this->params()->fromPost('order', '')
             ]
         ];
         
