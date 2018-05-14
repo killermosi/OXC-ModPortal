@@ -81,14 +81,44 @@ class ModFileRetrievalService
      */
     public function getModImages(Mod $mod)
     {
-        Log::info('Retrieving the images for the mod having the Id ', $mod->getId()->toString());
+        Log::info('Retrieving the images for the mod having the Id ', $mod->getId());
         
-        $images = $this->entityManager->getRepository(ModFile::class)
-                                      ->findBy(['modId' => $mod->getId(), 'type' => ModFile::TYPE_IMAGE]);
+        $criteria = ['modId' => $mod->getId(), 'type' => ModFile::TYPE_IMAGE];
+        $orderBy = ['fileOrder' => 'asc'];
+        
+        $images = $this->entityManager->getRepository(ModFile::class)->findBy($criteria, $orderBy);
         
         Log::debug('Retrieved ', count($images), ' mod image(s)');
         
         return $images;
+    }
+    
+    /**
+     * Retrieve an image for a mod
+     * 
+     * @param Mod    $mod  The Mod entity
+     * @param string $name The image name
+     * @return ModFile|null
+     */
+    public function getModImage(Mod $mod, $name)
+    {
+        Log::info('Retrieving the image titled ', $name, ' for the mod having the Id ', $mod->getId());
+        
+        $criteria = [
+            'modId' => $mod->getId(),
+            'name' => $name,
+            'type' => ModFile::TYPE_IMAGE
+        ];
+        
+        $image = $this->entityManager->getRepository(ModFile::class)->findOneBy($criteria);
+        
+        if ($image instanceof ModFile) {
+            Log::debug('Image found');
+        } else {
+            Log::debug('Image not found');
+        }
+        
+        return $image;
     }
     
     /**

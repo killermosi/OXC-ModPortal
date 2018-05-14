@@ -27,6 +27,8 @@ use Zend\View\Model\ViewModel;
 use Zend\Authentication\AuthenticationService;
 use Zend\Config\Config;
 use OxcMP\Entity\Mod;
+use OxcMP\Entity\ModFile;
+use OxcMP\Entity\ModTag;
 use OxcMP\Service\Markdown\MarkdownService;
 use OxcMP\Service\Mod\ModRetrievalService;
 use OxcMP\Service\Mod\ModPersistenceService;
@@ -284,7 +286,8 @@ class ModManagementController extends AbstractController
         $updateData = $this->collectModUpdateData();
         $updateValidator = (new SupportCode\ModValidator())->buildModUpdateValidator();
         
-        // These fields are not directly editable by the user anr/or valready validated and should never fail validation
+        // These fields are not directly editable by the user or are already validated,
+        // thus should never fail validation
         $hardFail = [
             'id',
             'isPublished',
@@ -338,8 +341,7 @@ class ModManagementController extends AbstractController
         $mod->setIsPublished((bool) $updateData['isPublished']);
         $mod->setDescriptionRaw($updateData['descriptionRaw']);
         
-        // Update the mod description and slug if needed
-        $this->modPersistenceService->buildModSlug($mod);
+        // Update the mod description if needed
         $this->markdownService->buildModDescription($mod);
         
         // Validate the number of visible characters in the processed description,
@@ -358,7 +360,11 @@ class ModManagementController extends AbstractController
         }
         
         try {
-            $this->modPersistenceService->updateMod($mod, $updateData['tags'], $updateData['backgroundUuid']);
+            $this->modPersistenceService->updateMod($mod,
+                $this->buildModTags($mod, $updateData['tags']),
+                $this->buildModBackground($mod, $updateData['backgroundUuid']),
+                $this->buildModFiles($mod, $updateData['images'], ModFile::TYPE_IMAGE)
+            );
         } catch (\Exception $exc) {
             Log::notice('Unexpected error while updating the mod entity: ', $exc->getMessage());
             $result->content = $this->translate('page_editmod_error_unknown');
@@ -543,6 +549,95 @@ class ModManagementController extends AbstractController
         Log::debug('MyMods page description text is: ', $translation);
         
         return $translation;
+    }
+    
+    /**
+     * Build a list of ModTag entities for a mod
+     * 
+     * @param Mod    $mod          The Mod entity
+     * @param string $selectedTags The selected tags, comma-separated
+     * @return array
+     */
+    private function buildModTags(Mod $mod, $selectedTags)
+    {
+        Log::debug('Building mod tags list');
+        
+        $selectedTagsList = (strlen($selectedTags) != 0) ? array_unique(explode(',', $selectedTags)): [];
+        
+        $tagsList = [];
+        
+        foreach ($selectedTagsList as $selectedTag) {
+            $tag = new ModTag();
+            $tag->setModId($mod->getId());
+            $tag->setTag($selectedTag);
+            
+            $tagsList[] = $tag;
+            unset($tag);
+        }
+        
+        Log::debug('Done building mod tags list, containing', count($tagsList), ' unique tag(s)');
+        
+        return $tagsList;
+    }
+    
+    /**
+     * Build a mod background
+     * 
+     * @param Mod    $mod            The Mod entity
+     * @param string $backgroundUuid The temporary UUID
+     * @return ModFile
+     */
+    private function buildModBackground(Mod $mod, $backgroundUuid)
+    {
+        Log::info('Building mod background entity');
+        
+        $background = new ModFile();
+        $background->setType(ModFile::TYPE_BACKGROUND);
+        $background->setModId($mod->getId());
+        $background->setUserId($this->authenticationService->getIdentity()->getId());
+        $background->setName(
+            (new \SplFileInfo(ModFile::BACKGROUND_NAME))->getBasename('.' . ModFile::EXTENSION_IMAGE)
+        );
+        
+        if (!empty($backgroundUuid)) {
+            Log::debug('Using temporary uploaded file: ', $backgroundUuid);
+            $background->setTemporaryUuid(Uuid::fromString($backgroundUuid));
+        }
+        
+        Log::debug('Mod background built');
+        
+        return $background;
+    }
+    
+    /**
+     * Build a list of mod file entities for
+     * 
+     * 
+     * @param Mod   $mod   The mod entity
+     * @param array $files The file list
+     * @param int   $type  The file type: ModFile::TYPE_RESOURCE or ModFile::TYPE_IMAGE
+     */
+    private function buildModFiles(Mod $mod, array $files, $type)
+    {
+        Log::info('Building mod file list of type: ', $type == ModFile::TYPE_IMAGE ? 'image' : 'resource');
+        $filesList = [];
+        
+        foreach ($files as  $fileData) {
+            $file = new ModFile();
+            $file->setType($type);
+            $file->setModId($mod->getId());
+            $file->setUserId($this->authenticationService->getIdentity()->getId());
+            
+            $file->setTemporaryUuid(Uuid::fromString($fileData['uuid']));
+            $file->setDescription($fileData['description']);
+            $file->setName($fileData['filename']);
+            
+            $filesList[] = $file;
+            unset($file);
+        }
+        
+        Log::debug('Done building mod files list, containing', count($filesList), ' files');
+        return $filesList;
     }
     
     /**

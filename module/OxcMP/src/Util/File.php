@@ -123,7 +123,7 @@ class File
         }
         
         /* @var $fileInfo \DirectoryIterator */
-        foreach (new \DirectoryIterator($path) as $fileInfo) {
+        foreach ((new \DirectoryIterator($path)) as $fileInfo) {
             if ($fileInfo->isDot()) {
                 continue;
             }

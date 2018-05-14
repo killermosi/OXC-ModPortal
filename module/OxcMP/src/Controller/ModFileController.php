@@ -72,10 +72,10 @@ class ModFileController extends AbstractController
         $this->modFileRetrievalService = $modFileRetrievalService;
     }
 
-        /**
+    /**
      * Retrieve a mod background
      * 
-     * @return 
+     * @return Zend\Stdlib\ResponseInterface
      */
     public function modBackgroundAction()
     {
@@ -117,17 +117,59 @@ class ModFileController extends AbstractController
         return $this->getResponse();
     }
     
+    /**
+     * Retrieve a mod image
+     * 
+     * @return Zend\Stdlib\ResponseInterface
+     */
     public function modImageAction()
     {
-        $response = $this->getResponse();
+        Log::info('Processing action mod-file/mod-image');
         
+        // Parameters
+        $modSlug = $this->params()->fromRoute('modSlug');
         $imageName = $this->params()->fromRoute('imageName');
         $imageWidth = $this->params()->fromRoute('imageWidth');
         $imageHeight = $this->params()->fromRoute('imageHeight');
         
-        $response->setContent("Name: {$imageName}<br/>Width: {$imageWidth}<br/>Height: {$imageHeight}");
+        // Retrieve and check the mod
+        $mod = $this->modRetrievalService->getModBySlug($modSlug);
         
-        return $response;
+        if (!$mod instanceof Mod) {
+            Log::notice('The mod having the slug "', $modSlug, '" could not be found');
+            return $this->errorResponse();
+        }
+
+        // Retrieve and check the image
+        $modImage = $this->modFileRetrievalService->getModImage($mod, $imageName);
+        
+        if (!$modImage instanceof ModFile) {
+            Log::notice(
+                'The image having the name "',
+                $imageName,
+                '" for the mod having the slug "',
+                $modSlug,
+                '" could not be found'
+            );
+            return $this->errorResponse();
+        }
+        
+        // Get the image contents
+        try {
+            $imageContents = $this->storageService->getModImage($mod, $modImage, $imageWidth, $imageHeight);
+        } catch (\Exception $exc) {
+            Log::notice('Failed to retrieve the image file contents: ', $exc->getMessage());
+            return $this->errorResponse();
+        }
+        
+        $this->getResponse()->getHeaders()->addHeaderLine(sprintf('Content-Type: %s', ModFile::MIME_IMAGE));
+        $this->getResponse()->getHeaders()->addHeaderLine(
+            sprintf('Content-Disposition: inline; filename="%s.%s"', $modImage->getName(), ModFile::EXTENSION_IMAGE)
+        );
+        
+        $this->getResponse()->setContent($imageContents);
+        
+        return $this->getResponse();
     }
 }
 

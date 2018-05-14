@@ -208,8 +208,6 @@
             <label><?php echo $this->translate('page_editmod_form_gallery_title'); ?></label>
             <div id="image-list" class="row">
                 <?php
-                    echo $this->partial('oxc-mp/mod-management/partial/card-image-upload.phtml') . PHP_EOL;
-                    
                     foreach ($modImages as $modImage) {
                         $parameters = [
                             'mod' => $mod,
@@ -218,6 +216,8 @@
                         ];
                         echo $this->partial('oxc-mp/mod-management/partial/card-image.phtml', $parameters) . PHP_EOL;
                     }
+                    
+                    echo $this->partial('oxc-mp/mod-management/partial/card-image-upload.phtml') . PHP_EOL;
                 ?>
             </div>
             <small id="gallery-help" class="form-text text-muted"><?php echo sprintf($this->translate('page_editmod_form_gallery_help'), $maxImageSize); ?></small>

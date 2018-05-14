@@ -92,7 +92,7 @@ return [
                     'action'     => 'mod-background',
                 ],
                 'constraints' => [
-                    'modSlug' => trim (Regex::SLUG, '^$')
+                    'modSlug' => trim(Regex::SLUG, '^/$')
                 ],
                 'acl' => [Role::GUEST, Role::MEMBER, Role::ADMINISTRATOR]
             ],
@@ -106,8 +106,8 @@ return [
                     'action'     => 'mod-image',
                 ],
                 'constraints' => [
-                    'modSlug' => trim (Regex::SLUG, '^$'),
-                    'imageName' => trim (Regex::SLUG, '^$'),
+                    'modSlug' => trim(Regex::SLUG, '^/$'),
+                    'imageName' => trim(Regex::SLUG, '^/$'),
                     'imageWidth' => '[1-9]\d*',
                     'imageHeight' => '[1-9]\d*',
                 ],

@@ -547,26 +547,30 @@ class StorageService
     }
     
     /**
-     * Create a mod file by copying a uploaded file to mod storage (operation is queued)
+     * Create a mod file by copying an uploaded file to mod storage (operation is queued)
      * 
      * @param Mod     $mod      The Mod entity
      * @param ModFile $modFile  The ModFile entity
-     * @param string  $slotUuid The temporary uploaded file
      * @return int The file size
      * @throws Exception\UnexpectedError
      */
-    public function createModFile(Mod $mod, ModFile $modFile, $slotUuid)
+    public function createModFile(Mod $mod, ModFile $modFile)
     {
         Log::info(
-            'Creating mod file ',
-            $modFile->getId()->toString(),
-            ' of type ',
+            'Creating mod file of type ',
             $modFile->getType(),
             ' belonging to mod ',
-            $mod->getId()->toString()
+            $mod->getId(),
+            ' using temporary uploaded file ',
+            $modFile->getTemporaryUuid()
         );
         
-        $uploadSlotData = $this->getUploadSlotData($mod, $slotUuid, true);
+        if (empty($modFile->getTemporaryUuid())) {
+            Log::notice('Mod file does not have a temporary UUID');
+            throw new Exception\UnexpectedError('Mod file does not have a temporary UUID');
+        }
+        
+        $uploadSlotData = $this->getUploadSlotData($mod, $modFile->getTemporaryUuid()->toString(), true);
         
         if ($uploadSlotData->getType() != $modFile->getType()) {
             Log::notice(
@@ -735,15 +739,12 @@ class StorageService
     {
         Log::info('Applying queued file operations');
         
-        // Do the cache renaming first
-        $this->renameModCacheDirectory($mod);
-        
         if (empty($this->fileOps[self::FOP_CPY]) && empty($this->fileOps[self::FOP_DEL])) {
             Log::debug('No file operations queued, nothing to apply');
             return;
         }
         
-        // Do the copy first, lefover files are less an issue than deleted files
+        // Do the copy first, leftover files are less of an issue than deleted files
         foreach ($this->fileOps[self::FOP_CPY] as $source => $destination) {
             Log::debug('Copying file ', $source, ' to ', $destination);
             
@@ -774,47 +775,40 @@ class StorageService
     }
     
     /**
-     * Rename a Mod's cache directory
+     * Remove a Mod's cache directory
      * 
      * @param Mod $mod The Mod entity
      * @return void
      */
-    private function renameModCacheDirectory(Mod $mod)
+    public function removeModCacheDirectory(Mod $mod)
     {
-        Log::info('Renaming MOD cache directory for mod ', $mod->getId()->toString());
-        
-        if ($mod->wasSlugChanged() == false) {
-            Log::debug('Mod slug was not changed, no cache rename needed');
-            return;
-        }
+        Log::info('Removing MOD cache directory for mod ', $mod->getId()->toString());
         
         if (empty($this->config->storage->cache)) {
-            Log::debug('Cache is disabled, nothing to rename');
+            Log::debug('Cache is disabled, nothing to remove');
             return;
         }
         
         try {
-            $initialCacheDir = $this->storageOptions->getModInitialCacheDirectory($mod);
-            Log::debug('Initial cache dir: ', $initialCacheDir);
-            
-            if (is_dir($initialCacheDir) === false) {
-                Log::debug('Initial cache directory does not exist, no rename needed');
-                return;
-            }
-            
-            $newCacheDir = $this->storageOptions->getModCacheDirectory($mod);
-            Log::debug('New cache dir: ', $newCacheDir);
+            $cacheDir = $this->storageOptions->getModInitialCacheDirectory($mod);
+            Log::debug('Cache dir: ', $cacheDir);
         } catch (\Exception $exc) {
-            Log::notice('Failed to determine mod cache directories: ', $exc->getMessage());
-            throw new Exception\UnexpectedError('Failed to determine mod cache directories');
-        }
-
-        if (@rename($initialCacheDir, $newCacheDir) === false) {
-            Log::notice('Failed to rename cache directory ', $initialCacheDir, ' to ', $newCacheDir);
-            throw new Exception\UnexpectedError('Failed to rename cache directory');
+            Log::notice('Failed to determine mod cache directory: ', $exc->getMessage());
+            throw new Exception\UnexpectedError('Failed to determine mod cache directory');
         }
         
-        Log::debug('Cache directory successfully renamed');
+        if (!is_dir($cacheDir)) {
+            Log::debug('Initial cache directory does not exist, nothing to remove');
+            return;
+        }
+        
+        $errors = FileUtil::deleteDirectoryAndContents($cacheDir);
+        
+        if (!empty($errors)) {
+            Log::notice('The following items could not be deleted from the mod cache directory: ', $errors);
+        } else {
+            Log::debug('Cache directory successfully removed');
+        }
     }
     
     /**
@@ -879,13 +873,13 @@ class StorageService
             $imageContents = file_get_contents($cachePath);
             
             if ($imageContents === false) {
-                $this->unlockFile($image);
+                $this->unlockFile($image, $width, $height);
                 
                 Log::notice('Failed to read cached image file ', $cachePath);
                 throw new Exception\UnexpectedError('Failed to read cached image file');
             }
             
-            $this->unlockFile($image);
+            $this->unlockFile($image, $width, $height);
             
             Log::debug('Image retrieved from cache');
             return $imageContents;
@@ -894,7 +888,7 @@ class StorageService
         try {
             $storageDir = $this->storageOptions->getModStorageDirectory($mod);
         } catch (\Exception $exc) {
-            $this->unlockFile($image);
+            $this->unlockFile($image, $width, $height);
             
             Log::notice('Failed to retrieve the mod storage directory: ', $exc->getMessage());
             throw new Exception\UnexpectedError('Failed to retrieve the mod storage directory');
@@ -908,7 +902,7 @@ class StorageService
         $rawImageContents = file_get_contents($storagePath);
         
         if ($rawImageContents === false) {
-            $this->unlockFile($image);
+            $this->unlockFile($image, $width, $height);
             
             Log::notice('Failed to read image file from storage: ', $storagePath);
             throw new Exception\UnexpectedError('Failed to read image file from storage');
@@ -923,7 +917,7 @@ class StorageService
         
         // If the cache is not available, serve the file content directly
         if (is_null($cacheDir)) {
-            $this->unlockFile($image);
+            $this->unlockFile($image, $width, $height);
             
             Log::warn('Image cache is disabled or misconfigured, this is a major performance hit');
             return $imageContents;
@@ -936,7 +930,7 @@ class StorageService
             Log::debug('Image saved to cache');
         }
         
-        $this->unlockFile($image);
+        $this->unlockFile($image, $width, $height);
         
         return $imageContents;
     }
@@ -962,7 +956,7 @@ class StorageService
         
         $searchReplace = [
             '{name}'   => $fileInfo->getBasename('.' . $fileInfo->getExtension()),
-            '{width'   => $width,
+            '{width}'  => $width,
             '{height}' => $height
         ];
         

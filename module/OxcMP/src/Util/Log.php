@@ -26,6 +26,7 @@ use Zend\Log\Logger;
 use Zend\Log\Writer\Stream;
 use Zend\Log\Filter\Priority;
 use Zend\Log\Formatter\Simple;
+use Ramsey\Uuid\UuidInterface;
 use OxcMP\Util\Resource\LogProcessor;
 
 /**
@@ -205,6 +206,8 @@ class Log
                 $logData .= 'NULL';
             } elseif (is_bool($message)) {
                 $logData .= (true == $message) ? 'TRUE' : 'FALSE';
+            } elseif ($message instanceof UuidInterface) {
+                $logData .= $message->toString();
             } else {
                 $logData .= print_r($message, true);
             }

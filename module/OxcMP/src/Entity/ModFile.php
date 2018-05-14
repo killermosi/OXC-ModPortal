@@ -162,6 +162,19 @@ class ModFile
     private $size = 0;
     
     /**
+     * Temporary UUID for this file, used to retrieve the associated entry from the database
+     * or from the temporary uploaded files
+     * @var string
+     */
+    private $temporaryUuid;
+    
+    /**
+     * If the entity was updated this session
+     * @var boolean 
+     */
+    private $wasUpdated = false;
+    
+    /**
      * Get the internal identifier
      * 
      * @return Uuid
@@ -357,7 +370,38 @@ class ModFile
     {
         $this->size = $size;
     }
-        
+    
+    /**
+     * Set the temporary UUID
+     * 
+     * @param Uuid $uuid The UUID
+     * @return void
+     */
+    public function setTemporaryUuid(Uuid $uuid)
+    {
+        $this->temporaryUuid = $uuid;
+    }
+    
+    /**
+     * Get the temporary UUID
+     * 
+     * @return Uuid
+     */
+    public function getTemporaryUuid()
+    {
+        return $this->temporaryUuid;
+    }
+    
+    /**
+     * Get if the entity was updated this session
+     * 
+     * @return boolean
+     */
+    public function wasUpdated()
+    {
+        return $this->wasUpdated;
+    }
+    
     /**
      * PrePersist callback
      * 
@@ -367,6 +411,17 @@ class ModFile
     public function prePersist()
     {
         $this->dateAdded = DateTimeUtil::newDateTimeUtc();
+    }
+    
+    /**
+     * PostUpdate callback
+     * 
+     * @return void
+     * @ORM\PostUpdate
+     */
+    public function postUpdate()
+    {
+        $this->wasUpdated = true;
     }
 }
 

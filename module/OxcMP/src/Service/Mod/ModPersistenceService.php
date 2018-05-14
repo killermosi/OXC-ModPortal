@@ -23,6 +23,7 @@ namespace OxcMP\Service\Mod;
 
 use Behat\Transliterator\Transliterator;
 use Doctrine\ORM\EntityManager;
+use Ramsey\Uuid\Uuid;
 use OxcMP\Entity\Mod;
 use OxcMP\Entity\ModFile;
 use OxcMP\Entity\ModTag;
@@ -102,13 +103,14 @@ class ModPersistenceService {
     /**
      * Update an existing mod entity
      * 
-     * @param Mod    $mod               The mod entity
-     * @param string  $modTags           The associated tags
-     * @param string $modBackgroundUuid The mod background UUID
+     * @param Mod     $mod        The mod entity
+     * @param array   $modTags    The mod tags
+     * @param ModFile $background The mod background
+     * @param string  $modImages  The mod images
      * @return void
      * @throws \Exception
      */
-    public function updateMod(Mod $mod, $modTags, $modBackgroundUuid)
+    public function updateMod(Mod $mod, array $modTags, ModFile $background, array $modImages)
     {
         Log::info('Updating the mod having the ID ', $mod->getId()->toString());
         
@@ -116,6 +118,9 @@ class ModPersistenceService {
             // Everything goes into a transaction
             $this->entityManager->getConnection()
                                 ->beginTransaction();
+            
+            // Update the slug if needed
+            $this->buildModSlug($mod);
             
             $modUpdated = false;
             
@@ -125,7 +130,12 @@ class ModPersistenceService {
             }
             
             // Update background
-            if ($this->updateModBackground($mod, $modBackgroundUuid) == true) {
+            if ($this->updateModBackground($mod, $background) == true) {
+                $modUpdated = true;
+            }
+            
+            // Update images
+            if ($this->updateModFiles($mod, $modImages, ModFile::TYPE_IMAGE)) {
                 $modUpdated = true;
             }
             
@@ -143,6 +153,9 @@ class ModPersistenceService {
             // Persist changes on disk
             $this->storageService->applyFileOperations($mod);
             
+            // Clear the cache for this mod
+            $this->storageService->removeModCacheDirectory($mod);
+            
             // Commit the transaction
             $this->entityManager->getConnection()
                                 ->commit();
@@ -154,7 +167,7 @@ class ModPersistenceService {
             throw $exc;
         }
         
-        // Delete mod temporar uploaded files
+        // Delete mod temporary uploaded files and clear the mod cache directory
         $this->storageService->deleteModTemporaryUploadDirectory($mod);
         
         Log::debug('Mod successfully updated');
@@ -222,82 +235,70 @@ class ModPersistenceService {
     
     /**
      * Update a mod tags
+     * TODO: Pass from controller a list of objects, not a string
      * 
-     * @param Mod    $mod          The Mod entity
-     * @param string $selectedTags The mod tags, in a comma-separated list
+     * @param Mod    $mod    The Mod entity
+     * @param array $modTags The mod tags
      * @return boolean If any changes were made to the mod tags
      * @throws \Exception
      */
-    private function updateModTags(Mod $mod, $selectedTags)
+    private function updateModTags(Mod $mod, $modTags)
     {
-        Log::info('Updating the mod tags for mod ', $mod->getId()->toString(), ' to "', $selectedTags, '"');
+        Log::info('Updating the mod tags for mod ', $mod->getId());
         
-        $selectedTagsList = (strlen($selectedTags) != 0) ? explode(',', $selectedTags): [];
+        $supportedTags = $this->entityManager->getRepository(Tag::class)->findAll();
         
-        // Look for duplicates
-        if (count($selectedTagsList) != count(array_unique($selectedTagsList))) {
-            Log::notice('Received duplicated tags: ', $selectedTagsList);
-            throw new \Exception('Received duplicated tags');
+        $supportedTagsList = [];
+        /* @var $supportedTag Tag */
+        foreach ($supportedTags as $supportedTag) {
+            $supportedTagsList[] = $supportedTag->getTag();
         }
         
-        // Check that all received tags are valid
-        foreach ($selectedTagsList as $selectedTag) {
-            $selectedModTag = $this->entityManager->getRepository(Tag::class)->find($selectedTag);
+        // Check for unsupported tags
+        /* @var $modTag ModTag */
+        foreach ($modTags as $index => $modTag) {
+            // Re-index the tags
+            unset($modTags[$index]);
+            $modTags[$modTag->getTag()] = $modTag;
             
-            if (!$selectedModTag instanceof Tag) {
-                Log::notice('Received unknown mod tag: ', $selectedTag);
-                throw new \Exception('Received unknown mod tag');
+            if (!in_array($modTag->getTag(), $supportedTagsList)) {
+                Log::notice('Unsupported mod tag received: ', $modTag->getTag());
+                throw new \Exception('Unsupported mod tag received');
             }
         }
         
-        // Retrieve all set tags for the mod
-        $currentModTags = $this->entityManager->getRepository(ModTag::class)->findBy(['modId' => $mod->getId()]);
+        // Check that the new mod tags are not the same as the old ones
+        $existingModTags = $this->entityManager->getRepository(ModTag::class)->findBy(['modId' => $mod->getId()]);
         
-        // List, for logging purposes
+        // Final tags list, for logging purposes
         $finalTags = [];
         
-        // Determine which tags to remove and which to add
-        foreach ($currentModTags as $index => $currentModTag) {
-            /* @var $currentModTag ModTag */
-            if (!in_array($currentModTag->getTag(), $selectedTagsList)) {
-                
-                continue;
+        // Filter out unchanged tags
+        /* @var $existingModTag ModTag */
+        foreach ($existingModTags as $index => $existingModTag) {
+            if (isset($modTags[$existingModTag->getTag()])) {
+                $finalTags[] = $existingModTag->getTag();
+                unset($existingModTags[$index], $modTags[$existingModTag->getTag()]);
             }
-            
-            $finalTags[] = $currentModTag->getTag();
-            
-            // Delete the values from both lists
-            unset($selectedTagsList[array_search($currentModTag->getTag(), $selectedTagsList)]);
-            unset($currentModTags[$index]);
         }
         
-        // What's left in the $currentModTags must be removed and what's in $selectedTagsList must be added
-        if (count($currentModTags) == 0 && count($selectedTagsList) == 0) {
-            Log::debug('No tags added or removed');
+        // What's left in $modTags must be added and what's left in $existingModTags must be deleted
+        
+        if (empty($modTags) && empty($existingModTags)) {
+            Log::debug('No change to the mod tags, nothing to update');
             return false;
         }
         
-        // Remove entries
-        foreach ($currentModTags as $currentModTag) {
-            $this->entityManager->remove($currentModTag);
-        }
-        
-        Log::debug('Removed ', count($currentModTags), ' tag(s)');
-        
-        // Add entries
-        foreach ($selectedTagsList as $selectedTag) {
-            $modTag = new ModTag();
-            $modTag->setTag($selectedTag);
-            $modTag->setModId($mod->getId());
-            
+        // Create the new entries
+        foreach ($modTags as $modTag) {
             $this->entityManager->persist($modTag);
-            
-            $finalTags[] = $selectedTag;
+            $finalTags[] = $modTag->getTag();
         }
         
-        Log::debug('Added ', count($selectedTagsList), ' tag(s)');
-        
-        sort($finalTags);
+        // Remove entries
+        foreach ($existingModTags as $existingModTag) {
+            $this->entityManager->remove($existingModTag);
+        }
         
         Log::debug('Done updating mod tags, mod tags list set to ', $finalTags);
         return true;
@@ -306,13 +307,19 @@ class ModPersistenceService {
     /**
      * Update the mod background data
      * 
-     * @param Mod    $mod            The Mod entity
-     * @param string $backgroundUuid The background UUID
+     * @param Mod     $mod           The Mod entity
+     * @param ModFile $newBackground The new mod background
      * @return boolean If the background was updated or not
      */
-    private function updateModBackground(Mod $mod, $backgroundUuid)
+    private function updateModBackground(Mod $mod, ModFile $newBackground)
     {
-        Log::info('Updating the mod background for mod ', $mod->getId()->toString(), ' to "', $backgroundUuid, '"');
+        Log::info(
+            'Updating the mod background for mod ',
+            $mod->getId()->toString(),
+            ' to "',
+            $newBackground->getTemporaryUuid(),
+            '"'
+        );
         
         // Retrieve the current background, if any (as it is needed anyway)
         $criteria = [
@@ -322,17 +329,23 @@ class ModPersistenceService {
 
         $currentBackground = $this->entityManager->getRepository(ModFile::class)->findOneBy($criteria);
         
-        if (!$currentBackground instanceof ModFile && strlen($backgroundUuid) === 0) {
+        if (
+            !$currentBackground instanceof ModFile
+            && empty($newBackground->getTemporaryUuid())
+        ) {
             Log::debug('No background changes - mod retains the default background');
             return false;
         }
         
-        if ($currentBackground instanceof ModFile && $currentBackground->getId()->toString() === $backgroundUuid) {
-            Log::debug('No background changes - mod retains the custom background');
+        if (
+            $currentBackground instanceof ModFile
+            && $currentBackground->getId()->equals($newBackground->getTemporaryUuid())
+        ) {
+            Log::debug('No background changes - mod retains the current background');
             return false;
         }
         
-        // Delete it
+        // Background updated, so delete the current one
         if ($currentBackground instanceof ModFile) {
             Log::debug('Removing current background');
             
@@ -342,36 +355,193 @@ class ModPersistenceService {
             
             Log::debug('Current background removed');
             
-            // If no new background specieid, stop here
-            if (strlen($backgroundUuid) === 0) {
+            // If no new background specified, stop here
+            if (empty($newBackground->getTemporaryUuid())) {
                 Log::debug('Default background restored');
                 return true;
             }
         }
-        
-        $fileInfo = new \SplFileInfo(ModFile::BACKGROUND_NAME);
-        
-        // Create a new ModFile
-        $modFile = new ModFile();
-        $modFile->setModId($mod->getId());
-        $modFile->setName($fileInfo->getBasename('.' . ModFile::EXTENSION_IMAGE));
-        $modFile->setUserId($mod->getUserId());
-        $modFile->setType(ModFile::TYPE_BACKGROUND);
 
         // Persist it, so that we have an ID
-        $this->entityManager->persist($modFile);
+        $this->entityManager->persist($newBackground);
         
         // Copy the file to storage
-        $fileSize = $this->storageService->createModFile($mod, $modFile, $backgroundUuid);
-        
-        // Update the file size
-        $modFile->setSize($fileSize);
+        $this->storageService->createModFile($mod, $newBackground);
         
         // Persist the file size change
-        $this->entityManager->persist($modFile);
+        $this->entityManager->persist($newBackground);
         
         Log::debug('Mod background updated');
         return true;
+    }
+    
+    /**
+     * Update the mod files with new ones
+     * 
+     * @param Mod   $mod   The Mod entity
+     * @param array $files The mod files
+     * @param int   $type  The file type: ModFile::TYPE_RESOURCE or ModFile::TYPE_IMAGE
+     * @return boolean If the images were updated
+     */
+    private function updateModFiles(Mod $mod, array $files, $type)
+    {
+        Log::info(
+            'Updating the mod files of type ',
+            $type == ModFile::TYPE_RESOURCE ? '"resource"' : '"image"',
+            ' for mod ',
+            $mod->getId(),
+            ' with ',
+            count($files),
+            ' item(s)'
+        );
+        
+        // Retrieve existing files
+        $oldFiles = $this->entityManager->getRepository(ModFile::class)->findBy([
+            'modId' => $mod->getId(),
+            'type' => $type
+        ]);
+        
+        Log::debug('Found ', count($oldFiles), ' existing file(s)');
+        
+        /* @var $file ModFile */
+        foreach ($files as $fileIndex => $file) {
+            // Look for an old file matching the new one's temporary UUID
+            /* @var $oldFile ModFile */
+            foreach ($oldFiles as $oldFileIndex => $oldFile) {
+                // Update the old file data if match is found
+                if ($oldFile->getId()->equals($file->getTemporaryUuid())) {
+                    Log::debug('Updating mod file ', $oldFile->getId());
+                    
+                    // Update data
+                    $oldFile->setDescription($file->getDescription());
+                    $oldFile->setName($file->getName());
+                    
+                    $files[$fileIndex] = $oldFile;
+                    
+                    // Remove the old file from the list
+                    unset($oldFiles[$oldFileIndex]);
+                    
+                    continue(2);
+                }
+            }
+        }
+        
+        
+        // Delete the remaining mod files to free up the file names
+        if (!empty($oldFiles)) {
+            Log::debug('Removing mod file(s)');
+            
+            foreach ($oldFiles as $oldFile) {
+                Log::debug('Removing mod file ', $oldFile->getId());
+                $this->storageService->deleteModFile($mod, $oldFile);
+                $this->entityManager->remove($oldFile);
+            }
+
+            $this->entityManager->flush();
+
+            Log::debug('Done removing mod file(s)');
+        } else {
+            Log::debug('No mod files were removed');
+        }
+        
+        // Some counters
+        $removedFilesCount = count($oldFiles);
+        $updatedFilesCount = $createdFilesCount = 0;
+        
+        // Create/update the mod files
+        foreach ($files as $fileIndex => $file) {
+            
+            // Update order and make sure the filename is unique for all files of this type
+            $file->setFileOrder($fileIndex);
+            $this->buildUniqueFilename($mod, $file);
+            
+            // Update existing files
+            if (!empty($file->getId())) {
+                Log::debug('Updating existing mod file ', $file->getId());
+                // No actual operations to do, just persist the file in the database
+            } else {
+                Log::debug('Creating new mod file from temporary UUID ', $file->getTemporaryUuid());
+                // Need an ID
+                $this->entityManager->persist($file);
+                
+                $fileSize = $this->storageService->createModFile($mod, $file);
+                $file->setSize($fileSize);
+                
+                // Persist the file size update
+                $this->entityManager->persist($file);
+            }
+            
+            // Increment the proper counter
+            if (!empty($file->getId()) && $file->WasUpdated()) {
+                $updatedFilesCount++;
+            } elseif (empty($file->getId())) {
+                $createdFilesCount++;
+            }
+        
+        }
+        
+        Log::debug(
+            'Updated ',
+            $updatedFilesCount,
+            ' mod file(s), created ',
+            $createdFilesCount,
+            ' mod file(s), removed ',
+            $removedFilesCount,
+            ' mod file(s)'
+        );
+        
+        if ($updatedFilesCount > 0 || $createdFilesCount > 0 || $removedFilesCount) {
+            Log::debug('The mod files were modified');
+            return true;
+        } else {
+            Log::debug('The mod files were not modified');
+            return false;
+        }
+    }
+    
+    /**
+     * Build a unique filename for a mod file
+     * 
+     * @param Mod     $mod     The Mod entity
+     * @param ModFile $modFile The ModFile entity
+     * @return void
+     */
+    private function buildUniqueFilename(Mod $mod, ModFile $modFile)
+    {
+        Log::info('Building unique filename for supplied filename: ', $modFile->getName());
+        
+        if (empty(trim($modFile->getName()))) {
+            Log::debug('Filename is empty, using mod slug as base: ', $mod->getSlug());
+            $modFile->setName($mod->getSlug());
+        }
+        
+        $fileSlug = Transliterator::transliterate($modFile->getName());
+        
+        $fileName = $fileSlug;
+        $counter = 0;
+        
+        while (true) {
+            
+            $otherFile = $this->entityManager->getRepository(ModFile::class)->findOneBy([
+                'modId' => $mod->getId(),
+                'type' => $modFile->getType(),
+                'name' => $fileName
+            ]);
+            
+            if (
+                !$otherFile instanceof ModFile
+                || $otherFile->getId()->equals($modFile->getId())
+            ) {
+                break;
+            }
+            
+            $counter++;
+            $fileName = $fileSlug . '-' . $counter;
+        }
+        
+        Log::debug('Unique filename built: ', $fileName);
+        
+        $modFile->setName($fileName);
     }
 }
 
