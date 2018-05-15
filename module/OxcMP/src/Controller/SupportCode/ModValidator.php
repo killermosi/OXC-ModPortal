@@ -23,7 +23,6 @@ namespace OxcMP\Controller\SupportCode;
 
 use Zend\Validator\ValidatorChain;
 use Zend\Validator\Digits;
-use Zend\Validator\Callback;
 use Zend\Validator\InArray;
 use Zend\Validator\NotEmpty;
 use Zend\Validator\Regex;
@@ -250,10 +249,13 @@ class ModValidator {
     /**
      * Build the mod file validator
      * 
+     * @param bool $validateVersion If to validate the file version
      * @return ModFileValidator
      */
-    public function buildModFileValidator()
+    public function buildModFileValidator($validateVersion = false)
     {
-        return new ModFileValidator();
+        return (new ModFileValidator())
+            ->setValidateOrder(true)
+            ->setValidateVersion($validateVersion);
     }
 }

@@ -303,7 +303,7 @@ class ModManagementController extends AbstractController
             if ($validator->isValid($data)) {
                 continue;
             }
-            
+            Log::notice($validator->getMessages());
             if (in_array($fieldName, $hardFail)) {
                 $errorMessageKey = 'global_bad_request';
             } else {
@@ -658,7 +658,7 @@ class ModManagementController extends AbstractController
             'descriptionRaw' => $filters['descriptionRaw']->filter($request->getPost('descriptionRaw', '')),
             'tags' => $request->getPost('tags', ''),
             'backgroundUuid' => $request->getPost('backgroundUuid',''),
-            'images' => json_decode($request->getPost('images', '[]'), true), //Images are JSON-encoded
+            'images' => json_decode($request->getPost('images', '[]'), true), // Image data is JSON-encoded
         ];
     }
 }

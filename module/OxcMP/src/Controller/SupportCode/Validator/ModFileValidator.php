@@ -41,6 +41,7 @@ class ModFileValidator extends AbstractValidator
     const INVALID_DESCRIPTION = 'invalid_description';
     const INVALID_FILENAME    = 'invalid_filename';
     const INVALID_ORDER       = 'invalid_order';
+    const INVALID_VERSION     = 'invalid_version';
     
     /**
      * Validation message templates
@@ -50,13 +51,53 @@ class ModFileValidator extends AbstractValidator
         self::BAD_REQUEST         => 'global_bad_request',
         self::INVALID_DESCRIPTION => 'page_editmod_error_invalid_description',
         self::INVALID_FILENAME    => 'page_editmod_error_invalid_filename',
-        self::INVALID_ORDER       => 'page_editmod_error_invalid_order'
+        self::INVALID_ORDER       => 'page_editmod_error_invalid_order',
+        self::INVALID_VERSION     => 'page_editmod_error_invalid_version'
     ];
+    
+    /**
+     * If to validate the file version
+     * @var boolean
+     */
+    private $validateVersion = false;
+    
+    /**
+     * If to validate the file order
+     * @var boolean 
+     */
+    private $validateOrder = false;
+    
+    /**
+     * Set if to validate the file version
+     * 
+     * @param boolean $validateVersion If to validate the file version
+     * @return $this
+     */
+    public function setValidateVersion($validateVersion)
+    {
+        $this->validateVersion = (bool) $validateVersion;
+        
+        return $this;
+    }
+    
+    /**
+     * Set if to validate the file order
+     * 
+     * @param type $validateOrder If to validate the file order
+     * @return $this
+     */
+    public function setValidateOrder($validateOrder)
+    {
+        $this->validateOrder = (bool) $validateOrder;
+        
+        return $this;
+    }
     
     /**
      * Validate the ModFile data
      * 
      * @param mixed $value The value to validate
+     * @
      * @return boolean
      */
     public function isValid($value)
@@ -70,14 +111,23 @@ class ModFileValidator extends AbstractValidator
             return false;
         }
         
+        // How many items to expect
+        $expectedItemsCount = 3; // UUID, description and filename
+        
+        // Order
+        if ($this->validateOrder) {
+            $expectedItemsCount++;
+        }
+        
+        // Version
+        if ($this->validateVersion) {
+            $expectedItemsCount++;
+        }
+        
         // Valiate each sub-item
         foreach ($value as $item) {
-            // Each sub-item should be an array and must contain only the following keys
-            // - uuid
-            // - description
-            // - filename
-            // - order (optional)
-            if (!is_array($item) && (count($item) < 3 || count($item) > 4)) {
+            // Each sub-item should be an array and must contain a specific number of keys
+            if (!is_array($item) || count($item) != $expectedItemsCount) {
                 Log::notice('Incorrect ModFile item value: ', $item);
                 $this->error(self::BAD_REQUEST);
                 return false;
@@ -92,6 +142,10 @@ class ModFileValidator extends AbstractValidator
             }
             
             if (!$this->validateFilename($item)) {
+                return false;
+            }
+            
+            if (!$this->validateVersion($item)) {
                 return false;
             }
             
@@ -114,7 +168,7 @@ class ModFileValidator extends AbstractValidator
     {
         // "uuid" must be present and be a string
         if (!isset($item['uuid']) || !is_string($item['uuid'])) {
-            Log::notice('Incorrect ModFile item UUID value: ', $item['uuid']);
+            Log::notice('Incorrect ModFile item UUID value');
             $this->error(self::BAD_REQUEST);
             return false;
         }
@@ -141,7 +195,7 @@ class ModFileValidator extends AbstractValidator
     {
         // "description" must be present and be a string
         if (!isset($item['description']) || !is_string($item['description'])) {
-            Log::notice('Incorrect ModFile item description value: ', $item['description']);
+            Log::notice('Incorrect ModFile item description value');
             $this->error(self::BAD_REQUEST);
             return false;
         }
@@ -173,7 +227,7 @@ class ModFileValidator extends AbstractValidator
     {
         // "filename" must be present and be a string
         if (!isset($item['filename']) || !is_string($item['filename'])) {
-            Log::notice('Incorrect ModFile item filename value: ', $item['filename']);
+            Log::notice('Incorrect ModFile item filename value');
             $this->error(self::BAD_REQUEST);
             return false;
         }
@@ -196,6 +250,43 @@ class ModFileValidator extends AbstractValidator
     }
     
     /**
+     * Validate the version for a ModFile
+     * 
+     * @param array $item The item data
+     * @return boolean
+     */
+    private function validateVersion($item)
+    {
+        // Validate "version" only if requested
+        if (!$this->validateVersion) {
+            return true;
+        }
+        
+        // "version" must be present and be a string
+        if (!isset($item['version']) || !is_string($item['version'])) {
+            Log::notice('Incorrect ModFile item version value');
+            $this->error(self::BAD_REQUEST);
+            return false;
+        }
+        
+        // Version can be empty
+        if (empty($item['version'])) {
+            return true;
+        }
+        
+        $validator = new Regex(RegexUtil::BASIC_LATIN_AND_PUNCTUATION);
+        
+        if (!$validator->isValid($item['version'])) {
+            Log::notice('Invalid ModFile item file version');
+            $this->error(self::INVALID_VERSION);
+            return false;
+        }
+        
+        // Version is valid
+        return true;
+    }
+    
+    /**
      * Validate the order for a ModFile
      * 
      * @param array $item The item data
@@ -203,13 +294,13 @@ class ModFileValidator extends AbstractValidator
      */
     private function validateOrder(array $item)
     {
-        // "order" is optional
-        if (!isset($item['order'])) {
+        // Validate "order" only if requested
+        if ($this->validateOrder == false) {
             return true;
         }
         
-        // If present, must be a string
-        if (!is_string($item['order'])) {
+        // "order" must be present and be a string
+        if (!isset($item['order']) && !is_string($item['order'])) {
             Log::notice('Incorrect ModFile item order value: ', $item['order']);
             $this->error(self::BAD_REQUEST);
             return false;
