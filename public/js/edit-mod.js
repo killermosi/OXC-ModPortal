@@ -29,7 +29,7 @@ class EditModManager {
         
         this.tagManager = new TagManager(this.$editModForm);
         this.backgroundManager = new BackgroundManager(this.$editModForm);
-        this.imageManager = new ImageManager(this.$editModForm);
+        this.fileManager = new FileManager(this.$editModForm);
         
         // Delay before making the slug preview request, in milliseconds
         this.modSlugPreviewDelay = 500;
@@ -195,7 +195,8 @@ class EditModManager {
                 descriptionRaw:  $('textarea#descriptionRaw', self.$editModForm).val(),
                 tags: self.tagManager.getSelectedTags(),
                 backgroundUuid: self.backgroundManager.getBackgroundUuid(),
-                images: self.imageManager.getImages()
+                images: self.fileManager.getImages(),
+                resources: self.fileManager.getResources()
             },
             dataType: 'json'
         })
@@ -637,71 +638,101 @@ class BackgroundManager {
 }
 
 /**
- * Manage mod images
+ * Manage mod files
  */
-class ImageManager {
+class FileManager {
     /**
      * Class initialization
      * 
      * @param {object} $editModForm The form
-     * @returns {ImageManager}
+     * @returns {FileManager}
      */
     constructor($editModForm) {
+        // File types
+        this.typeResource = 0;
+        this.typeImage = 1;
+        
         this.$editModForm = $editModForm;
         
         this.$uploadImageInput = $('input#upload-image', this.$editModForm);
-        this.$uploadImageBtn = $('input#add-image', this.$editModForm);
+        this.$uploadImageBtn = $('button#add-image', this.$editModForm);
+        
+        this.$uploadResourceInput = $('input#upload-resource', this.$editModForm);
+        this.$uploadResourceBtn = $('button#add-resource', this.$editModForm);
         
         this.$imageList = $('div#image-list', this.$editModForm);
+        this.$resourceList = $('div#resource-list', this.$editModForm);
         
         this.$imageCardSample = $('div#image-card-sample', this.$editModForm).children().first();
         this.$imageCardUpload = this.$imageList.children().last();
         
-        this.$editImageModal = $('div#edit-image');
-        this.$editImageImg = $('img', this.$editImageModal);
+        this.$resourceCardSample = $('div#resource-card-sample', this.$editModForm).children().first();
+        this.$resourceCardUpload = this.$resourceList.children().last();
         
-        this.$editImageCaption = $('input#image-caption', this.$editImageModal);
-        this.$editImageFilename = $('input#image-filename', this.$editImageModal);
-        this.$editImageOrder = $('input#image-order', this.$editImageModal);
+        this.$editFileModal = $('div#edit-file');
+        this.$editFileImage = $('img', this.$editFileModal);
         
-        this.$editImageBtnDeleteCancel = $('button#image-delete-cancel', this.$editImageModal);
-        this.$editImageBtnDeleteConfirm = $('button#image-delete-confirm', this.$editImageModal);
-        this.$editImageBtnDelete = $('button#image-delete', this.$editImageModal);
-        this.$editImageBtnUpdate = $('button#image-update', this.$editImageModal);
-        this.$editImageBtnClose = $('button#image-close', this.$editImageModal);
+        this.$editFileTitleResource = $('h5#edit-file-title-resource', this.$editFileModal);
+        this.$editFileTitleImage = $('h5#edit-file-title-image', this.$editFileModal);
         
-        this.$editImageProgress = $('div.progress', this.$editImageModal);
-        this.$editImageErrorMessage = $('div#error-message', this.$editImageModal);
+        this.$editFileExtResource = $('span#edit-file-ext-resource', this.$editFileModal);
+        this.$editFileExtImage = $('span#edit-file-ext-image', this.$editFileModal);
         
-        this.canCloseEditImageModal = true;
+        this.$editFileDescritption = $('input#image-caption', this.$editFileModal);
+        this.$editFileFilename = $('input#image-filename', this.$editFileModal);
+        this.$editFileOrder = $('input#image-order', this.$editFileModal);
+        
+        this.$editFileBtnDeleteCancel = $('button#image-delete-cancel', this.$editFileModal);
+        this.$editFileBtnDeleteConfirm = $('button#image-delete-confirm', this.$editFileModal);
+        this.$editFileBtnDelete = $('button#image-delete', this.$editFileModal);
+        this.$editFileBtnUpdate = $('button#image-update', this.$editFileModal);
+        this.$editFileBtnClose = $('button#image-close', this.$editFileModal);
+        
+        this.$editImageProgress = $('div.progress', this.$editFileModal);
+        this.$editImageErrorMessage = $('div#error-message', this.$editFileModal);
+        
+        this.canCloseEditFileModal = true;
         this.imageValidationUrl = this.$editModForm.data('validate-mod-file-action');
         
-        this.$editImageBtnDelete.click(function(){
+        this.$editFileBtnDelete.click(function(){
             this.setModalState(this, true);
         }.bind(this));
         
-        this.$editImageBtnDeleteConfirm.click(function(){
-            this.$editImageModal.data('card').remove();
-            this.$editImageModal.modal('hide');
+        this.$editFileBtnDeleteConfirm.click(function(){
+            this.$editFileModal.data('card').remove();
+            this.$editFileModal.modal('hide');
         }.bind(this));
         
-        this.$editImageBtnDeleteCancel.click(function(){
+        this.$editFileBtnDeleteCancel.click(function(){
             this.setModalState(this, false);
         }.bind(this));
         
-        this.$editImageBtnUpdate.click(function(){
+        this.$editFileBtnUpdate.click(function(){
             this.handleUpdate(this);
         }.bind(this));
         
         // Handle events
-        $('button#add-image', this.$editModForm).click(function(){this.$uploadImageInput.click();}.bind(this));
-        this.$uploadImageInput.change(function(){this.handleUpload(this);}.bind(this));
+        this.$uploadImageBtn.click(function(){
+            this.$uploadImageInput.click();
+        }.bind(this));
         
-        this.$editImageModal.on('show.bs.modal', function(event){
+        this.$uploadImageInput.change(function(){
+            this.handleUpload(this, this.typeImage);
+        }.bind(this));
+        
+        this.$uploadResourceBtn.click(function(){
+            this.$uploadResourceInput.click();
+        }.bind(this));
+        
+        this.$uploadResourceInput.change(function(){
+            this.handleUpload(this, this.typeResource);
+        }.bind(this));
+        
+        this.$editFileModal.on('show.bs.modal', function(event){
             this.handleEditModalOpen(this, $(event.relatedTarget).parent().parent().parent());
         }.bind(this));
         
-        this.$editImageModal.on('hide.bs.modal', function(event){
+        this.$editFileModal.on('hide.bs.modal', function(event){
             if (this.canCloseEditImageModal === false) {
                 event.preventDefault();
             }
@@ -725,8 +756,8 @@ class ImageManager {
             
             var image = {
                 uuid: $imageCard.data('uuid'),
-                filename: $imageCard.data('filename'),
-                description: $imageCard.find('input').val()
+                filename: String($imageCard.data('filename')),
+                description: String($imageCard.data('description'))
             };
             
             imagesList.push(image);
@@ -736,13 +767,48 @@ class ImageManager {
     }
     
     /**
+     * Retrieve a list of resources and their properties as a JSON-encoded string
+     * 
+     * @returns {string}
+     */
+    getResources() {
+        var resourcesList = new Array();
+
+        this.$resourceList.children().each(function(){
+            var $resourceCard = $(this);
+            
+            if (!$resourceCard.data('uuid')) {
+                return;
+            }
+            
+            var image = {
+                uuid: $resourceCard.data('uuid'),
+                filename: String($resourceCard.data('filename')),
+                description: String($resourceCard.data('description'))
+            };
+            
+            resourcesList.push(image);
+        });
+        
+        return JSON.stringify(resourcesList);
+    }
+    
+    /**
      * Handle file(s) upload
      * 
-     * @param {ImageManager} self The ImageManager
+     * @param {FileManager} self The ImageManager
+     * @param {number}      type The upload type
      * @returns {undefined}
      */
-    handleUpload(self){
-        var files = self.$uploadImageInput.prop('files');
+    handleUpload(self, type){
+        
+        if (type === self.typeImage) {
+            var files = self.$uploadImageInput.prop('files');
+            var filesType = 'image';
+        } else {
+            var files = self.$uploadResourceInput.prop('files');
+            var filesType = 'resource';
+        }
         
         // Nothing to do if no files were selected
         if (files.length === 0) {
@@ -751,9 +817,10 @@ class ImageManager {
         
         new MultiUpload(
             files,
+            filesType,
             self.$editModForm,
             function(response){
-                self.handleUploadCallback(self, response)
+                self.handleUploadCallback(self, type, response);
             }
         );
     }
@@ -761,29 +828,38 @@ class ImageManager {
     /**
      * Handle callback for a successfully uploaded file
      * 
-     * @param {ImageManager} self     The ImageManager
-     * @param {object}       response The server response
+     * @param {FileManager} self     The ImageManager
+     * @param {number}      type The upload type
+     * @param {object}      response The server response
      * @returns {undefined}
      */
-    handleUploadCallback(self, response) {
+    handleUploadCallback(self, type, response) {
+        
         if (response.success === false) {
             return;
         }
         
-        var $imageCard = self.$imageCardSample.clone();
+        var $imageCard = (type === self.typeImage)
+            ? self.$imageCardSample.clone()
+            : self.$resourceCardSample.clone();
+        
         $imageCard.data('uuid', response.slotUuid);
         $imageCard.data('filename', response.message.name);
         
-        $('img', $imageCard).attr('src', response.message.url);
-        
-        // Add it before the last card (the "add image" one)
-        self.$imageCardUpload.before($imageCard);
+        // Add it before the last card (the "add" card)
+        if (type === self.typeImage) {
+            $('img', $imageCard).attr('src', response.message.url);
+            self.$imageCardUpload.before($imageCard);
+        } else {
+            $('input', $imageCard).val(response.message.name);
+            self.$resourceCardUpload.before($imageCard);
+        }
     }
     
     /**
      * Set the modal state
      * 
-     * @param {ImageManager} self      The ImageManager
+     * @param {FileManager} self      The ImageManager
      * @param {boolean}      forDelete If the state is for delete confirmation
      * @returns {undefined}
      */
@@ -793,24 +869,24 @@ class ImageManager {
         self.$editImageErrorMessage.addClass('d-none');
         
         if (forDelete) {
-            self.$editImageBtnDeleteCancel.removeClass('d-none');
-            self.$editImageBtnDeleteConfirm.removeClass('d-none');
-            self.$editImageBtnDelete.addClass('d-none');
-            self.$editImageBtnUpdate.addClass('d-none');
-            self.$editImageBtnClose.addClass('d-none');
+            self.$editFileBtnDeleteCancel.removeClass('d-none');
+            self.$editFileBtnDeleteConfirm.removeClass('d-none');
+            self.$editFileBtnDelete.addClass('d-none');
+            self.$editFileBtnUpdate.addClass('d-none');
+            self.$editFileBtnClose.addClass('d-none');
         } else {
-            self.$editImageBtnDeleteCancel.addClass('d-none');
-            self.$editImageBtnDeleteConfirm.addClass('d-none');
-            self.$editImageBtnDelete.removeClass('d-none').addClass('mr-auto');
-            self.$editImageBtnUpdate.removeClass('d-none');
-            self.$editImageBtnClose.removeClass('d-none');
+            self.$editFileBtnDeleteCancel.addClass('d-none');
+            self.$editFileBtnDeleteConfirm.addClass('d-none');
+            self.$editFileBtnDelete.removeClass('d-none').addClass('mr-auto');
+            self.$editFileBtnUpdate.removeClass('d-none');
+            self.$editFileBtnClose.removeClass('d-none');
         }
     }
     
     /**
      * Set the modal loading state
      * 
-     * @param {ImageManager} self         The ImageManager
+     * @param {FileManager} self         The ImageManager
      * @param {boolean}      loading      The loading state
      * @param {string}       errorMessage The error message
      * @returns {undefined}
@@ -818,24 +894,24 @@ class ImageManager {
     setModalLoadingState(self, loading = false, errorMessage = false)
     {
         if (loading === true) {
-            self.$editImageBtnDelete.attr('disabled','');
-            self.$editImageBtnUpdate.attr('disabled','');
-            self.$editImageBtnClose.attr('disabled','');
+            self.$editFileBtnDelete.attr('disabled','');
+            self.$editFileBtnUpdate.attr('disabled','');
+            self.$editFileBtnClose.attr('disabled','');
             
-            self.canCloseEditImageModal = false;
+            self.canCloseEditFileModal = false;
             
             self.$editImageErrorMessage.addClass('d-none');
             self.$editImageProgress.removeClass('d-none');
         } else {
-            self.$editImageBtnDelete.removeAttr('disabled');
-            self.$editImageBtnUpdate.removeAttr('disabled');
-            self.$editImageBtnClose.removeAttr('disabled');
+            self.$editFileBtnDelete.removeAttr('disabled');
+            self.$editFileBtnUpdate.removeAttr('disabled');
+            self.$editFileBtnClose.removeAttr('disabled');
             
-            self.canCloseEditImageModal = true;
+            self.canCloseEditFileModal = true;
             self.$editImageProgress.addClass('d-none');
             
             if (errorMessage) {
-                self.$editImageBtnDelete.removeClass('mr-auto');
+                self.$editFileBtnDelete.removeClass('mr-auto');
                 self.$editImageErrorMessage.removeClass('d-none').text(errorMessage);
             }
         }
@@ -844,24 +920,47 @@ class ImageManager {
     /**
      * Populate the edit image modal with the correct data of a image card
      * 
-     * @param {ImageManager} self       The ImageManager
+     * @param {FileManager} self       The ImageManager
      * @param {object}       $imageCard The image card
      * @returns {undefined}
      */
     handleEditModalOpen(self, $imageCard) {
         
-        // Set data
-        var imgSrc = $('img', $imageCard).attr('src');
-        var caption = $('input', $imageCard).val();
+        var type = $imageCard.data('type');
+        
+        // Configure the modal according to the file type
+        if (type === self.typeResource) {
+            self.$editFileImage.addClass('d-none');
+            
+            self.$editFileTitleResource.removeClass('d-none');
+            self.$editFileTitleImage.addClass('d-none');
+            
+            // Rounded corners are applied only to the last child
+            self.$editFileExtResource.removeClass('d-none').appendTo(self.$editFileExtResource.parent());
+            self.$editFileExtImage.addClass('d-none');
+        } else if (type === self.typeImage) {
+            var imgSrc = $('img', $imageCard).attr('src');
+            self.$editFileImage.attr('src', imgSrc).attr('alt', description);
+            self.$editFileImage.removeClass('d-none');
+
+            self.$editFileTitleResource.addClass('d-none');
+            self.$editFileTitleImage.removeClass('d-none');
+            
+            self.$editFileExtResource.addClass('d-none');
+            // Rounded corners are applied only to the last child
+            self.$editFileExtImage.removeClass('d-none').appendTo(self.$editFileExtImage.parent());;
+        }
+        
+        // Set common data
+        var description = $imageCard.data('description');
         var filename = $imageCard.data('filename');
-        var order = $imageCard.index() + 1; // Order starts from one, 
+        var order = $imageCard.index() + 1; // Order starts from one (visually)
         
-        self.$editImageImg.attr('src', imgSrc).attr('alt', caption);
-        self.$editImageCaption.val(caption);
-        self.$editImageFilename.val(filename);
-        self.$editImageOrder.val(order);
+        self.$editFileDescritption.val(description);
+        self.$editFileFilename.val(filename);
+        self.$editFileOrder.val(order);
         
-        self.$editImageModal.data('card', $imageCard);
+        self.$editFileModal.data('card', $imageCard);
         
         self.setModalState(self, false);
     }
@@ -869,7 +968,7 @@ class ImageManager {
     /**
      * Validate the data and update the current image card
      * 
-     * @param {ImageManager} self The ImageManager
+     * @param {FileManager} self The ImageManager
      * @returns {undefined}
      */
     handleUpdate(self) {
@@ -880,10 +979,10 @@ class ImageManager {
         $.ajax(self.imageValidationUrl, {
             method: 'post',
             data: {
-                uuid: self.$editImageModal.data('card').data('uuid'),
-                caption: self.$editImageCaption.val(),
-                filename: self.$editImageFilename.val(),
-                order: self.$editImageOrder.val()
+                uuid: self.$editFileModal.data('card').data('uuid'),
+                description: String(self.$editFileDescritption.val()),
+                filename: String(self.$editFileFilename.val()),
+                order: String(self.$editFileOrder.val())
             },
             dataType: 'json'
         })
@@ -901,26 +1000,34 @@ class ImageManager {
     /**
      * Process the updated data
      * 
-     * @param {ImageManager} self The ImageManager
+     * @param {FileManager} self The ImageManager
      * @returns {undefined}
      */
     processUpdate(self) {
-        self.$editImageModal.modal('hide');
+        self.$editFileModal.modal('hide');
         
-        var $imageCard = self.$editImageModal.data('card');
+        var $imageCard = self.$editFileModal.data('card');
         var currentIndex = $imageCard.index();
         
-        var caption = self.$editImageCaption.val();
-        var filename = self.$editImageFilename.val();
+        var rescription = self.$editFileDescritption.val();
+        var filename = self.$editFileFilename.val();
 
-        $('input', $imageCard).val(caption);
+        var type = $imageCard.data('type');
+
+        if (type === self.typeResource) {
+            $('input', $imageCard).val(filename);
+        } else if (type === self.typeImage) {
+            $('input', $imageCard).val(rescription);
+        }
+        
+        $imageCard.data('description', rescription);
         $imageCard.data('filename', filename);
         
-        var imageCards = self.$imageList.children();
+        var imageCards = $imageCard.parent().children();
         var itemsCount = imageCards.length - 1; // Last one is the "add image" card
         
         // Update order
-        var order = parseInt(self.$editImageOrder.val());
+        var order = parseInt(self.$editFileOrder.val());
         
         // Make adjustments to the order if needed
         // TODO: Make a more elegant version, this one just works
@@ -955,13 +1062,15 @@ class MultiUpload {
      * Class initialization
      * 
      * @param {array}    files          The files to upload
+     * @param {string}   filesType      The type of the uploade files
      * @param {object}   $editModForm   The mod edit form
      * @param {function} uploadCallback Callback for each successfully uploaded file, the server response is passed as
      *                                  parameter
      * @returns {MultiUpload}
      */
-    constructor(files, $editModForm, uploadCallback) {
+    constructor(files, filesType, $editModForm, uploadCallback) {
         this.files = files;
+        this.type = filesType;
         this.$editModForm = $editModForm;
         this.uploadCallback = uploadCallback;
         
@@ -1143,7 +1252,7 @@ class MultiUpload {
         try {
             self.fileUpload = new FileUpload(
                 file,
-                'image',
+                self.type,
                 self.$editModForm.data('create-upload-slot-action'),
                 self.$editModForm.data('upload-file-chunk-action'),
                 self.$editModForm.data('chunk-size'),

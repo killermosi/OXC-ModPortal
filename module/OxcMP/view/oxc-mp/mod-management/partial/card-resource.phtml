@@ -1,0 +1,30 @@
+<?php
+    use OxcMP\Entity\Mod;
+    use OxcMP\Entity\ModFile;
+    
+    /* @var $mod Mod */
+    /* @var $modResource ModFile */
+    
+    // This card is used for the individual mod resources but also as a template for the newly uploaded ones,
+    // so init empty Mod and ModImage instances if none are specified
+    if (!isset($mod) || !isset($modResource) || !$modResource instanceof ModFile || $modResource->getType() != ModFile::TYPE_RESOURCE) {
+        $mod = new Mod();
+        $modResource = new ModFile();
+    }
+?>
+<div class="col-md-6 col-lg-6" data-uuid="<?php echo empty($modResource->getId()) ? '' : $modResource->getId()->toString();?>" data-filename="<?php echo $modResource->getName(); ?>" data-description="<?php echo $this->escapeHtml($modResource->getDescription()); ?>" data-type="<?php echo ModFile::TYPE_RESOURCE; ?>">
+    <div class="card m-2 d-flex flex-row">
+        <div class="card-body p-1">
+            
+            <div class="input-group">
+                <input type="text" class="form-control form-control-sm" placeholder="<?php echo $this->translate('page_editmod_form_file_filename_placeholder'); ?>" value="<?php echo $modResource->getName(); ?>" disabled />
+                <div class="input-group-append">
+                    <span class="input-group-text">.<?php echo ModFile::EXTENSION_RESOURCE; ?></span>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-right p-1 border-top-0 border-left">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#edit-file"><?php echo $this->translate('page_editmod_form_gallery_edit'); ?></button>
+        </div>
+    </div>
+</div>

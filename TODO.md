@@ -9,3 +9,4 @@
   delete cache directory on mod removal
 * Implement Etag header for images
 * Investigate security headers (forbid embedded/remote scripts)
+* Trim uploaded file names to the maximum value on upload

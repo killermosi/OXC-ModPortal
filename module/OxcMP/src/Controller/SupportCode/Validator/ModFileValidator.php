@@ -35,6 +35,12 @@ use OxcMP\Util\Log;
 class ModFileValidator extends AbstractValidator
 {
     /*
+     * String lengths
+     */
+    const MAX_DESCRIPTION_LENGTH = 128;
+    const MAX_FILENAME_LENGTH = 128;
+    
+    /*
      * Validation constants
      */
     const BAD_REQUEST         = 'bad_request';
@@ -56,29 +62,10 @@ class ModFileValidator extends AbstractValidator
     ];
     
     /**
-     * If to validate the file version
-     * @var boolean
-     */
-    private $validateVersion = false;
-    
-    /**
      * If to validate the file order
      * @var boolean 
      */
     private $validateOrder = false;
-    
-    /**
-     * Set if to validate the file version
-     * 
-     * @param boolean $validateVersion If to validate the file version
-     * @return $this
-     */
-    public function setValidateVersion($validateVersion)
-    {
-        $this->validateVersion = (bool) $validateVersion;
-        
-        return $this;
-    }
     
     /**
      * Set if to validate the file order
@@ -119,11 +106,6 @@ class ModFileValidator extends AbstractValidator
             $expectedItemsCount++;
         }
         
-        // Version
-        if ($this->validateVersion) {
-            $expectedItemsCount++;
-        }
-        
         // Valiate each sub-item
         foreach ($value as $item) {
             // Each sub-item should be an array and must contain a specific number of keys
@@ -142,10 +124,6 @@ class ModFileValidator extends AbstractValidator
             }
             
             if (!$this->validateFilename($item)) {
-                return false;
-            }
-            
-            if (!$this->validateVersion($item)) {
                 return false;
             }
             
@@ -213,6 +191,12 @@ class ModFileValidator extends AbstractValidator
             return false;
         }
         
+        if (strlen($item['description']) > self::MAX_DESCRIPTION_LENGTH) {
+            Log::notice('Invalid ModFile item description length');
+            $this->error(self::INVALID_DESCRIPTION);
+            return false;
+        }
+        
         // Description is valid
         return true;
     }
@@ -245,44 +229,13 @@ class ModFileValidator extends AbstractValidator
             return false;
         }
         
+        if (strlen($item['filename']) > self::MAX_FILENAME_LENGTH) {
+            Log::notice('Invalid ModFile item file length');
+            $this->error(self::INVALID_FILENAME);
+            return false;
+        }
+        
         // Filename is valid
-        return true;
-    }
-    
-    /**
-     * Validate the version for a ModFile
-     * 
-     * @param array $item The item data
-     * @return boolean
-     */
-    private function validateVersion($item)
-    {
-        // Validate "version" only if requested
-        if (!$this->validateVersion) {
-            return true;
-        }
-        
-        // "version" must be present and be a string
-        if (!isset($item['version']) || !is_string($item['version'])) {
-            Log::notice('Incorrect ModFile item version value');
-            $this->error(self::BAD_REQUEST);
-            return false;
-        }
-        
-        // Version can be empty
-        if (empty($item['version'])) {
-            return true;
-        }
-        
-        $validator = new Regex(RegexUtil::BASIC_LATIN_AND_PUNCTUATION);
-        
-        if (!$validator->isValid($item['version'])) {
-            Log::notice('Invalid ModFile item file version');
-            $this->error(self::INVALID_VERSION);
-            return false;
-        }
-        
-        // Version is valid
         return true;
     }
     

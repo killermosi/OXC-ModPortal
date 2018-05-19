@@ -469,7 +469,7 @@ class ModFileManagementController extends AbstractController
      */
     public function validateModFileAction()
     {
-        Log::info('Processing mod-management/validate-mod-file action');
+        Log::info('Processing mod-file-management/validate-mod-file action');
         
         // Go to MyMods if the request is not AJAX
         if (!$this->getRequest()->isXmlHttpRequest()) {
@@ -486,7 +486,7 @@ class ModFileManagementController extends AbstractController
         $modFileData = [
             [
                 'uuid'        => $this->params()->fromPost('uuid', ''),
-                'description' => $this->params()->fromPost('caption', ''),
+                'description' => $this->params()->fromPost('description', ''),
                 'filename'    => $this->params()->fromPost('filename', ''),
                 'order'       => $this->params()->fromPost('order', '')
             ]
@@ -500,6 +500,7 @@ class ModFileManagementController extends AbstractController
             return $result;
         }
         
+        Log::debug('Mod file data is valid');
         $result->success = true;
         
         return $result;

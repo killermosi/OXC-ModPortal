@@ -15,14 +15,14 @@
         $modImage = new ModFile();
     }
 ?>
-<div class="col-sm-6 col-md-4 col-lg-3" data-uuid="<?php echo empty($modImage->getId()) ? '' : $modImage->getId()->toString();?>" data-filename="<?php echo $modImage->getName(); ?>">
+<div class="col-sm-6 col-md-4 col-lg-3" data-uuid="<?php echo empty($modImage->getId()) ? '' : $modImage->getId()->toString();?>" data-filename="<?php echo $modImage->getName(); ?>" data-description="<?php echo $this->escapeHtml($modImage->getDescription()); ?>" data-type="<?php echo ModFile::TYPE_IMAGE; ?>">
     <div class="card m-2">
         <img class="card-img-top" src="<?php echo $this->modImageUrl($mod, $modImage, $width, $height); ?>" alt="<?php echo $modImage->getName(); ?>"/>
-        <div class="card-body">
-            <input type="text" name="caption" class="form-control form-control-sm" placeholder="<?php echo $this->translate('page_editmod_form_gallery_caption_placeholder'); ?>" value="<?php echo $this->escapeHtml($modImage->getDescription()); ?>" disabled/>
+        <div class="card-body p-1">
+            <input type="text" class="form-control form-control-sm" placeholder="<?php echo $this->translate('page_editmod_form_file_caption_placeholder'); ?>" value="<?php echo $this->escapeHtml($modImage->getDescription()); ?>" disabled/>
         </div>
         <div class="card-footer text-right">
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#edit-image"><?php echo $this->translate('page_editmod_form_gallery_edit'); ?></button>
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#edit-file"><?php echo $this->translate('page_editmod_form_gallery_edit'); ?></button>
         </div>
     </div>
 </div>

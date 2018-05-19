@@ -54,7 +54,6 @@ create table mod_file (
     mod_id char(36) not null comment 'The mod identifier',
     type tinyint(1) not null comment 'The file purpose: 0 - downloadable resource, 1 - gallery image, 2 - background image',
     file_order tinyint(2) default 0 comment 'File order, for gallery images and resources',
-    file_version varchar(64) default null comment 'File version, for resources',
     name varchar(128) not null comment 'The base file name, unique per mod_id and type',
     description varchar(128) null comment 'A short file description, used for images as caption and for resources as details',
     date_added datetime not null comment 'The date and time when the file was added',

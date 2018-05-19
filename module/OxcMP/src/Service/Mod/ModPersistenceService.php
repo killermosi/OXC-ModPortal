@@ -103,14 +103,15 @@ class ModPersistenceService {
     /**
      * Update an existing mod entity
      * 
-     * @param Mod     $mod        The mod entity
-     * @param array   $modTags    The mod tags
-     * @param ModFile $background The mod background
-     * @param string  $modImages  The mod images
+     * @param Mod     $mod          The mod entity
+     * @param array   $modTags      The mod tags
+     * @param ModFile $background   The mod background
+     * @param array   $modImages    The mod images
+     * @param array   $modResources The mod resources
      * @return void
      * @throws \Exception
      */
-    public function updateMod(Mod $mod, array $modTags, ModFile $background, array $modImages)
+    public function updateMod(Mod $mod, array $modTags, ModFile $background, array $modImages, array $modResources)
     {
         Log::info('Updating the mod having the ID ', $mod->getId()->toString());
         
@@ -139,12 +140,17 @@ class ModPersistenceService {
                 $modUpdated = true;
             }
             
+            // Update resources
+            if ($this->updateModFiles($mod, $modResources, ModFile::TYPE_RESOURCE)) {
+                
+            }
+            
             // Manually mark mod updated if needed
             if ($modUpdated) {
                 $mod->markUpdated();
             }
             
-            // Update the Mod
+            // Update the Mod entity
             $this->entityManager->persist($mod);
 
             // Persist changes in the database
@@ -437,6 +443,7 @@ class ModPersistenceService {
                 $this->entityManager->remove($oldFile);
             }
 
+            // Flush the changes to free up filenames
             $this->entityManager->flush();
 
             Log::debug('Done removing mod file(s)');
@@ -461,15 +468,17 @@ class ModPersistenceService {
                 // No actual operations to do, just persist the file in the database
             } else {
                 Log::debug('Creating new mod file from temporary UUID ', $file->getTemporaryUuid());
+                
                 // Need an ID
                 $this->entityManager->persist($file);
                 
                 $fileSize = $this->storageService->createModFile($mod, $file);
                 $file->setSize($fileSize);
-                
-                // Persist the file size update
-                $this->entityManager->persist($file);
             }
+            
+            // Persist any file update
+            $this->entityManager->persist($file);
+            $this->entityManager->flush($file);
             
             // Increment the proper counter
             if (!empty($file->getId()) && $file->WasUpdated()) {

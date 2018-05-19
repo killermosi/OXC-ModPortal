@@ -114,14 +114,6 @@ class ModFile
     private $fileOrder = 0;
     
     /**
-     * File version, for resources
-     * @var string
-     * 
-     * @ORM\Column(name="file_version", type="string", length=64, nullable=true)
-     */
-    private $fileVersion;
-    
-    /**
      * The base file name, doubles as slug, must be unique per mod_id and type
      * @var string
      * 
@@ -257,26 +249,6 @@ class ModFile
     {
         $this->fileOrder = $imageOrder;
     }
-
-    /**
-     * Get the file version
-     * 
-     * @return string
-     */
-    function getFileVersion() {
-        return $this->fileVersion;
-    }
-
-    /**
-     * Set the file version
-     * 
-     * @param string $fileVersion The file version
-     * @return void
-     */
-    function setFileVersion($fileVersion) {
-        $this->fileVersion = $fileVersion;
-    }
-
         
     /**
      * Get the file name

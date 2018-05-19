@@ -168,9 +168,15 @@ class ModValidator {
             sprintf('/^$|%s/', DegradedUuid::VALID_PATTERN)
         );
         
+        // Images
         $imagesValidator = new ValidatorChain();
         
         $imagesValidator->attach(new Validator\ModFileValidator());
+        
+        // Resources
+        $resourcesValidator = new ValidatorChain();
+        
+        $resourcesValidator->attach(new Validator\ModFileValidator());
         
         return [
             'id' => $idValidator,
@@ -180,7 +186,8 @@ class ModValidator {
             'descriptionRaw' => $descriptionRawValidator,
             'tags' => $tagsValidator,
             'backgroundUuid' => $backgroundUuidValidator,
-            'images' => $imagesValidator
+            'images' => $imagesValidator,
+            'resources' => $resourcesValidator
         ];
     }
     
@@ -249,13 +256,11 @@ class ModValidator {
     /**
      * Build the mod file validator
      * 
-     * @param bool $validateVersion If to validate the file version
      * @return ModFileValidator
      */
-    public function buildModFileValidator($validateVersion = false)
+    public function buildModFileValidator()
     {
         return (new ModFileValidator())
-            ->setValidateOrder(true)
-            ->setValidateVersion($validateVersion);
+            ->setValidateOrder(true);
     }
 }

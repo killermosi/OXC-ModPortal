@@ -252,6 +252,7 @@ class ModManagementController extends AbstractController
         $this->view->mod = $mod;
         $this->view->modBackground = $modBackground;
         $this->view->modImages = $this->modFileRetrievalService->getModImages($mod);
+        $this->view->modResources = $this->modFileRetrievalService->getModResources($mod);
         $this->view->tags = $this->tagRetrievalService->getAllTags();
         $this->view->modTags = $this->modTagRetrievalService->getModTags($mod);
         $this->view->config = $this->config;
@@ -303,7 +304,7 @@ class ModManagementController extends AbstractController
             if ($validator->isValid($data)) {
                 continue;
             }
-            Log::notice($validator->getMessages());
+            
             if (in_array($fieldName, $hardFail)) {
                 $errorMessageKey = 'global_bad_request';
             } else {
@@ -363,7 +364,8 @@ class ModManagementController extends AbstractController
             $this->modPersistenceService->updateMod($mod,
                 $this->buildModTags($mod, $updateData['tags']),
                 $this->buildModBackground($mod, $updateData['backgroundUuid']),
-                $this->buildModFiles($mod, $updateData['images'], ModFile::TYPE_IMAGE)
+                $this->buildModFiles($mod, $updateData['images'], ModFile::TYPE_IMAGE),
+                $this->buildModFiles($mod, $updateData['resources'], ModFile::TYPE_RESOURCE)
             );
         } catch (\Exception $exc) {
             Log::notice('Unexpected error while updating the mod entity: ', $exc->getMessage());
@@ -659,6 +661,7 @@ class ModManagementController extends AbstractController
             'tags' => $request->getPost('tags', ''),
             'backgroundUuid' => $request->getPost('backgroundUuid',''),
             'images' => json_decode($request->getPost('images', '[]'), true), // Image data is JSON-encoded
+            'resources' => json_decode($request->getPost('resources', '[]'), true), // Resource data is JSON-encoded
         ];
     }
 }
