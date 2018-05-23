@@ -128,6 +128,13 @@ class Mod
     private $dowloads = 0;
     
     /**
+     * Six-digit code used to validate the delete operation
+     * @var int
+     * @ORM\Column(name="delete_code", type="integer", nullable=false)
+     */
+    private $deleteCode;
+    
+    /**
      * The initial title, set when the entity is loaded, used to determine if the title was changed
      * @var string 
      */
@@ -144,6 +151,18 @@ class Mod
      * @var string 
      */
     private $initialSlug;
+    
+    /**
+     * Class initialization
+     */
+    public function __construct()
+    {
+        // Set the initial date and time for dateCreated and dateUpdated
+        $this->dateCreated = $this->dateUpdated = DateTimeUtil::newDateTimeUtc();
+        
+        // Generate delete code
+        $this->deleteCode = mt_rand(100000, 999999);
+    }
     
     /**
      * Get the internal identifier
@@ -341,6 +360,15 @@ class Mod
     {
         $this->dowloads++;
     }
+    
+    /**
+     * Get the code used to validate the delete operation
+     * @return integer
+     */
+    public function getDeleteCode()
+    {
+        return $this->deleteCode;
+    }
 
     /**
      * Check if the mod title was changed
@@ -394,18 +422,6 @@ class Mod
     public function markUpdated()
     {
         $this->dateUpdated = DateTimeUtil::newDateTimeUtc();
-    }
-    
-    /**
-     * PrePersist callback
-     * 
-     * @return void
-     * @ORM\PrePersist
-     */
-    public function prePersist()
-    {
-        // Set the initial date and time for dateCreated and dateUpdated
-        $this->dateCreated = $this->dateUpdated = DateTimeUtil::newDateTimeUtc();
     }
     
     /**

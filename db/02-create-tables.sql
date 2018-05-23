@@ -43,6 +43,7 @@ create table mod_data (
     date_created datetime not null comment 'The date and time when the mod was created',
     date_updated datetime not null comment 'The date and time when the mod was updated',
     downloads int(10) not null default 0 comment 'Completed downloads for the mod',
+    delete_code int(6) not null comment 'Six-digit code used to validate the delete operation',
     primary key (mod_id),
     index idx_slug(slug),
     index idx_is_published(is_published)

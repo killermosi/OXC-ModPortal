@@ -2,7 +2,7 @@
     use OxcMP\Entity\ModFile;
 ?>
 
-<div class="modal fade" id="edit-file" tabindex="-1" role="dialog" aria-labelledby="edit-image-title" aria-hidden="true" data->
+<div class="modal fade" id="edit-file" tabindex="-1" role="dialog" aria-labelledby="edit-file-title-image" aria-hidden="true" data->
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -15,37 +15,37 @@
             <div class="modal-body">
                 <img class="figure-img img-fluid rounded" src="" alt="">
                 <div class="form-group">
-                    <label for="image-caption"><?php echo $this->translate('page_editmod_form_file_caption'); ?></label>
-                    <input type="text" class="form-control" id="image-caption" aria-describedby="image-caption-help" placeholder="<?php echo $this->translate('page_editmod_form_file_caption_placeholder'); ?>">
-                    <small id="image-caption-help" class="form-text text-muted"><?php echo $this->translate('page_editmod_form_file_caption_help'); ?></small>
+                    <label for="file-caption"><?php echo $this->translate('page_editmod_form_file_caption'); ?></label>
+                    <input type="text" class="form-control" id="file-caption" aria-describedby="file-caption-help" placeholder="<?php echo $this->translate('page_editmod_form_file_caption_placeholder'); ?>">
+                    <small id="file-caption-help" class="form-text text-muted"><?php echo $this->translate('page_editmod_form_file_caption_help'); ?></small>
                 </div>
                 <div class="form-group">
-                    <label for="image-filename"><?php echo $this->translate('page_editmod_form_file_filename'); ?></label>
+                    <label for="file-filename"><?php echo $this->translate('page_editmod_form_file_filename'); ?></label>
                     <div class="input-group">
-                        <input type="text" class="form-control" id="image-filename" aria-describedby="image-filename-help" placeholder="<?php echo $this->translate('page_editmod_form_file_filename_placeholder'); ?>">
+                        <input type="text" class="form-control" id="file-filename" aria-describedby="file-filename-help" placeholder="<?php echo $this->translate('page_editmod_form_file_filename_placeholder'); ?>">
                         <div class="input-group-append">
                             <span class="input-group-text" id="edit-file-ext-resource">.<?php echo ModFile::EXTENSION_RESOURCE; ?></span>
                             <span class="input-group-text" id="edit-file-ext-image">.<?php echo ModFile::EXTENSION_IMAGE; ?></span>
                         </div>
                     </div>
-                    <small id="image-filename-help" class="form-text text-muted"><?php echo $this->translate('page_editmod_form_file_filename_help'); ?></small>
+                    <small id="file-filename-help" class="form-text text-muted"><?php echo $this->translate('page_editmod_form_file_filename_help'); ?></small>
                 </div>
                 <div class="form-group">
-                    <label for="image-order"><?php echo $this->translate('page_editmod_form_file_order'); ?></label>
-                    <input type="number" maxlength="3" min="1" max="999" class="form-control" id="image-order" aria-describedby="image-order-help" placeholder="<?php echo $this->translate('page_editmod_form_file_order_placeholder'); ?>">
-                    <small id="image-order-help" class="form-text text-muted"><?php echo $this->translate('page_editmod_form_file_order_help'); ?></small>
+                    <label for="file-order"><?php echo $this->translate('page_editmod_form_file_order'); ?></label>
+                    <input type="number" maxlength="3" min="1" max="999" class="form-control" id="file-order" aria-describedby="file-order-help" placeholder="<?php echo $this->translate('page_editmod_form_file_order_placeholder'); ?>">
+                    <small id="file-order-help" class="form-text text-muted"><?php echo $this->translate('page_editmod_form_file_order_help'); ?></small>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" id="image-delete-cancel" class="btn btn-secondary mr-auto"><?php echo $this->translate('page_editmod_form_edit_file_modal_delete_cancel') ?></button>
-                <button type="button" id="image-delete-confirm" class="btn btn-danger"><?php echo $this->translate('page_editmod_form_edit_file_modal_delete_confirm') ?></button>
-                <button type="button" id="image-delete" class="btn btn-danger mr-auto"><?php echo $this->translate('page_editmod_form_edit_file_modal_delete') ?></button>
+                <button type="button" id="file-delete-cancel" class="btn btn-secondary mr-auto"><?php echo $this->translate('page_editmod_form_edit_file_modal_delete_cancel') ?></button>
+                <button type="button" id="file-delete-confirm" class="btn btn-danger"><?php echo $this->translate('page_editmod_form_edit_file_modal_delete_confirm') ?></button>
+                <button type="button" id="file-delete" class="btn btn-danger mr-auto"><?php echo $this->translate('page_editmod_form_edit_file_modal_delete') ?></button>
                 <div class="progress w-100 mr-0 d-none">
                     <div class="progress-bar progress-bar-striped progress-bar-animated w-100" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
-                <div id="error-message" class="alert alert-warning p-1 m-0 mr-1 ml-1 w-100 text-center d-none"></div>
-                <button type="button" id="image-update" class="btn btn-primary"><?php echo $this->translate('page_editmod_form_edit_file_modal_update') ?></button>
-                <button type="button" id="image-close" class="btn btn-secondary" data-dismiss="modal"><?php echo $this->translate('global_close') ?></button>
+                <div id="file-error-message" class="alert alert-warning p-1 m-0 mr-1 ml-1 w-100 text-center d-none"></div>
+                <button type="button" id="file-update" class="btn btn-primary"><?php echo $this->translate('page_editmod_form_edit_file_modal_update') ?></button>
+                <button type="button" id="file-close" class="btn btn-secondary" data-dismiss="modal"><?php echo $this->translate('global_close') ?></button>
             </div>
         </div>
     </div>

@@ -56,7 +56,7 @@ return [
     'page_mymods_create_error_title_length_short' => 'Title too short.',
     'page_mymods_create_error_title_length_long' => 'Title too long.',
     'page_mymods_create_error_title_characters_forbidden' => 'Title contains forbidden characters.',
-    'page_mymods_create_error_unknown' => 'System error, please try again later.',
+    'page_mymods_delete_success' => 'Mod "%s" successfully deleted',
     // Edit Mod Page
     'page_editmod_title' => 'Edit mod',
     'page_editmod_description' => 'Make changes to your mod',
@@ -152,6 +152,13 @@ return [
     'page_editmod_error_invalid_description' => 'Invalid caption',
     'page_editmod_error_invalid_filename' => 'Invalid filename',
     'page_editmod_error_invalid_position' => 'Invalid position',
+    'page_editmod_delete_title' => 'Confirm mod deletion',
+    'page_editmod_delete_description' => 'Are you sure you want to delete this mod? Please note that the delete operation is immediate and that the mod cannot be recovered once deleted!',
+    'page_editmod_delete_code_title' => 'Please confirm the delete operation by typing below the six digits code displayed into two fragments to the left and right side of the input below:',
+    'page_editmod_delete_code_placeholder' => 'Delete confirmation code',
+    'page_editmod_delete_code_help' => 'Six digits code example: code fragments 321 and 987 compose the code 321987',
+    'page_editmod_delete_confirm' => 'Yes, delete it',
+    'page_editmod_delete_error_invalid_code' => 'Invalid code.',
     // Mod edit messages
     'page_editmod_success' => 'Mod succesfully updated.',
     'page_editmod_form_btn_submit' => 'Update',

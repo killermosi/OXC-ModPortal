@@ -619,6 +619,7 @@ class StorageService
             $filePath = $this->storageOptions->getModStorageDirectory($mod) . $modFile->getId()->toString();
         } catch (\Exception $exc) {
             Log::notice('Failed to determine mod file path: ', $exc->getMessage());
+            throw new Exception\UnexpectedError('Failed to determine mod file path');
         }
         
         Log::debug('File path: ', $filePath);
@@ -638,66 +639,9 @@ class StorageService
         // Queue the deletion
         $this->fileOps[self::FOP_DEL][] = $filePath;
         
-        if ($modFile->getType() === ModFile::TYPE_IMAGE || $modFile->getType() === ModFile::TYPE_BACKGROUND) {
-            $cachedFiles = $this->buildCachedImagesList($mod, $modFile);
-            
-            Log::debug('Found ', count($cachedFiles), ' additional image(s) in cache for this file');
-            
-            foreach ($cachedFiles as $cachedFile) {
-                $this->fileOps[self::FOP_DEL][] = $cachedFile;
-            }
-        }
-        
         Log::debug('File deletion queued');
     }
     
-    /**
-     * Build a list of cached images that are to be deleted along with a mod image/background
-     * 
-     * @param Mod     $mod     The ModEntity
-     * @param ModFile $modFile The ModFile entity
-     * @return array
-     */
-    private function buildCachedImagesList(Mod $mod, ModFile $modFile)
-    {
-        Log::info('Building cached images list for mod file ', $modFile->getId()->toString());
-        
-        $images = [];
-        
-        // Resource?
-        if ($modFile->getType() === ModFile::TYPE_RESOURCE) {
-            Log::debug('Mod resources have no cached images');
-            return $images;
-        }
-        
-        // Cache dir
-        $cacheDir = $this->storageOptions->getModCacheDirectory($mod);
-        
-        if (!is_dir($cacheDir)) {
-            Log::debug('Cache directory does not exist, nothing to delete from cache');
-            return $images;
-        }
-        
-        // Background?
-        if ($modFile->getType() === ModFile::TYPE_BACKGROUND) {
-            $backgroundCachePath = $cacheDir . $modFile->getName();
-            
-            if (file_exists($backgroundCachePath)) {
-                Log::debug('Cached background image added to images list');
-                $images[] = $backgroundCachePath;
-            }
-            
-            return $images;
-        }
-        
-        // Image?
-        if ($modFile->getType() === ModFile::TYPE_IMAGE) {
-            // TODO: build images list
-            return $images;
-        }
-    }
-
-
     /**
      * Delete the temporary upload directory for a mod
      * 
@@ -706,7 +650,7 @@ class StorageService
      */
     public function deleteModTemporaryUploadDirectory(Mod $mod)
     {
-        Log::info('Deleting mod temporary upload directory');
+        Log::info('Deleting mod temporary upload directory for mod ', $mod->getId());
         
         try {
             $uploadDir = $this->storageOptions->getTemporaryUploadStorageDirectory($mod);
@@ -727,15 +671,45 @@ class StorageService
     }
     
     /**
+     * Delete a mod directory from storage
+     * 
+     * @param Mod $mod The Mod entity
+     * @return void
+     */
+    public function deleteModStorageDirectory(Mod $mod)
+    {
+        Log::info('Deleting storage directory for mod ', $mod->getId());
+        
+        try {
+            $storageDir = $this->storageOptions->getModStorageDirectory($mod);
+        } catch (\Exception $exc) {
+            Log::warn('Failed to determine mod storage directory: ', $exc->getMessage());
+            return;
+        }
+        
+        Log::debug('Mod storage directory: ', $storageDir);
+        
+        if (!is_dir($storageDir)) {
+            Log::debug('Mod sotrage directory does not exist, nothing to delete');
+            return;
+        }
+        
+        if (@rmdir($storageDir) === false) {
+            Log::warn('Failed to delete mod storage directory');
+        }
+        
+        Log::debug('Mod storage directory successfuly removed');
+    }
+    
+    /**
      * Apply file operations queued by methods of this service that handle mod storage file changes - ideal conditions
      * are assumed: files exists, are readable/writable. Available disk space is checked though.
      * TODO: check if the conditions are not ideal
      * 
-     * @param Mod $mod the Mod entity
      * @return void
      * @throws Exception\UnexpectedError
      */
-    public function applyFileOperations(Mod $mod)
+    public function applyFileOperations()
     {
         Log::info('Applying queued file operations');
         

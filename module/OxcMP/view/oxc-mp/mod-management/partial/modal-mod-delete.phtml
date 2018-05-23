@@ -1,0 +1,50 @@
+<?php
+    use OxcMP\Entity\Mod;
+    
+    /* @var $mod Mod */
+    $deleteCode = str_split($mod->getDeleteCode(), 3);
+    
+    // TODO: use some proper math, string operations are horrible
+    $min = '1' . str_repeat('0', strlen($mod->getDeleteCode()) - 1);
+    $max = '9' . str_repeat('9', strlen($mod->getDeleteCode()) - 1);
+?>
+<div class="modal fade" id="delete-mod" tabindex="-1" role="dialog" aria-labelledby="delete-mod-title" aria-hidden="true" data->
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="delete-mod-title"><?php echo $this->translate('page_editmod_delete_title'); ?></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="<?php echo $this->translate('global_close'); ?>">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-white bg-danger p-3 rounded">
+                    <strong><?php echo $this->translate('page_editmod_delete_description'); ?></strong>
+                </p>
+                <p>
+                    <div class="form-group">
+                        <label for="delete-code"><?php echo $this->translate('page_editmod_delete_code_title') ?></label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><?php echo reset($deleteCode);?></span>
+                            </div>
+                            <input type="number" id="delete-code" class="form-control text-center" min="<?php echo $min; ?>" max="<?php echo $max; ?>" aria-describedby="delete-code-help" placeholder="<?php echo $this->translate('page_editmod_delete_code_placeholder') ?>" required>
+                            <div class="input-group-append">
+                                <span class="input-group-text"><?php echo end($deleteCode);?></span>
+                            </div>
+                        </div>
+                        <small id="delete-code-help" class="form-text text-muted"><?php echo $this->translate('page_editmod_delete_code_help') ?></small>
+                    </div>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <div class="progress w-100 mr-0 d-none">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated w-100" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div id="delete-error-message" class="alert alert-warning p-1 m-0 mr-1 ml-1 w-100 text-center d-none"></div>
+                <button type="button" id="delete-confirm" class="btn btn-danger"><?php echo $this->translate('page_editmod_delete_confirm'); ?></button>
+                <button type="button" id="delete-close" class="btn btn-secondary" data-dismiss="modal"><?php echo $this->translate('global_close') ?></button>
+            </div>
+        </div>
+    </div>
+</div>

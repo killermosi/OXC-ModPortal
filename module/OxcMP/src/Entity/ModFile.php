@@ -276,7 +276,7 @@ class ModFile
      * 
      * @return string
      */
-    function getDescription()
+    public function getDescription()
     {
         return $this->description;
     }
@@ -287,7 +287,7 @@ class ModFile
      * @param string $description The description
      * @return void
      */
-    function setDescription($description)
+    public function setDescription($description)
     {
         $this->description = $description;
     }
@@ -327,7 +327,7 @@ class ModFile
      * 
      * @return integer
      */
-    function getSize()
+    public function getSize()
     {
         return $this->size;
     }
@@ -338,7 +338,7 @@ class ModFile
      * @param integer $size The file size
      * @return void
      */
-    function setSize($size)
+    public function setSize($size)
     {
         $this->size = $size;
     }

@@ -182,14 +182,16 @@ class ModManagementController extends AbstractController
         
         $mod = new Mod();
         $mod->setTitle($modTitle);
-        $mod->setUserId = $this->authenticationService->getIdentity()->getId();
+        $mod->setUserId(
+            $this->authenticationService->getIdentity()->getId()
+        );
         
         try {
             $this->modPersistenceService->createMod($mod);
         } catch (\Exception $exc) {
             Log::notice('Unexpected error while creating the mod entity: ', $exc->getMessage());
             
-            $result->content = $this->translate('page_mymods_create_error_unknown');
+            $result->content = $this->translate('global_unexpected_error');
             return $result;
         }
         
@@ -373,7 +375,8 @@ class ModManagementController extends AbstractController
             return $result;
         }
         
-        // Everything went OK, build MyMods page URL
+        // Mod updated, redirect
+        // TODO: redirect to user's page when the mod is edited by an admin
         $result->success = true;
         $result->content = $this->url()->fromRoute('my-mods', [], ['force_canonical' => true]);
         
@@ -472,7 +475,7 @@ class ModManagementController extends AbstractController
         $validator = new SupportCode\ModValidator();
         
         // Collect data
-        $modId = $this->params()->fromRoute('modUuid', null);;
+        $modId = $this->params()->fromRoute('modUuid', null);
         $modTitle = $filter->buildModTitleFilter()->filter(
             $this->getRequest()->getPost('title', '')
         );
@@ -507,6 +510,82 @@ class ModManagementController extends AbstractController
         $this->modPersistenceService->buildModSlug($mod);
         $result->slug = $mod->getSlug();
         
+        return $result;
+    }
+    
+    /**
+     * Handle mod deletion
+     * 
+     * @return JsonModel
+     */
+    public function deleteModAction()
+    {
+        Log::info('Processing mod-management/delete-mod action');
+        
+        // Result
+        $result = new JsonModel();
+        $result->success = false;
+        $result->content = $this->translate('global_bad_request');;
+        
+        // Collect data
+        $modId = $this->params()->fromRoute('modUuid', null);
+        $deleteCode = $this->getRequest()->getPost('deleteCode', '');
+        
+        $validator = new SupportCode\ModValidator;
+        
+        if (!$validator->buildModUuidValidator()->isValid($modId)) {
+            Log::notice('Invalid mod UUID');
+            return $result;
+        }
+        
+        // Retrieve and check the mod
+        $mod = $this->modRetrievalService->getModById(Uuid::fromString($modId));
+        
+        if (!$mod instanceof Mod) {
+            Log::notice('Could not find a mod having the UUID ', $modId);
+            return $result;
+        }
+        
+        // Check that the user owns the mod
+        if (false == $this->authenticationService->getIdentity()->getIsAdministrator()
+            && $mod->getId() != $this->authenticationService->getIdentity()->getId()
+        ) {
+            Log::notice(
+                'Non-administrator user attempted to delete the mod having the UUID "',
+                $modId,
+                '"'
+            );
+            return $result;
+        }
+        
+        // Check the code
+        if ((int) $deleteCode !== (int) $mod->getDeleteCode()) {
+            Log::notice('Incorrect delete code');
+            $result->content = $this->translate('page_editmod_delete_error_invalid_code');
+            return $result;
+        }
+        
+        // Code is valid, try to delete the mod
+        try {
+            $this->modPersistenceService->deleteMod($mod);
+        } catch (\Exception $exc) {
+            Log::notice('Failed to delete mod:', $exc->getMessage());
+            $result->content = $this->translate('global_unexpected_error');
+            return $result;
+        }
+        
+        Log::debug('Mod succesfully deleted');
+        
+        // Mod deleted, redirect
+        // TODO: redirect to user's page when the mod is edited by an admin
+        $result->success = true;
+        $result->content = $this->url()->fromRoute('my-mods', [], ['force_canonical' => true]);
+        
+        // Place the success message in the FlashMessenger
+        $this->flashMessenger()->addSuccessMessage(           
+            $this->translate('page_mymods_delete_success', $this->escapeHtml($mod->getTitle()))
+        );
+         
         return $result;
     }
     

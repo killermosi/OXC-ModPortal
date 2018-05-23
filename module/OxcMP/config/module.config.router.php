@@ -153,6 +153,20 @@ return [
                 'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
             ],
         ],
+        'delete-mod' => [
+            'type'    => Segment::class,
+            'options' => [
+                'route'    => '/mod-management/delete-mod/:modUuid/',
+                'defaults' => [
+                    'controller' => Controller\ModManagementController::class,
+                    'action'     => 'delete-mod',
+                ],
+                'constraints' => [
+                    'modUuid' => trim(Uuid::VALID_PATTERN, '^$')
+                ],
+                'acl' => [Role::MEMBER, Role::ADMINISTRATOR]
+            ],
+        ],
         'preview-mod-slug' => [
             'type'    => Segment::class,
             'options' => [

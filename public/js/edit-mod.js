@@ -31,6 +31,8 @@ class EditModManager {
         this.backgroundManager = new BackgroundManager(this.$editModForm);
         this.fileManager = new FileManager(this.$editModForm);
         
+        this.deleteManager = new DeleteManager(this.$editModForm);
+        
         // Delay before making the slug preview request, in milliseconds
         this.modSlugPreviewDelay = 500;
         
@@ -238,6 +240,8 @@ class EditModManager {
      * @returns {undefined}
      */
     setLoadingState(self, state, message = null) {
+        $('button#btn-delete-mod', self.$editModForm).removeClass('mr-auto');
+        
         if (state === true) {
             $('div#error-message', self.$editModForm).addClass('d-none');
             $('button', self.$editModForm).attr('disabled','');
@@ -678,18 +682,18 @@ class FileManager {
         this.$editFileExtResource = $('span#edit-file-ext-resource', this.$editFileModal);
         this.$editFileExtImage = $('span#edit-file-ext-image', this.$editFileModal);
         
-        this.$editFileDescritption = $('input#image-caption', this.$editFileModal);
-        this.$editFileFilename = $('input#image-filename', this.$editFileModal);
-        this.$editFileOrder = $('input#image-order', this.$editFileModal);
+        this.$editFileDescritption = $('input#file-caption', this.$editFileModal);
+        this.$editFileFilename = $('input#file-filename', this.$editFileModal);
+        this.$editFileOrder = $('input#file-order', this.$editFileModal);
         
-        this.$editFileBtnDeleteCancel = $('button#image-delete-cancel', this.$editFileModal);
-        this.$editFileBtnDeleteConfirm = $('button#image-delete-confirm', this.$editFileModal);
-        this.$editFileBtnDelete = $('button#image-delete', this.$editFileModal);
-        this.$editFileBtnUpdate = $('button#image-update', this.$editFileModal);
-        this.$editFileBtnClose = $('button#image-close', this.$editFileModal);
+        this.$editFileBtnDeleteCancel = $('button#file-delete-cancel', this.$editFileModal);
+        this.$editFileBtnDeleteConfirm = $('button#file-delete-confirm', this.$editFileModal);
+        this.$editFileBtnDelete = $('button#file-delete', this.$editFileModal);
+        this.$editFileBtnUpdate = $('button#file-update', this.$editFileModal);
+        this.$editFileBtnClose = $('button#file-close', this.$editFileModal);
         
         this.$editImageProgress = $('div.progress', this.$editFileModal);
-        this.$editImageErrorMessage = $('div#error-message', this.$editFileModal);
+        this.$editImageErrorMessage = $('div#file-error-message', this.$editFileModal);
         
         this.canCloseEditFileModal = true;
         this.imageValidationUrl = this.$editModForm.data('validate-mod-file-action');
@@ -1051,6 +1055,126 @@ class FileManager {
         }
 
         imageCards[order - 1].before($imageCard[0]);
+    }
+}
+
+/**
+ * Handle mod deletion
+ */
+class DeleteManager {
+    /**
+     * Class initialization
+     * 
+     * @param {object} $editModForm The delete form
+     * @returns {DeleteManager}
+     */
+    constructor($editModForm) {
+        
+        this.codeLength = $editModForm.data('delete-mod-code-length');
+        this.modDeleteUrl = $editModForm.data('delete-mod-action');
+        
+        this.canClose = true;
+        
+        this.$modal = $('div#delete-mod');
+        
+        this.$deleteCodeInput = $('input#delete-code', this.$modal);
+        this.$deleteConfirmBtn = $('button#delete-confirm', this.$modal);
+        this.$deleteCloseBtn = $('button#delete-close', this.$modal);
+        
+        this.$progressBar = $('div.progress', this.$modal);
+        this.$errorMessage = $('div#delete-error-message', this.$modal);
+        
+        // Configure the modal to be empty on each activation
+        this.$modal.on('show.bs.modal', function(){
+            this.$deleteCodeInput.val('');
+            this.$deleteConfirmBtn.prop('disabled', true);
+            this.$progressBar.addClass('d-none');
+            this.$errorMessage.addClass('d-none');
+        }.bind(this));
+        
+        // Activate the delete button only if the typed code has the proper length
+        this.$deleteCodeInput.keyup(function(event){
+            // TODO: remove everything except digits from the input
+            var disabled = (this.$deleteCodeInput.val().length !== this.codeLength);
+
+            this.$deleteConfirmBtn.prop('disabled', disabled);
+            
+        }.bind(this));
+        
+        // Delete handler
+        this.$deleteConfirmBtn.click(function(event){
+            this.handleSubmit(this);
+        }.bind(this));
+        
+        // Don't close if there is something going on
+        this.$modal.on('hide.bs.modal', function(event){
+            if (this.canClose === false) {
+                event.preventDefault();
+            }
+        }.bind(this));
+        
+    }
+    
+    /**
+     * Set the modal loading state
+     * 
+     * @param {DeleteManager} self    The DeleteManager
+     * @param {boolean}       state   The loading state
+     * @param {string}        message Message to display
+     * @returns {undefined}
+     */
+    setLoadingState(self, state, message = false) {
+        if (state === true) {
+            self.canClose = false;
+            
+            self.$deleteCodeInput.prop('disabled', true);
+            self.$deleteConfirmBtn.prop('disabled', true);
+            self.$deleteCloseBtn.prop('disabled', true);
+            
+            self.$progressBar.removeClass('d-none');
+            self.$errorMessage.addClass('d-none');
+        } else {
+            self.canClose = true;
+            
+            self.$deleteCodeInput.prop('disabled', false);
+            self.$deleteConfirmBtn.prop('disabled', false);
+            self.$deleteCloseBtn.prop('disabled', false);
+            
+            self.$progressBar.addClass('d-none');
+            self.$errorMessage.removeClass('d-none').text(message);
+        }
+    }
+    
+    /**
+     * Handle the submit event
+     * @param {type} self
+     * @returns {undefined}
+     */
+    handleSubmit(self) {
+        var data = {
+            deleteCode: this.$deleteCodeInput.val()
+        };
+        
+        self.setLoadingState(self, true);
+        
+        $.ajax(self.modDeleteUrl, {
+            method: 'post',
+            data: data,
+            dataType: 'json'
+        })
+        .done(function(response){
+            // On failure show error
+            if (response.success === false) {
+                self.setLoadingState(self, false, response.content);
+                return;
+            }
+            
+            // On success redirect to the indicated page
+            window.location.href = response.content;
+        })
+        .fail(function(){
+            self.setLoadingState(self, false, Lang.global_unexpected_error);
+        });
     }
 }
 

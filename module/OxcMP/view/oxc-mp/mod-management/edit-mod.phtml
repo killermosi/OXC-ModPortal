@@ -73,6 +73,8 @@
     data-upload-file-chunk-action="<?php echo $this->url('upload-file-chunk', ['modUuid' => $mod->getId()->toString()], ['force_canonical' => true]); ?>"
     data-validate-mod-file-action="<?php echo $this->url('validate-mod-file', [], ['force_canonical' => true]); ?>"
     data-chunk-size="<?php echo $chunkSize; ?>"
+    data-delete-mod-code-length="<?php echo strlen($mod->getDeleteCode());?>"
+    data-delete-mod-action="<?php echo $this->url('delete-mod', ['modUuid' => $mod->getId()->toString()], ['force_canonical' => true]); ?>"
 >
     <script> var Lang = <?php echo json_encode($jsLang); ?>; </script>
     <div class="form-row">
@@ -246,12 +248,12 @@
         </div>
     </div>
     <div class="modal-footer">
+        <button type="button" id="btn-delete-mod" class="btn btn-danger mr-auto" data-toggle="modal" data-target="#delete-mod"><?php echo $this->translate('page_editmod_form_btn_delete') ?></button>
         <div id="progress" class="progress w-100 d-none">
             <div class="progress-bar progress-bar-striped progress-bar-animated w-100" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
-        <div id="error-message" class="alert alert-warning m-0 mr-2 p-1 w-100 text-center d-none">Some error text</div>
+        <div id="error-message" class="alert alert-warning mb-0 mr-2 p-1 w-100 text-center d-none">Some error text</div>
         <button type="submit" class="btn btn-primary"><?php echo $this->translate('page_editmod_form_btn_submit') ?></button>
-        <button type="button" class="btn btn-danger"><?php echo $this->translate('page_editmod_form_btn_delete') ?></button>
     </div>
 </form>
 <?php
@@ -259,3 +261,4 @@
      echo $this->partial('oxc-mp/mod-management/partial/modal-default-background.phtml') . PHP_EOL;
      echo $this->partial('oxc-mp/mod-management/partial/modal-multi-upload.phtml') . PHP_EOL;
      echo $this->partial('oxc-mp/mod-management/partial/modal-edit-file.phtml') . PHP_EOL;
+     echo $this->partial('oxc-mp/mod-management/partial/modal-mod-delete.phtml', ['mod' => $mod]) . PHP_EOL;

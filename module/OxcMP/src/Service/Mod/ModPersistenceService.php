@@ -101,6 +101,63 @@ class ModPersistenceService {
     }
     
     /**
+     * Delete a mod and all its associated data
+     * 
+     * @param Mod $mod The mod to delete
+     * @return void
+     * @throws \Exception
+     */
+    public function deleteMod(Mod $mod)
+    {
+        Log::info('Deleting mod ', $mod->getId());
+        
+        try {
+            // Everything goes into a transaction
+            $this->entityManager->getConnection()
+                                ->beginTransaction();
+            
+            // Delete files
+            $modFiles = $this->entityManager->getRepository(ModFile::class)
+                                            ->findBy(['modId' => $mod->getId()]);
+            
+            foreach ($modFiles as $modFile) {
+                $this->storageService->deleteModFile($mod, $modFile);
+                $this->entityManager->remove($modFile);
+            }
+            
+            // Delete tags
+            $this->entityManager->getRepository(ModTag::class)
+                                ->deleteTagsForMod($mod);
+            
+            // Keep a clone
+            $modClone = clone $mod;
+            
+            // Delete the actual mod
+            $this->entityManager->remove($mod);
+            
+            // Persist changes in the database
+            $this->entityManager->flush();
+            
+            // Persist changes on disk
+            $this->storageService->applyFileOperations();
+            
+            // Remove the cache for this mod
+            $this->storageService->removeModCacheDirectory($modClone);
+            
+            // Remove the mod storage directory
+            $this->storageService->deleteModStorageDirectory($modClone);
+            
+            // Commit the transaction
+            $this->entityManager->getConnection()
+                                ->commit();
+        } catch (\Exception $exc) {
+            Log::error('Failed to delete the mod: ', $exc->getMessage());
+            $this->entityManager->getConnection()
+                                ->rollBack();
+        }
+    }
+    
+    /**
      * Update an existing mod entity
      * 
      * @param Mod     $mod          The mod entity
@@ -157,8 +214,8 @@ class ModPersistenceService {
             $this->entityManager->flush();
             
             // Persist changes on disk
-            $this->storageService->applyFileOperations($mod);
-            
+            $this->storageService->applyFileOperations();
+
             // Clear the cache for this mod
             $this->storageService->removeModCacheDirectory($mod);
             
