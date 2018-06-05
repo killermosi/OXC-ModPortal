@@ -17,6 +17,9 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * New mod manager
+ */
 class NewModManager {
     /**
      * Class initialization

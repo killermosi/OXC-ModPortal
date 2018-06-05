@@ -17,6 +17,11 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * Edit mod manager
+ * 
+ * @type EditModManager
+ */
 class EditModManager {
     /**
      * Setup mod editing
@@ -254,6 +259,11 @@ class EditModManager {
     }
 }
 
+/**
+ * Tag manager
+ * 
+ * @type TagManager
+ */
 class TagManager {
     /**
      * Setup tag editing
@@ -432,6 +442,11 @@ class TagManager {
     }
 }
 
+/**
+ * Background manager
+ * 
+ * @type BackgroundManager
+ */
 class BackgroundManager {
     /**
      * Setup background editing
