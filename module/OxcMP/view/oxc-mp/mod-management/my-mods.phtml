@@ -3,16 +3,17 @@
 ?>
 <div class="row">
 <?php
-    // Add "add new mod" card first
-    echo $this->partial('oxc-mp/mod-management/partial/card-mod-new.phtml');
-    
-    echo PHP_EOL;
-
     // List all mods
     foreach ($mods as $mod) {
         echo $this->partial('oxc-mp/mod-management/partial/card-mod.phtml', ['mod' => $mod]);
         echo PHP_EOL;
     }
+    
+    echo PHP_EOL;
+    
+    // Add "add new mod" card last
+    echo $this->partial('oxc-mp/mod-management/partial/card-mod-new.phtml');
+
 ?>
 </div>
 <?php

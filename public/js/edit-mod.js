@@ -17,6 +17,8 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// TODO: Replace all attr() and removeAttr() calls with prop(true/false) calls
+
 /**
  * Edit mod manager
  * 
@@ -459,8 +461,8 @@ class BackgroundManager {
         this.$editModForm = $editModForm;
         this.$backgroundImage = $('img#background-image', this.$editModForm);
         this.$backgroundImageUpload = $('input#background-image-upload', this.$editModForm);
-        this.$btnUploadMod = $('button#upload-background', this.$editModForm);
-        this.$btnDefaultMod = $('button#default-background', this.$editModForm);
+        this.$btnUploadBackground = $('button#upload-background', this.$editModForm);
+        this.$btnDefaultBackground = $('button#default-background', this.$editModForm);
         this.$progressBarContainer = $('div#background-progress', this.$editModForm);
         this.$progressBar = $(':first-child', this.$progressBarContainer);
         this.$message = $('div#background-message', this.$editModForm);
@@ -468,15 +470,11 @@ class BackgroundManager {
         this.$btnUseDefaultBackground = $('button#use-default-background');
         this.$body = $('body#body');
         
+        // Configure the upload form initial state
         this.setFormState(this, false, false);
         
-        // Enable delete button if a background image is available
-        if (this.$backgroundImage.data('background-uuid').length !== 0) {
-            this.$btnDefaultMod.removeAttr('disabled');
-        }
-        
         // Handle events
-        this.$btnUploadMod.click(function(){this.$backgroundImageUpload.click();}.bind(this));
+        this.$btnUploadBackground.click(function(){this.$backgroundImageUpload.click();}.bind(this));
         this.$backgroundImageUpload.change(function(){this.handleUpload(this);}.bind(this));
         this.$btnUseDefaultBackground.click(function(){this.handleDefaultBackground(this);}.bind(this));
         
@@ -559,11 +557,8 @@ class BackgroundManager {
         img.onload = function(){
             self.$backgroundImage.attr('src', response.message.url);
             self.$body.css('background-image', 'url("' + response.message.url + '")');
-            self.setFormState(self, false, true, Lang.page_editmod_success_background);
-            
-            // Store the new background UUID only after the image was loaded and the user had the opportunity to
-            // review it
             self.$backgroundImage.data('background-uuid', response.slotUuid);
+            self.setFormState(self, false, true, Lang.page_editmod_success_background);
         };
         img.src = response.message.url;
     }
@@ -629,19 +624,20 @@ class BackgroundManager {
      * @returns {undefined}
      */
     setFormState(self, state, success = false, message = null) {
+        
         if (state === true) {
-            self.$btnUploadMod.attr('disabled', '');
-            self.$btnDefaultMod.attr('disabled', '');
+            self.$btnUploadBackground.attr('disabled', '');
+            self.$btnDefaultBackground.attr('disabled', '');
             self.$progressBarContainer.removeClass('d-none');
             self.$progressBar.css('width', '0%');
             self.$message.addClass('d-none');
         } else {
-            self.$btnUploadMod.removeAttr('disabled');
-            
-            if (self.$backgroundImage.data('background-uuid').length === 0) {
-                self.$btnDefaultMod.removeAttr('disabled');
+            self.$btnUploadBackground.removeAttr('disabled');
+            console.log('Background UUID:',self.$backgroundImage.data('background-uuid'));
+            if (self.$backgroundImage.data('background-uuid').length !== 0) {
+                self.$btnDefaultBackground.removeAttr('disabled');
             } else {
-                self.$btnDefaultMod.attr('disabled', '');
+                self.$btnDefaultBackground.attr('disabled', '');
             }
             
             self.$progressBarContainer.addClass('d-none');
