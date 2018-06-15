@@ -1,14 +1,30 @@
 <?php
-     /* @var $mod \OxcMP\Entity\Mod */
+    /* @var $mod \OxcMP\Entity\Mod */
+    /* @var $config \Zend\Config\Config */
+
+    list($width, $height) = explode('x', $config->storage->imageSize->b575);
+    
+    // Mod cover image
+    $coverImageUrl = 'img/mod-no-image.svg';
+    
+    if (!empty($mod->getCoverImage())) {
+        $coverImageUrl = $this->modImageUrl($mod, $mod->getCoverImage(), $width, $height);
+    }
+    
+    // Published status
+    $unpublishedClass = 'uc-stripe';
+    
+    if ($mod->getIsPublished()) {
+        $unpublishedClass = '';
+    }
 ?>
 <div class="col-sm-6 col-md-4 col-lg-3">
     <div class="card m-2">
-        <img class="card-img-top" src="img/logo.svg" alt="Add new mod">
-        <div class="card-body">
-            <h4 class="card-title">Add new mod</h4>
-            <p class="card-text">Add new mod description</p>
+        <img class="card-img-top" src="<?php echo $coverImageUrl; ?>" alt="<?php echo $this->translate('page_mymods_card_mod_cover_alt'); ?>">
+        <div class="card-body p-1">
+            <h5 class="card-title text-truncate m-0"><?php echo $this->escapeHtml($mod->getTitle()); ?></h5>
         </div>
-        <div class="card_footer">
+        <div class="card-footer text-right p-1 <?php echo $unpublishedClass; ?>">
             <a class="btn btn-primary" href="<?php echo $this->url('edit-mod', ['modUuid' =>  $mod->getId()->toString()], ['force_canonical' => true]) ?>">Edit</a>
         </div>
     </div>

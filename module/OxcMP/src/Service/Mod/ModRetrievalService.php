@@ -24,6 +24,7 @@ namespace OxcMP\Service\Mod;
 use Ramsey\Uuid\DegradedUuid as Uuid;
 use Doctrine\ORM\EntityManager;
 use OxcMP\Entity\Mod;
+use OxcMP\Entity\ModFile;
 use OxcMP\Entity\User;
 use OxcMP\Util\Log;
 
@@ -122,9 +123,35 @@ class ModRetrievalService
     {
         Log::info('Retrieving all mods belonging to user ID ', $user->getId()->toString());
         
+        // Retrieve the mods
         $mods = $this->entityManager->getRepository(Mod::class)->getModsByUser($user, $publishedModsOnly);
         
         Log::debug('Retrieved ', count($mods), ' mod(s)');
+        
+        // Retrieve the cover images
+        // TODO: Retrieve all at once and sort them after?
+        
+        $orderBy = ['fileOrder' => 'asc'];
+        
+        /* @var $mod Mod */
+        foreach ($mods as $mod) {
+            Log::debug('Retrieving cover image for mod ', $mod->getId());
+            
+            $criteria = [
+                'modId' => $mod->getId(),
+                'type' => ModFile::TYPE_IMAGE
+            ];
+            
+            $coverImage = $this->entityManager->getRepository(ModFile::class)->findOneBy($criteria, $orderBy);
+            
+            if ($coverImage instanceof ModFile) {
+                Log::debug('Cover found');
+            } else {
+                Log::debug('Cover not found');
+            }
+            
+            $mod->setCoverImage($coverImage);
+        }
         
         return $mods;
     }

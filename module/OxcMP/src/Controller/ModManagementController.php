@@ -141,6 +141,7 @@ class ModManagementController extends AbstractController
         $this->setLayoutData(null, $this->translate('page_mymods_title'), $this->buildMyModsDescriptionText($mods));
         
         $this->view->mods = $mods;
+        $this->view->config = $this->config;
         
         return $this->view;
     }

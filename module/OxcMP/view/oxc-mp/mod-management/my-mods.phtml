@@ -6,7 +6,7 @@
 <?php
     // List all mods
     foreach ($mods as $mod) {
-        echo $this->partial('oxc-mp/mod-management/partial/card-mod.phtml', ['mod' => $mod]);
+        echo $this->partial('oxc-mp/mod-management/partial/card-mod.phtml', ['mod' => $mod, 'config' => $config]);
         echo PHP_EOL;
     }
     

@@ -46,8 +46,8 @@ return [
     'page_mymods_description_ony_unpublished_mods' => 'You have created %s mod(s), all of which are unpublished',
     'page_mymods_description_published_and_unpublished_mods' => 'You have created %s mod(s), out of which %s mod(s) are unpublished',
     'page_mymods_card_new_mod_title' => 'Create new mod',
-    'page_mymods_card_new_mod_description' => 'Showcase your creativity',
     'page_mymods_card_new_btn_create' => 'Create',
+    'page_mymods_card_mod_cover_alt' => 'Mod cover image',
     'page_mymods_create_modal_title' => 'Create a new mod',
     'page_mymods_create_modal_mod_title_title' => 'Type a title for the mod:',
     'page_mymods_create_modal_mod_title_placeholder' => 'Mod title',
@@ -56,7 +56,7 @@ return [
     'page_mymods_create_error_title_length_short' => 'Title too short.',
     'page_mymods_create_error_title_length_long' => 'Title too long.',
     'page_mymods_create_error_title_characters_forbidden' => 'Title contains forbidden characters.',
-    'page_mymods_delete_success' => 'Mod "%s" successfully deleted',
+    
     // Edit Mod Page
     'page_editmod_title' => 'Edit mod',
     'page_editmod_description' => 'Make changes to your mod',

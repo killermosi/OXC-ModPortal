@@ -153,6 +153,12 @@ class Mod
     private $initialSlug;
     
     /**
+     * Temporary cover image for the mod
+     * @var ModFile
+     */
+    private $coverImage;
+    
+    /**
      * Class initialization
      */
     public function __construct()
@@ -414,6 +420,27 @@ class Mod
         return $this->initialSlug;
     }
     
+    /**
+     * Get the mod cover image
+     * 
+     * @return ModFile|null
+     */
+    public function getCoverImage()
+    {
+        return $this->coverImage;
+    }
+
+    /**
+     * Set the mod cover image
+     * 
+     * @param ModFile $coverImage The cover image
+     * @return void
+     */
+    public function setCoverImage(ModFile $coverImage = null)
+    {
+        $this->coverImage = $coverImage;
+    }
+   
     /**
      * Update the dateUpdated value
      * 

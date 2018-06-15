@@ -1,11 +1,10 @@
 <div class="col-sm-6 col-md-4 col-lg-3">
     <div class="card m-2">
-        <img class="card-img-top" src="img/mod-add.svg" alt="Add new mod">
-        <div class="card-body">
-            <h5 class="card-title"><?php echo $this->translate('page_mymods_card_new_mod_title') ?></h5>
-            <p class="card-text"><?php echo $this->translate('page_mymods_card_new_mod_description') ?></p>
+        <img class="card-img-top" src="img/mod-add.svg" alt="<?php echo $this->translate('page_mymods_card_new_mod_title') ?>">
+        <div class="card-body p-1">
+            <h5 class="card-title m-0"><?php echo $this->translate('page_mymods_card_new_mod_title') ?></h5>
         </div>
-        <div class="card-footer text-right">
+        <div class="card-footer text-right p-1">
             <a class="btn btn-primary" data-toggle="modal" data-target="#modNewModal" href="<?php echo $this->url('add-mod',[], ['force_canonical' => true]) ?>">
                 <?php echo $this->translate('page_mymods_card_new_btn_create') ?>
             </a>

@@ -18,6 +18,7 @@
  */
 
 /* Basic page structure, using flexbox */
+/* TODO: Use Bootstrap's flexbox */
 body, html{
     padding: 0;
     margin: 0;
@@ -54,7 +55,7 @@ div#header{
     Keep the body vertical scrollbar visible at all times (including when a
     modal is opened), and prevent the body from shifting with the modal open
 
-    TODO: Validate with multiple browsers and operating systems
+    TODO: Validate with multiple browsers and/or operating systems
 */
 
 body {
@@ -85,16 +86,6 @@ div#header{
     text-shadow: 1px 1px 2px #cccccc, 0 0 1em #cccccc, 0 0 0.2em #cccccc;
 }
 
-/* Cover the entire card with a link */
-div.card a.card-link span {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: 1;
-}
-
 .font-monospace {
     font-family: "Courier New", Courier, monospace
 }
@@ -113,21 +104,19 @@ div#tag-search-result > div {
     background: #ffffff
 }
 
-/*************************/
-/* Per-width adjustments */
-/*************************/
-
-/* Extra small devices (portrait phones, less than 576px) */
-@media (max-width: 575px) { 
-
-}
-
-/* Small devices (landscape phones, less than 768px) */
-@media (max-width: 767px) { 
-
-}
-
-/* Medium devices (tablets, less than 992px) */
-@media (max-width: 991px) { 
-
+/* Under construction background stripe */
+.uc-stripe {
+  background: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      #FFF 10px,
+      #FFF 20px
+    ),
+    linear-gradient(
+      to bottom,
+      #ffc107,
+      #FFDB1F
+    );
 }
