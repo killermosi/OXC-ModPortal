@@ -17,6 +17,8 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* global Lang */
+
 // TODO: Replace all attr() and removeAttr() calls with prop(true/false) calls
 
 /**
@@ -633,7 +635,7 @@ class BackgroundManager {
             self.$message.addClass('d-none');
         } else {
             self.$btnUploadBackground.removeAttr('disabled');
-            console.log('Background UUID:',self.$backgroundImage.data('background-uuid'));
+            
             if (self.$backgroundImage.data('background-uuid').length !== 0) {
                 self.$btnDefaultBackground.removeAttr('disabled');
             } else {

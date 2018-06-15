@@ -1,5 +1,6 @@
 <?php
-    $this->headScript()->appendFile('js/my-mods.js');
+    $this->headScript()->appendFile($this->url('home', [], ['force_canonical' => true]) . 'js/lang/my-mods.js');
+    $this->headScript()->appendFile($this->url('home', [], ['force_canonical' => true]) . 'js/my-mods.js');
 ?>
 <div class="row">
 <?php

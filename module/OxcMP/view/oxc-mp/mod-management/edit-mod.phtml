@@ -8,6 +8,7 @@
     /* @var $modTag \OxcMP\Entity\ModTag  */
     /* @var $gitHubFlavoredMarkdownGuideUrl string */
     
+    $this->headScript()->appendFile($this->url('home', [], ['force_canonical' => true]) . 'js/lang/edit-mod.js');
     $this->headScript()->appendFile($this->url('home', [], ['force_canonical' => true]) . 'js/edit-mod.js');
     
     // "Extract" some variables from the config
@@ -37,26 +38,6 @@
     $backgroundDefaultUrl = $this->defaultBackgroundUrl();
     $backgroundUrl = $this->modBackgroundUrl($mod, $modBackground);
     $backgroundUuid = ($modBackground instanceof \OxcMP\Entity\ModFile) ? $modBackground->getId()->toString() : '';
-    
-    // Some translations that are needed by JS
-    // TODO: Embed them in a json somewhere?
-    $jsLangKeys = [
-        'global_unexpected_error',
-        'global_chunk_upload_unsupported',
-        'page_editmod_success_background',
-        'page_editmod_success_background_default',
-        'page_editmod_error_multi_upload_abort',
-        'page_editmod_error_multi_upload_failure',
-        'page_editmod_success_multi_upload',
-        'page_editmod_error_file_upload_abort',
-        'page_editmod_error_file_upload_retry',
-    ];
-    
-    $jsLang = [];
-    foreach ($jsLangKeys as $jsLangKey) {
-        $jsLang[$jsLangKey] = $this->translate($jsLangKey);
-    }
-
 ?>
 <form 
     name="editMod"
@@ -76,7 +57,6 @@
     data-delete-mod-code-length="<?php echo strlen($mod->getDeleteCode());?>"
     data-delete-mod-action="<?php echo $this->url('delete-mod', ['modUuid' => $mod->getId()->toString()], ['force_canonical' => true]); ?>"
 >
-    <script> var Lang = <?php echo json_encode($jsLang); ?>; </script>
     <div class="form-row">
         <div class="form-group col-sm-12 col-md-4">
             <label for="title"><?php echo $this->translate('page_editmod_form_title_title'); ?></label>

@@ -17,6 +17,10 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/***********************************************/
+/* Note: This is a generated file, do not edit */
+/***********************************************/
+
 /**
  * Language strings
  *

@@ -2,7 +2,7 @@
 
 // See the generator comments for details
 return [
-    'add-mod' => [
+    'my-mods' => [
         'global_unexpected_error'
     ],
     'edit-mod' => [

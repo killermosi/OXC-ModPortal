@@ -17,6 +17,8 @@
  * along with OpenXcom Mod Portal. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* global Lang */
+
 /**
  * New mod manager
  */
@@ -27,77 +29,80 @@ class NewModManager {
      * @returns {NewModManager}
      */
     constructor() {
-        this.$createModForm = $('form#createMod');
-        this.$createModForm.submit(this.handleSubmit);
+        // Modal and form
+        this.$modal = $('div#modNewModal');
+        this.$createModForm = $('form#createMod', this.$modal);
         
-        this.loadingState = false;
-        $('div#modNewModal').on('hide.bs.modal', this.handleClose);
+        // Inputs
+        this.$titleInput = $('input[name="modTitle"]', this.$createModForm);
+        this.$submitBtn = $('button[type="submit"]', this.$createModForm);
+        this.$closeBtn = $('button[type="button"]', this.$createModForm);
+        
+        // Indicators
+        this.$progressBar = $('div.progress', this.$createModForm);
+        this.$errorMessage = $('div#error-message', this.$createModForm);
+        
+        // Handle submit
+        this.$createModForm.submit(function(event){
+            this.handleSubmit(this, event);
+        }.bind(this));
+        
+        // If the modal can be closed
+        this.canClose = true;
+        
+        // Handle close
+        this.$modal.on('hide.bs.modal', function(event){
+            this.handleClose(this, event)
+        }.bind(this));
     }
     
     /**
      * Handle form submission
      * 
-     * @param {event} event The event
+     * @param {NewModManager} self  The NewModManager
+     * @param {object}        event The event
      * @returns {undefined}
      */
-    handleSubmit(event) {
+    handleSubmit(self, event) {
+        // Don't do the standard submit
         event.preventDefault();
         
-        newModManager.setLoadingState(true);
-        $('input[name="modName"]', newModManager.$createModForm).removeClass('is-invalid');
-        $('div#error-message', newModManager.$createModForm).addClass('d-none');
+        // Set the proper state
+        self.setLoadingState(self, true);
         
-        $.ajax(newModManager.$createModForm.attr('action'), {
+        $.ajax(self.$createModForm.attr('action'), {
             method: 'post',
-            data: newModManager.$createModForm.serialize(),
+            data: {
+                modTitle: self.$titleInput.val()
+            },
             dataType: 'json'
         })
-        .done(newModManager.handleSubmitDone)
-        .fail(newModManager.handleSubmitFail);
-    }
-    
-    /**
-     * Handle form success submission result
-     * 
-     * @param {jqXHR}  data       The received response
-     * @param {string} textStatus Textual status message
-     * @param {jqXHR}  jqXHR      The jqXHR object
-     * @returns {undefined}
-     */
-    handleSubmitDone(data, textStatus, jqXHR) {
-        if (data.success) {
-            window.location.href = data.content;
-            return;
-        }
-        
-        $('div#error-message', newModManager.$createModForm).text(data.content).removeClass('d-none');
-        $('input[name="modName"]', newModManager.$createModForm).addClass('is-invalid');
-        newModManager.setLoadingState(false);
-        
-    }
-    
-    /**
-     * Handle form failed submission
-     * 
-     * @param {jqXHR}   jqXHR       The jqXHR object
-     * @param {string}  textStatus  Textual status message
-     * @param {integer} errorThrown Error thrown
-     * @returns {undefined}
-     */
-    handleSubmitFail(jqXHR, textStatus, errorThrown) {
-        newModManager.setLoadingState(false);
-        alert('Unexpected error, please try again');
+        .done(function(data){
+            // On success, go to the mod page without further ado
+            if (data.success) {
+                window.location.href = data.content;
+                return;
+            }
+            
+            // On fail, show error
+            self.setLoadingState(self, false, data.content);
+        })
+        .fail(function(){
+            // On AJAX failure, show a generic message
+            self.setLoadingState(self, false, Lang.global_unexpected_error);
+        });
     }
     
     /**
      * Handle modal close
      * 
-     * @param {type} event The event
+     * @param {NewModManager} self  The NewModManager
+     * @param {object}        event The event
      * @returns {undefined}
      */
-    handleClose(event) {
-        // Prevent closing the dialog whan waiting for data
-        if (newModManager.loadingState === true) {
+    handleClose(self, event) {
+        // Prevent closing the dialog when waiting for data
+        if (self.canClose === false) {
             event.preventDefault();
         }
     }
@@ -105,19 +110,34 @@ class NewModManager {
     /**
      * Set the loading state for the new mod modal
      * 
-     * @param {boolean} state The state
+     * @param {NewModManager} self    The NewModManager
+     * @param {boolean}       state   The loading state
+     * @param {string}        message The message to display
      * @returns {undefined}
      */
-    setLoadingState(state) {
-        newModManager.loadingState = state;
+    setLoadingState(self, state, message) {
+        // Prevent/allow manual modal close
+        self.canClose = !state;
+        
+        // Properties
+        self.$titleInput.prop('disabled', state);
+        self.$submitBtn.prop('disabled', state);
+        self.$closeBtn.prop('disabled', state);
+        
+        // Visibility
         if (state) {
-            $('button', newModManager.$createModForm).attr('disabled','');
-            $('div.progress', newModManager.$createModForm).removeClass('d-none');
+            // Loading on
+            self.$progressBar.removeClass('d-none');
+            self.$errorMessage.addClass('d-none');
         } else {
-            $('button', newModManager.$createModForm).removeAttr('disabled');
-            $('div.progress', newModManager.$createModForm).addClass('d-none');
+            // Loading off
+            self.$progressBar.addClass('d-none');
+            self.$errorMessage.removeClass('d-none').text(message);
         }
     }
 }
 
-var newModManager = new NewModManager();
+// Boot it up
+$(function(){
+    new NewModManager();
+});
