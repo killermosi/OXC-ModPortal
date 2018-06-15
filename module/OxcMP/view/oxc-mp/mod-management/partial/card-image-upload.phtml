@@ -1,8 +1,11 @@
 <div class="col-sm-6 col-md-4 col-lg-3">
     <div class="card m-2">
         <img class="card-img-top" src="<?php echo $this->staticUrl('img/mod-add-image.svg'); ?>" alt="<?php echo $this->translate('page_editmod_form_gallery_add'); ?>">
-        <div class="card-footer text-right">
-            <button type="button" id="add-image" class="btn btn-primary"><?php echo $this->translate('page_editmod_form_gallery_add'); ?></button>
+        <div class="card-body p-1">
+            <input type="text" class="form-control form-control-sm" value="<?php echo $this->translate('page_editmod_form_gallery_add_txt'); ?>" disabled/>
+        </div>
+        <div class="card-footer text-right p-1">
+            <button type="button" id="add-image" class="btn btn-primary"><?php echo $this->translate('page_editmod_form_gallery_add_btn'); ?></button>
         </div>
     </div>
     <input id="upload-image" type="file" class="d-none" multiple accept="image/*"/>

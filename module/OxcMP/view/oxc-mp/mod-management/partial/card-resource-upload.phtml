@@ -1,17 +1,22 @@
-<div class="col-sm-6 col-md-4 col-lg-3">
-    <div class="card m-2">
-        <img class="card-img-top" src="<?php echo $this->staticUrl('img/mod-add-resource.svg'); ?>" alt="<?php echo $this->translate('page_editmod_form_resources_add'); ?>">
-        <div class="card-footer text-right">
-            <button type="button" id="add-resource" class="btn btn-primary"><?php echo $this->translate('page_editmod_form_resources_add'); ?></button>
+<div class="col-md-6 col-lg-6">
+    <div class="card m-2 d-flex flex-row">
+        <div class="card-body p-1">
+            <?php
+                // Note: The input-group structure and the input border-right-0 class is needed to adjust
+                // the height of the input to match the one from the other files
+                // 
+                // TODO: find a way to match the height of the elements without this hack
+            ?>
+            <div class="input-group">
+                <input type="text" class="form-control form-control-sm border-right-0" value="<?php echo $this->translate('page_editmod_form_resources_add_txt'); ?>" disabled />
+                <div class="input-group-append">
+                    <span class="input-group-text">&nbsp;</span>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer p-1 border-top-0 border-left">
+            <button type="button" id="add-resource" class="btn btn-primary"><?php echo $this->translate('page_editmod_form_resources_add_btn'); ?></button>
         </div>
     </div>
     <input id="upload-resource" type="file" class="d-none" multiple accept="application/zip"/>
 </div>
-<!--<div class="col-sm-6 col-md-4 col-lg-3">
-    <div class="card m-2">
-        <img class="card-img-top" src="<?php echo $this->staticUrl('img/mod-add-resource.svg'); ?>" alt="<?php echo $this->translate('page_editmod_form_resources_add'); ?>">
-        <div class="card-footer text-right">
-            <button type="button" id="add-resource" class="btn btn-primary"><?php echo $this->translate('page_editmod_form_resources_add'); ?></button>
-        </div>
-    </div>
-</div>-->
